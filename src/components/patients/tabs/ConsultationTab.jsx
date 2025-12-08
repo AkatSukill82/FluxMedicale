@@ -1,0 +1,113 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Loader2, Plus, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import VitalSignsChart from '../../clinical/VitalSignsChart';
+import CareGoalsPanel from '../../clinical/CareGoalsPanel';
+import ContextualInspector from '../../clinical/ContextualInspector';
+
+export default function ConsultationTab({ patient }) {
+  const queryClient = useQueryClient();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedConsultation, setSelectedConsultation] = useState(null);
+
+  const { data: consultations = [], isLoading } = useQuery({
+    queryKey: ['consultations', patient.id],
+    queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation'),
+    enabled: !!patient?.id
+  });
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const { data: vitalSigns = [] } = useQuery({
+    queryKey: ['vital-signs', patient.id],
+    queryFn: () => base44.entities.VitalSigns.filter({ patient_id: patient.id }, '-measured_at'),
+    enabled: !!patient?.id
+  });
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
+  }
+  
+  if (isFormOpen || selectedConsultation) {
+    // Placeholder for ConsultationForm
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{selectedConsultation ? "Détails de la consultation" : "Nouvelle consultation"}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground py-8">
+            Le formulaire de consultation sera implémenté ici.
+          </p>
+          <Button onClick={() => {setIsFormOpen(false); setSelectedConsultation(null);}}>Retour</Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Contextual Inspector */}
+      <ContextualInspector 
+        patient={patient}
+        consultations={consultations}
+        vitalSigns={vitalSigns}
+      />
+
+      {/* Vital Signs Chart */}
+      <VitalSignsChart patientId={patient.id} />
+
+      {/* Care Goals */}
+      <CareGoalsPanel patientId={patient.id} />
+
+      <div className="flex justify-end">
+        <Button onClick={() => setIsFormOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nouvelle Consultation
+        </Button>
+      </div>
+      {consultations.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">Aucune consultation enregistrée pour ce patient.</p>
+      ) : (
+        <div className="space-y-4">
+          {consultations.map(consult => {
+            const consultDate = consult.date_consultation ? new Date(consult.date_consultation) : null;
+            const isValidDate = consultDate && !isNaN(consultDate.getTime());
+            
+            return (
+              <Card key={consult.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedConsultation(consult)}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold text-primary">{consult.motif || "Consultation générale"}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                          {isValidDate 
+                            ? format(consultDate, 'd MMMM yyyy, HH:mm', { locale: fr })
+                            : 'Date non disponible'
+                          }
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {consult.medecin_email ? `Dr. ${consult.medecin_email.split('@')[0]}` : 'Médecin inconnu'}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
