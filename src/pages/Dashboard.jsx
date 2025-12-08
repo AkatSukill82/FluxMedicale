@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Search,
@@ -11,11 +12,15 @@ import {
   ArrowRight,
   Loader2,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Download,
+  Activity,
+  Zap,
+  XCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { fr, nl, enUS } from "date-fns/locale";
 import { useEIDReader } from "../components/eid/useEIDReader";
 import EIDInstallationModal from "../components/eid/EIDInstallationModal";
@@ -25,10 +30,7 @@ import { useAutoOpenEID } from '../components/eid/useAutoOpenEID';
 import { useI18n } from '../components/i18n/i18nContext';
 import QuickActions from '../components/dashboard/QuickActions';
 import NewPatientDialog from '../components/patients/NewPatientDialog';
-import DashboardAnalytics from '../components/dashboard/DashboardAnalytics';
-import TodayAppointments from '../components/dashboard/TodayAppointments';
-import RecentPatients from '../components/dashboard/RecentPatients';
-import AlertsPanel from '../components/dashboard/AlertsPanel';
+
 
 export default function Dashboard() {
   const { t, locale } = useI18n();
@@ -48,20 +50,7 @@ export default function Dashboard() {
     queryFn: () => base44.entities.Patient.list("-created_date", 200)
   });
 
-  const { data: appointments = [], isLoading: isLoadingAppointments } = useQuery({
-    queryKey: ['appointments'],
-    queryFn: () => base44.entities.RendezVous.list("-date", 100)
-  });
 
-  const { data: invoices = [], isLoading: isLoadingInvoices } = useQuery({
-    queryKey: ['invoices'],
-    queryFn: () => base44.entities.Invoice.list("-invoice_date", 100)
-  });
-
-  const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
-    queryKey: ['consultations'],
-    queryFn: () => base44.entities.Consultation.list("-date_consultation", 100)
-  });
 
   const { isReading, error: eidError, eidStatus, readEID, detectMiddleware } = useEIDReader();
   const { isEnabled: autoOpenEnabled, agentStatus, toggleAutoOpen, checkAgentStatus } = useAutoOpenEID();
@@ -136,19 +125,7 @@ export default function Dashboard() {
     }
   };
 
-  const todayAppointments = useMemo(() => {
-    const today = new Date();
-    return appointments.filter(apt => {
-      if (!apt.date) return false;
-      const aptDate = new Date(apt.date);
-      if (isNaN(aptDate.getTime())) return false;
-      return format(aptDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-    });
-  }, [appointments]);
 
-  const recentPatients = useMemo(() => {
-    return patients.slice(0, 5);
-  }, [patients]);
 
   return (
     <div className="space-y-6">
@@ -210,34 +187,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-      </div>
-
-      {/* Analytics Dashboard */}
-      <DashboardAnalytics 
-        patients={patients}
-        appointments={appointments}
-        invoices={invoices}
-        consultations={consultations}
-        isLoading={isLoadingPatients || isLoadingAppointments || isLoadingInvoices}
-      />
-
-      {/* Alerts Panel */}
-      <AlertsPanel 
-        appointments={appointments}
-        patients={patients}
-      />
-
-      {/* Today's Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TodayAppointments 
-          appointments={todayAppointments}
-          patients={patients}
-          isLoading={isLoadingAppointments}
-        />
-        <RecentPatients 
-          patients={recentPatients}
-          isLoading={isLoadingPatients}
-        />
       </div>
 
       {/* Quick Actions Cards */}
