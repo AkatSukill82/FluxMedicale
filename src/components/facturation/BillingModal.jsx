@@ -25,7 +25,6 @@ import {
 import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
-import { FileText } from 'lucide-react';
 
 export default function BillingModal({ patient, isOpen, onClose }) {
   const { t, locale } = useI18n();
