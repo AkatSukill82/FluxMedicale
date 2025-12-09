@@ -180,38 +180,75 @@ export default function FacturationPage() {
   const uniqueMedecins = [...new Set(initialData?.allInvoices.map(inv => inv.created_by).filter(Boolean))];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Facturation Globale</h1>
-          <p className="text-muted-foreground">Suivi centralisé des attestations et paiements</p>
+    <div className="flex h-full gap-6">
+      {/* Sidebar gauche - Liste des clients */}
+      <aside className="w-80 bg-white rounded-lg border border-slate-200 p-4 overflow-y-auto">
+        <div className="mb-4">
+          <h2 className="font-semibold text-slate-900 mb-3">Clients facturables</h2>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Rechercher un client"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="pl-9"
+            />
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={handleSaveFilters} disabled={isSavingFilters}>
-            {isSavingFilters ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Settings className="w-4 h-4 mr-2" />}
-            Sauvegarder filtres
-          </Button>
-          <Button onClick={handleExportCSV} disabled={isExporting}>
-            {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-            Export CSV
-          </Button>
-        </div>
-      </div>
-
-      <Card className="shadow-sm border-slate-200">
-        <CardContent className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="relative flex-1 min-w-[250px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par N° facture, patient, montant..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="pl-9"
-              />
+        
+        <div className="space-y-2">
+          {isLoadingInitial ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
             </div>
-             <Select value={filters.period} onValueChange={(v) => handleFilterChange('period', v)}>
-                <SelectTrigger className="w-auto">
+          ) : (
+            initialData?.patients.slice(0, 20).map(p => {
+              const officialName = p.name?.find(n => n.use === 'official') || {};
+              const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
+              const invoiceCount = filteredInvoices.filter(inv => inv.patient_id === p.id).length;
+              
+              return (
+                <button
+                  key={p.id}
+                  className="w-full p-3 text-left rounded-lg border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="font-medium text-slate-900 text-sm">{fullName}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{invoiceCount} facture(s)</p>
+                    </div>
+                    {invoiceCount > 0 && (
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    )}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </aside>
+
+      {/* Zone principale */}
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-slate-900">Facturation</h1>
+          <div className="flex gap-3">
+            <Button variant="outline" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Nouvelle facture
+            </Button>
+          </div>
+        </div>
+
+        <Card className="border-slate-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Select value={filters.period} onValueChange={(v) => handleFilterChange('period', v)}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -221,92 +258,46 @@ export default function FacturationPage() {
                   <SelectItem value="all">Tout</SelectItem>
                 </SelectContent>
               </Select>
-               <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
-                <SelectTrigger className="w-auto">
-                   <SelectValue placeholder="Statut" />
+              
+              <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">Tous statuts</SelectItem>
+                  <SelectItem value="ALL">Tous</SelectItem>
                   <SelectItem value="PAID">Payée</SelectItem>
                   <SelectItem value="SENT">Envoyée</SelectItem>
                   <SelectItem value="REJECTED">Refusée</SelectItem>
                 </SelectContent>
               </Select>
-            <Collapsible open={isAdvancedFiltersOpen} onOpenChange={setIsAdvancedFiltersOpen}>
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  Filtres avancés
-                  <ChevronDown className={cn("w-4 h-4 transition-transform", isAdvancedFiltersOpen && "rotate-180")} />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent asChild>
-                <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                >
-                    <div className="flex flex-wrap items-center gap-4 mt-4 p-4 border rounded-lg bg-muted/50">
-                       <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
-                         <SelectTrigger className="w-auto"><SelectValue placeholder="Type" /></SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="ALL">Tous types</SelectItem>
-                           <SelectItem value="EFACT">eFact</SelectItem>
-                           <SelectItem value="EATTEST">eAttest</SelectItem>
-                           <SelectItem value="PAPER">Papier</SelectItem>
-                         </SelectContent>
-                       </Select>
-                       <Select value={filters.medecin} onValueChange={(v) => handleFilterChange('medecin', v)}>
-                         <SelectTrigger className="w-auto"><SelectValue placeholder="Médecin" /></SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="ALL">Tous médecins</SelectItem>
-                           {uniqueMedecins.map(email => (<SelectItem key={email} value={email}>{email.split('@')[0]}</SelectItem>))}
-                         </SelectContent>
-                       </Select>
-                    </div>
-                </motion.div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        </CardContent>
-      </Card>
-      
-       <AnimatePresence mode="wait">
-        <motion.div
-          key={isLoadingInitial || isPending ? 'loading' : 'content'}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          {isLoadingInitial || isPending ? (
-             <div className="flex justify-center items-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-          ) : (
-            <Tabs defaultValue="invoices" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="invoices" className="flex items-center gap-2"><FileText className="w-4 h-4" />Factures ({filteredInvoices.length})</TabsTrigger>
-                <TabsTrigger value="mycarenet" className="flex items-center gap-2"><Send className="w-4 h-4" />Envois OA ({filteredTransactions.length})</TabsTrigger>
-                <TabsTrigger value="recap" className="flex items-center gap-2"><TrendingUp className="w-4 h-4" />Récapitulatif</TabsTrigger>
-              </TabsList>
-              <TabsContent value="invoices" className="mt-6">
-                {filteredInvoices.length > 0 ? 
-                  <GlobalInvoicesTable invoices={filteredInvoices} currentUser={currentUser} isLoading={false} />
-                  : <EmptyState />
-                }
-              </TabsContent>
-              <TabsContent value="mycarenet" className="mt-6">
-                <GlobalMyCareNetTable transactions={filteredTransactions} invoices={filteredInvoices} currentUser={currentUser} isLoading={false} />
-              </TabsContent>
-              <TabsContent value="recap" className="mt-6">
-                 <GlobalFacturationRecap invoices={filteredInvoices} transactions={filteredTransactions} filters={filters} onExportPDF={() => {}}/>
-              </TabsContent>
-            </Tabs>
-          )}
-        </motion.div>
-      </AnimatePresence>
 
+              <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Tous types</SelectItem>
+                  <SelectItem value="EFACT">eFact</SelectItem>
+                  <SelectItem value="EATTEST">eAttest</SelectItem>
+                  <SelectItem value="PAPER">Papier</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+      
+        {isLoadingInitial || isPending ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : filteredInvoices.length > 0 ? (
+          <Card className="border-slate-200">
+            <GlobalInvoicesTable invoices={filteredInvoices} currentUser={currentUser} isLoading={false} />
+          </Card>
+        ) : (
+          <EmptyState />
+        )}
+      </div>
     </div>
   );
 }
