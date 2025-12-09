@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { 
   Search, 
+  Plus, 
   Trash2, 
   Send, 
   Save,
@@ -18,11 +19,13 @@ import {
   Euro,
   Receipt,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
+import { FileText } from 'lucide-react';
 
 export default function BillingModal({ patient, isOpen, onClose }) {
   const { t, locale } = useI18n();
@@ -65,7 +68,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
   const total = acts.reduce((sum, act) => sum + act.amount, 0);
   const remaining = total - (parseFloat(amountPaid) || 0);
 
-  const handleSend = async () => {
+  const handleSend = async (generateAttestation = false) => {
     setIsSending(true);
     try {
       const currentUser = await base44.auth.me();
@@ -77,9 +80,9 @@ export default function BillingModal({ patient, isOpen, onClose }) {
         type: 'EATTEST',
         payment_method: paymentMethod,
         status: 'SENT',
-        total_amount: total,
-        patient_contribution: parseFloat(amountPaid) || 0,
-        insurance_contribution: total - (parseFloat(amountPaid) || 0),
+        total_amount: total * 100,
+        patient_contribution: (parseFloat(amountPaid) || 0) * 100,
+        insurance_contribution: (total - (parseFloat(amountPaid) || 0)) * 100,
         invoice_date: new Date().toISOString().split('T')[0],
         created_by: currentUser.email
       });
@@ -97,7 +100,13 @@ export default function BillingModal({ patient, isOpen, onClose }) {
         })
       ));
 
-      toast.success('Facture envoyée avec succès');
+      if (generateAttestation) {
+        toast.success('Facture créée - Génération de l\'attestation...');
+        // L'attestation sera générée séparément
+      } else {
+        toast.success('Facture envoyée avec succès');
+      }
+      
       onClose();
     } catch (error) {
       console.error('Billing error:', error);
@@ -304,7 +313,21 @@ export default function BillingModal({ patient, isOpen, onClose }) {
               Sauvegarder
             </Button>
             <Button 
-              onClick={handleSend} 
+              onClick={() => handleSend(true)} 
+              disabled={isSending || acts.length === 0}
+              size="lg"
+              variant="outline"
+              className="px-8"
+            >
+              {isSending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4 mr-2" />
+              )}
+              Avec attestation
+            </Button>
+            <Button 
+              onClick={() => handleSend(false)} 
               disabled={isSending || acts.length === 0}
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 px-8"

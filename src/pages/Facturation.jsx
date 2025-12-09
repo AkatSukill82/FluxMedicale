@@ -35,6 +35,7 @@ import GlobalMyCareNetTable from '../components/facturation/GlobalMyCareNetTable
 import GlobalFacturationRecap from '../components/facturation/GlobalFacturationRecap';
 import RecurringInvoiceManager from '../components/facturation/RecurringInvoiceManager';
 import PaymentReminderSystem from '../components/facturation/PaymentReminderSystem';
+import PaymentTracker from '../components/facturation/PaymentTracker';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -235,6 +236,7 @@ export default function FacturationPage() {
         <Tabs defaultValue="invoices">
           <TabsList>
             <TabsTrigger value="invoices">Factures</TabsTrigger>
+            <TabsTrigger value="payments">Suivi des paiements</TabsTrigger>
             <TabsTrigger value="recurring">Factures récurrentes</TabsTrigger>
             <TabsTrigger value="reminders">Relances</TabsTrigger>
           </TabsList>
@@ -307,6 +309,10 @@ export default function FacturationPage() {
         ) : (
           <EmptyState />
         )}
+          </TabsContent>
+
+          <TabsContent value="payments">
+            <PaymentTracker />
           </TabsContent>
 
           <TabsContent value="recurring">
