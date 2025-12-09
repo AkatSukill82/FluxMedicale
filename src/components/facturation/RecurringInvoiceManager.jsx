@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Plus, Play, Pause, Trash2, Calendar, Euro, RefreshCw } from 'lucide-react';
+import { Plus, Play, Pause, Trash2, Calendar, Euro, RefreshCw, Pill } from 'lucide-react';
 import { format, addDays, addMonths, addWeeks, addYears } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
+import MedicationSearch from '../medications/MedicationSearch';
 
 export default function RecurringInvoiceManager() {
   const queryClient = useQueryClient();
@@ -26,7 +27,8 @@ export default function RecurringInvoiceManager() {
     end_date: '',
     payment_method: 'BANK',
     auto_send: true,
-    invoice_lines: []
+    invoice_lines: [],
+    medications: []
   });
 
   const { data: recurringInvoices = [] } = useQuery({
@@ -129,9 +131,26 @@ export default function RecurringInvoiceManager() {
       end_date: '',
       payment_method: 'BANK',
       auto_send: true,
-      invoice_lines: []
+      invoice_lines: [],
+      medications: []
     });
     setSelectedInvoice(null);
+  };
+
+  const handleAddMedication = (drug) => {
+    setFormData({
+      ...formData,
+      medications: [
+        ...formData.medications,
+        {
+          drug_id: drug.id,
+          drug_name: drug.product_name,
+          dosage: `${drug.strength} ${drug.unit}`,
+          quantity: 1,
+          price: 0
+        }
+      ]
+    });
   };
 
   const handleAddLine = (nomenCode) => {
@@ -348,7 +367,19 @@ export default function RecurringInvoiceManager() {
               <NomenSearch onSelect={handleAddLine} selectedCodes={formData.invoice_lines} />
             </div>
 
-            {formData.invoice_lines.length > 0 && (
+            <div>
+              <Label className="flex items-center gap-2">
+                <Pill className="w-4 h-4" />
+                Médicaments à facturer
+              </Label>
+              <MedicationSearch 
+                onSelect={handleAddMedication} 
+                selectedMedications={formData.medications}
+                showPrice={true}
+              />
+            </div>
+
+            {(formData.invoice_lines.length > 0 || formData.medications.length > 0) && (
               <div className="space-y-2">
                 {formData.invoice_lines.map((line, idx) => (
                   <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded">
@@ -371,12 +402,50 @@ export default function RecurringInvoiceManager() {
                     </div>
                   </div>
                 ))}
+
+                {formData.medications.map((med, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-3 bg-green-50 rounded border border-green-200">
+                    <div className="flex items-center gap-2">
+                      <Pill className="w-4 h-4 text-green-600" />
+                      <div>
+                        <p className="font-medium">{med.drug_name}</p>
+                        <p className="text-sm text-slate-600">{med.dosage}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="number"
+                        value={med.price}
+                        onChange={(e) => {
+                          const newMeds = [...formData.medications];
+                          newMeds[idx].price = parseFloat(e.target.value) || 0;
+                          setFormData({...formData, medications: newMeds});
+                        }}
+                        placeholder="Prix"
+                        className="w-24 h-8"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setFormData({
+                          ...formData,
+                          medications: formData.medications.filter((_, i) => i !== idx)
+                        })}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
                 
                 <div className="bg-blue-50 p-4 rounded">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold">Total</span>
                     <span className="text-2xl font-bold text-blue-600">
-                      {formData.invoice_lines.reduce((sum, line) => sum + line.amount, 0).toFixed(2)}€
+                      {(
+                        formData.invoice_lines.reduce((sum, line) => sum + line.amount, 0) +
+                        formData.medications.reduce((sum, med) => sum + (med.price || 0), 0)
+                      ).toFixed(2)}€
                     </span>
                   </div>
                 </div>

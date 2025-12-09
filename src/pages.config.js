@@ -17,6 +17,7 @@ import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import FollowUpTasks from './pages/FollowUpTasks';
 import ReferentialImport from './pages/ReferentialImport';
 import Statistics from './pages/Statistics';
+import Medications from './pages/Medications';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "FollowUpTasks": FollowUpTasks,
     "ReferentialImport": ReferentialImport,
     "Statistics": Statistics,
+    "Medications": Medications,
 }
 
 export const pagesConfig = {
