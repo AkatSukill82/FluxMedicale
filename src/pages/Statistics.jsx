@@ -13,6 +13,9 @@ import KPIDashboard from '../components/statistics/KPIDashboard';
 import RevenueByPractitioner from '../components/statistics/RevenueByPractitioner';
 import FrequentActsReport from '../components/statistics/FrequentActsReport';
 import UnpaidInvoicesReport from '../components/statistics/UnpaidInvoicesReport';
+import FinancialReports from '../components/statistics/FinancialReports';
+import BudgetForecasting from '../components/statistics/BudgetForecasting';
+import InteractiveKPIDashboard from '../components/statistics/InteractiveKPIDashboard';
 import { exportToPDF, exportToCSV } from '../components/statistics/ExportUtils';
 
 export default function StatisticsPage() {
@@ -136,6 +139,9 @@ export default function StatisticsPage() {
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList>
           <TabsTrigger value="kpi">Tableau de bord</TabsTrigger>
+          <TabsTrigger value="interactive">KPI Interactifs</TabsTrigger>
+          <TabsTrigger value="reports">Rapports financiers</TabsTrigger>
+          <TabsTrigger value="forecast">Prévisionnel</TabsTrigger>
           <TabsTrigger value="revenue">Revenus par praticien</TabsTrigger>
           <TabsTrigger value="acts">Actes fréquents</TabsTrigger>
           <TabsTrigger value="unpaid">Factures impayées</TabsTrigger>
@@ -143,6 +149,18 @@ export default function StatisticsPage() {
 
         <TabsContent value="kpi">
           <KPIDashboard analytics={analytics} isLoading={isLoading} />
+        </TabsContent>
+
+        <TabsContent value="interactive">
+          <InteractiveKPIDashboard />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <FinancialReports />
+        </TabsContent>
+
+        <TabsContent value="forecast">
+          <BudgetForecasting />
         </TabsContent>
 
         <TabsContent value="revenue">
