@@ -9,11 +9,15 @@ import {
   Copy,
   ExternalLink,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Search
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { createPageUrl } from '@/utils';
+import InvoiceDetailsModal from './InvoiceDetailsModal';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 export default function GlobalInvoicesTable({ 
   invoices, 
@@ -27,6 +31,20 @@ export default function GlobalInvoicesTable({
 }) {
   const [sortColumn, setSortColumn] = useState('invoice_date');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const { data: patients = [] } = useQuery({
+    queryKey: ['patients_for_invoices'],
+    queryFn: () => base44.entities.Patient.list()
+  });
+
+  const handleViewDetails = (invoice) => {
+    setSelectedInvoice(invoice);
+    setShowDetailsModal(true);
+  };
+
+  const selectedPatient = patients.find(p => p.id === selectedInvoice?.patient_id);
 
   const getStatusBadge = (status) => {
     const styles = {
@@ -141,10 +159,11 @@ export default function GlobalInvoicesTable({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Toutes les factures ({invoices.length})</CardTitle>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Toutes les factures ({invoices.length})</CardTitle>
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">Afficher:</span>
             <select
@@ -228,6 +247,14 @@ export default function GlobalInvoicesTable({
                       <Button 
                         variant="ghost" 
                         size="icon"
+                        onClick={() => handleViewDetails(invoice)}
+                        title="Voir détails"
+                      >
+                        <Search className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
                         onClick={() => handleOpenPatient(invoice)}
                         title="Ouvrir patient"
                       >
@@ -295,5 +322,18 @@ export default function GlobalInvoicesTable({
         </div>
       </CardContent>
     </Card>
+
+    {showDetailsModal && (
+      <InvoiceDetailsModal
+        invoice={selectedInvoice}
+        patient={selectedPatient}
+        isOpen={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedInvoice(null);
+        }}
+      />
+    )}
+    </>
   );
 }
