@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
+  X, 
   CreditCard,
-  Pill
+  Pill,
+  FileText
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -22,6 +24,9 @@ import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrat
 import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
+import MedicalHistory from '../components/patients/MedicalHistory';
+import PatientNotifications from '../components/patients/PatientNotifications';
+import SecureDocuments from '../components/patients/SecureDocuments';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -234,6 +239,11 @@ export default function Patients() {
           </Button>
         </div>
 
+        {/* Notifications */}
+        <div className="p-4 border-b">
+          <PatientNotifications patient={patient} />
+        </div>
+
         {/* Infos clés */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
@@ -281,17 +291,20 @@ export default function Patients() {
                 <TabsTrigger value="consultation" className="gap-2">
                   📝 Consultation
                 </TabsTrigger>
+                <TabsTrigger value="history" className="gap-2">
+                  📋 Historique
+                </TabsTrigger>
                 <TabsTrigger value="documents" className="gap-2">
                   📁 Documents
+                </TabsTrigger>
+                <TabsTrigger value="secure-files" className="gap-2">
+                  🔒 Fichiers sécurisés
                 </TabsTrigger>
                 <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="gap-2">
-                  👤 Fiche administrative
-                </TabsTrigger>
-                <TabsTrigger value="hubs" className="gap-2">
-                  🔗 Hubs
+                  👤 Admin
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -305,17 +318,20 @@ export default function Patients() {
               <TabsContent value="consultation" className="m-0">
                 <ConsultationTab patient={patient} />
               </TabsContent>
+              <TabsContent value="history" className="m-0">
+                <MedicalHistory patient={patient} />
+              </TabsContent>
               <TabsContent value="documents" className="m-0">
                 <DocumentsTab patient={patient} />
+              </TabsContent>
+              <TabsContent value="secure-files" className="m-0">
+                <SecureDocuments patient={patient} />
               </TabsContent>
               <TabsContent value="billing" className="m-0">
                 <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
               </TabsContent>
               <TabsContent value="admin" className="m-0">
                 <FicheAdministrativeTab patient={patient} />
-              </TabsContent>
-              <TabsContent value="hubs" className="m-0">
-                <HubsTab patient={patient} />
               </TabsContent>
             </div>
           </Tabs>
