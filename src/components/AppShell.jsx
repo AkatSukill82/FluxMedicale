@@ -31,6 +31,7 @@ import {
   Inbox,
   ChevronsLeft,
   ChevronsRight,
+  Dot,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -94,14 +95,14 @@ export default function AppShell({ children, currentPageName }) {
       <div className="h-screen w-full bg-background flex">
         <Sidebar
           className={cn(
-            "border-r no-print transition-all duration-300 ease-in-out",
+            "border-r no-print transition-all duration-300 ease-in-out bg-slate-900 text-slate-100",
             isCollapsed ? "w-20" : "w-64"
           )}
         >
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className={cn("text-lg font-bold text-primary flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
-                <Stethoscope className="w-7 h-7 flex-shrink-0" />
+              <SidebarGroupLabel className={cn("text-lg font-bold text-white flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
+                <Stethoscope className="w-7 h-7 flex-shrink-0 text-blue-400" />
                 <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden">FluxMed</motion.span>
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -114,8 +115,15 @@ export default function AppShell({ children, currentPageName }) {
                           className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-full"
                         />
                       )}
-                      <SidebarMenuButton asChild variant={location.pathname.includes(createPageUrl(item.path)) ? 'default' : 'ghost'}>
-                        <Link to={createPageUrl(item.path)} className="flex items-center gap-3 justify-start" title={item.title}>
+                      <SidebarMenuButton asChild>
+                        <Link 
+                          to={createPageUrl(item.path)} 
+                          className={cn(
+                            "flex items-center gap-3 justify-start text-slate-300 hover:text-white hover:bg-slate-800",
+                            location.pathname.includes(createPageUrl(item.path)) && "bg-slate-800 text-white"
+                          )} 
+                          title={item.title}
+                        >
                           <item.icon className="w-5 h-5 flex-shrink-0" />
                            <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden whitespace-nowrap">{item.title}</motion.span>
                         </Link>
@@ -125,7 +133,7 @@ export default function AppShell({ children, currentPageName }) {
                 </SidebarMenu>
                  {isAdmin && (
                   <>
-                    <p className={cn("text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : "Administration"}</p>
+                    <p className={cn("text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : "Administration"}</p>
                     <SidebarMenu>
                       {adminNavItems.map((item) => (
                          <SidebarMenuItem key={item.path} className="relative">
@@ -135,8 +143,15 @@ export default function AppShell({ children, currentPageName }) {
                               className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-full"
                             />
                           )}
-                          <SidebarMenuButton asChild variant={location.pathname.includes(createPageUrl(item.path)) ? 'default' : 'ghost'}>
-                            <Link to={createPageUrl(item.path)} className="flex items-center gap-3 justify-start" title={item.title}>
+                          <SidebarMenuButton asChild>
+                            <Link 
+                              to={createPageUrl(item.path)} 
+                              className={cn(
+                                "flex items-center gap-3 justify-start text-slate-300 hover:text-white hover:bg-slate-800",
+                                location.pathname.includes(createPageUrl(item.path)) && "bg-slate-800 text-white"
+                              )} 
+                              title={item.title}
+                            >
                               <item.icon className="w-5 h-5 flex-shrink-0" />
                               <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden whitespace-nowrap">{item.title}</motion.span>
                             </Link>
@@ -149,7 +164,7 @@ export default function AppShell({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t p-4 flex flex-col items-center">
+          <SidebarFooter className="border-t border-slate-800 p-4 flex flex-col items-center">
              <SidebarMenu>
                 <SidebarMenuItem className="w-full relative">
                   {location.pathname.includes(createPageUrl(profileNavItem.path)) && (
@@ -158,22 +173,29 @@ export default function AppShell({ children, currentPageName }) {
                       className="absolute left-0 top-0 h-full w-1 bg-primary rounded-r-full"
                     />
                   )}
-                  <SidebarMenuButton asChild variant={location.pathname.includes(createPageUrl(profileNavItem.path)) ? 'default' : 'ghost'}>
-                    <Link to={createPageUrl(profileNavItem.path)} className="flex items-center gap-3 justify-start w-full" title={profileNavItem.title}>
+                  <SidebarMenuButton asChild>
+                    <Link 
+                      to={createPageUrl(profileNavItem.path)} 
+                      className={cn(
+                        "flex items-center gap-3 justify-start w-full text-slate-300 hover:text-white hover:bg-slate-800",
+                        location.pathname.includes(createPageUrl(profileNavItem.path)) && "bg-slate-800 text-white"
+                      )} 
+                      title={profileNavItem.title}
+                    >
                       <UserIcon className="w-5 h-5 flex-shrink-0" />
                       <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden whitespace-nowrap">{profileNavItem.title}</motion.span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
              </SidebarMenu>
-             <Button variant="ghost" size="icon" className="mt-4" onClick={() => setIsCollapsed(!isCollapsed)}>
+             <Button variant="ghost" size="icon" className="mt-4 text-slate-400 hover:text-white hover:bg-slate-800" onClick={() => setIsCollapsed(!isCollapsed)}>
                 {isCollapsed ? <ChevronsRight /> : <ChevronsLeft />}
              </Button>
           </SidebarFooter>
         </Sidebar>
 
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="flex-shrink-0 bg-background/80 backdrop-blur-md border-b z-10 no-print">
+          <header className="flex-shrink-0 bg-white border-b z-10 no-print">
             <div className="flex items-center justify-between px-6 h-20">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="lg:hidden" />
@@ -216,7 +238,7 @@ export default function AppShell({ children, currentPageName }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 overflow-y-auto p-6 bg-muted/30"
+              className="flex-1 overflow-y-auto p-6 bg-slate-50"
             >
               {children}
             </motion.main>

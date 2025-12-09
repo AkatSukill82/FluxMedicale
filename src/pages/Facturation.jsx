@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useTransition } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import {
@@ -199,8 +198,8 @@ export default function FacturationPage() {
         </div>
       </div>
 
-      <Card className="shadow-sm">
-        <CardContent className="p-4 space-y-4">
+      <Card className="shadow-sm border-slate-200">
+        <CardContent className="p-6 space-y-4">
           <div className="flex flex-wrap items-center gap-4">
             <div className="relative flex-1 min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />

@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
 import { format, addWeeks, subWeeks, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext } from "@hello-pangea/dnd";
+import { toast } from "sonner";
 import { handleError, handleSuccess } from '../components/utils/ErrorHandler';
 
 import WeeklyCalendar from "../components/agenda/WeeklyCalendar";
@@ -129,7 +131,7 @@ export default function Agenda() {
             
             <Button 
               onClick={() => handleNewAppointment()}
-              className="bg-primary hover:bg-primary/90"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nouveau RDV
