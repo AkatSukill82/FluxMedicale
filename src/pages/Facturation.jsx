@@ -33,6 +33,8 @@ import { cn } from '@/lib/utils';
 import GlobalInvoicesTable from '../components/facturation/GlobalInvoicesTable';
 import GlobalMyCareNetTable from '../components/facturation/GlobalMyCareNetTable';
 import GlobalFacturationRecap from '../components/facturation/GlobalFacturationRecap';
+import RecurringInvoiceManager from '../components/facturation/RecurringInvoiceManager';
+import PaymentReminderSystem from '../components/facturation/PaymentReminderSystem';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -230,6 +232,14 @@ export default function FacturationPage() {
 
       {/* Zone principale */}
       <div className="flex-1 space-y-4">
+        <Tabs defaultValue="invoices">
+          <TabsList>
+            <TabsTrigger value="invoices">Factures</TabsTrigger>
+            <TabsTrigger value="recurring">Factures récurrentes</TabsTrigger>
+            <TabsTrigger value="reminders">Relances</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="invoices" className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Facturation</h1>
           <div className="flex gap-3">
@@ -297,6 +307,16 @@ export default function FacturationPage() {
         ) : (
           <EmptyState />
         )}
+          </TabsContent>
+
+          <TabsContent value="recurring">
+            <RecurringInvoiceManager />
+          </TabsContent>
+
+          <TabsContent value="reminders">
+            <PaymentReminderSystem />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
