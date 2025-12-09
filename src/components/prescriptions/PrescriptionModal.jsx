@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
+  Search, 
+  Plus, 
   Trash2, 
   FileSignature,
   Save,
@@ -19,6 +21,7 @@ import {
 import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
 import DrugSearch from '../drugs/DrugSearch';
+import MedicationSearch from '../medications/MedicationSearch';
 
 export default function PrescriptionModal({ patient, isOpen, onClose }) {
   const { t } = useI18n();
@@ -47,6 +50,26 @@ export default function PrescriptionModal({ patient, isOpen, onClose }) {
       monography: drug.monography_json
     };
     
+    setMedications([...medications, newMed]);
+  };
+
+  const handleSelectMedication = (drug) => {
+    const newMed = {
+      id: Math.random().toString(),
+      drug_id: drug.id,
+      name: drug.product_name,
+      substance_name: drug.substance_name,
+      atc_code: drug.atc_code,
+      cnk: drug.cnk,
+      timesPerDay: 1,
+      mealTiming: 'after',
+      dose: drug.strength ? `${drug.strength}${drug.unit}` : '',
+      form: drug.form || 'tablet',
+      quantity: drug.package_size || '',
+      duration: '',
+      durationUnit: 'days',
+      monography: drug.monography_json
+    };
     setMedications([...medications, newMed]);
   };
 
@@ -122,11 +145,14 @@ export default function PrescriptionModal({ patient, isOpen, onClose }) {
 
           {/* Prescription Tab */}
           <TabsContent value="prescription" className="space-y-6 pt-6">
-            {/* Drug search with referential */}
-            <DrugSearch 
-              onSelect={handleSelectDrug}
-              selectedDrugs={medications}
-            />
+            {/* Medication search */}
+            <div>
+              <Label>Rechercher dans la base de médicaments</Label>
+              <MedicationSearch 
+                onSelect={handleSelectMedication}
+                selectedMedications={medications}
+              />
+            </div>
 
             {/* Medications list */}
             <div className="space-y-4">
