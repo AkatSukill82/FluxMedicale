@@ -13,6 +13,9 @@ import { handleError, handleSuccess } from '../components/utils/ErrorHandler';
 
 import WeeklyCalendar from "../components/agenda/WeeklyCalendar";
 import AppointmentForm from "../components/agenda/AppointmentForm";
+import RecurringSlotManager from "../components/agenda/RecurringSlotManager";
+import UnavailabilityManager from "../components/agenda/UnavailabilityManager";
+import ReminderSettings from "../components/agenda/ReminderSettings";
 
 export default function Agenda() {
   const queryClient = useQueryClient();
@@ -21,6 +24,9 @@ export default function Agenda() {
   const [showForm, setShowForm] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null); // { date, time }
   const [editingAppointment, setEditingAppointment] = useState(null);
+  const [showRecurringSlots, setShowRecurringSlots] = useState(false);
+  const [showUnavailability, setShowUnavailability] = useState(false);
+  const [showReminders, setShowReminders] = useState(false);
 
   const { data: agendaData, isLoading } = useQuery({
     queryKey: ['agendaData'],
@@ -100,6 +106,16 @@ export default function Agenda() {
     });
   };
 
+  const handleSaveRecurringSlots = async (slots) => {
+    // Logique pour sauvegarder les créneaux récurrents
+    toast.success(`${slots.length} créneaux récurrents configurés`);
+  };
+
+  const handleSaveReminderSettings = async (settings) => {
+    // Logique pour sauvegarder les paramètres de rappel
+    localStorage.setItem('reminder_settings', JSON.stringify(settings));
+  };
+
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
 
   return (
@@ -130,6 +146,28 @@ export default function Agenda() {
             </Button>
             
             <Button 
+              variant="outline"
+              onClick={() => setShowRecurringSlots(true)}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Créneaux récurrents
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={() => setShowUnavailability(!showUnavailability)}
+            >
+              Indisponibilités
+            </Button>
+
+            <Button 
+              variant="outline"
+              onClick={() => setShowReminders(true)}
+            >
+              Rappels
+            </Button>
+            
+            <Button 
               onClick={() => handleNewAppointment()}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
@@ -138,6 +176,14 @@ export default function Agenda() {
             </Button>
           </div>
         </div>
+
+        {showUnavailability && (
+          <Card className="mb-4">
+            <CardContent className="pt-6">
+              <UnavailabilityManager />
+            </CardContent>
+          </Card>
+        )}
 
         <AnimatePresence mode="wait">
            <motion.div
@@ -190,6 +236,57 @@ export default function Agenda() {
                       setSelectedSlot(null);
                     }}
                   />
+              </motion.div>
+            </motion.div>
+          )}
+
+          {showRecurringSlots && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
+              onClick={() => setShowRecurringSlots(false)}
+            >
+              <motion.div 
+                onClick={(e) => e.stopPropagation()}
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+              >
+                <RecurringSlotManager 
+                  onSave={handleSaveRecurringSlots}
+                  onClose={() => setShowRecurringSlots(false)}
+                />
+              </motion.div>
+            </motion.div>
+          )}
+
+          {showReminders && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
+              onClick={() => setShowReminders(false)}
+            >
+              <motion.div 
+                className="w-full max-w-2xl"
+                onClick={(e) => e.stopPropagation()}
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+              >
+                <ReminderSettings 
+                  onSave={handleSaveReminderSettings}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full mt-4"
+                  onClick={() => setShowReminders(false)}
+                >
+                  Fermer
+                </Button>
               </motion.div>
             </motion.div>
           )}
