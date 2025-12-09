@@ -22,6 +22,7 @@ export default function AppointmentForm({ appointment, patients, selectedSlot, o
     type_consultation: 'Consultation',
     motif: '',
     statut: 'Planifié',
+    medecin_assigne: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [openPatientSelector, setOpenPatientSelector] = useState(false);
@@ -35,6 +36,7 @@ export default function AppointmentForm({ appointment, patients, selectedSlot, o
         type_consultation: appointment.type_consultation || 'Consultation',
         motif: appointment.motif || '',
         statut: appointment.statut || 'Planifié',
+        medecin_assigne: appointment.medecin_assigne || '',
       });
     } else if (selectedSlot) {
       setFormData(prev => ({
@@ -143,19 +145,30 @@ export default function AppointmentForm({ appointment, patients, selectedSlot, o
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label>Statut</Label>
-            <Select value={formData.statut} onValueChange={(value) => setFormData({...formData, statut: value})}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Planifié">Planifié</SelectItem>
-                <SelectItem value="Confirmé">Confirmé</SelectItem>
-                <SelectItem value="En cours">En cours</SelectItem>
-                <SelectItem value="Terminé">Terminé</SelectItem>
-                <SelectItem value="Annulé">Annulé</SelectItem>
-                <SelectItem value="Report">Reporté</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Statut</Label>
+              <Select value={formData.statut} onValueChange={(value) => setFormData({...formData, statut: value})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Planifié">Planifié</SelectItem>
+                  <SelectItem value="Confirmé">Confirmé</SelectItem>
+                  <SelectItem value="En cours">En cours</SelectItem>
+                  <SelectItem value="Terminé">Terminé</SelectItem>
+                  <SelectItem value="Annulé">Annulé</SelectItem>
+                  <SelectItem value="Report">Reporté</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Praticien assigné</Label>
+              <Input 
+                type="text" 
+                value={formData.medecin_assigne || ''} 
+                onChange={(e) => setFormData({...formData, medecin_assigne: e.target.value})} 
+                placeholder="Email du praticien"
+              />
+            </div>
           </div>
           <div>
             <Label>{t('agenda.reason')}</Label>

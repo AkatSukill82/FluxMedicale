@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { format, addWeeks, subWeeks, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,15 +29,19 @@ export default function Agenda() {
   const [showRecurringSlots, setShowRecurringSlots] = useState(false);
   const [showUnavailability, setShowUnavailability] = useState(false);
   const [showReminders, setShowReminders] = useState(false);
+  const [filterPraticien, setFilterPraticien] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   const { data: agendaData, isLoading } = useQuery({
     queryKey: ['agendaData'],
     queryFn: async () => {
-      const [rendezVous, patients] = await Promise.all([
+      const [rendezVous, patients, users, slots] = await Promise.all([
         base44.entities.RendezVous.list("-date"),
-        base44.entities.Patient.list()
+        base44.entities.Patient.list(),
+        base44.auth.me().then(() => base44.entities.User?.list?.() || []).catch(() => []),
+        base44.entities.CalendarSlot.list().catch(() => [])
       ]);
-      return { rendezVous, patients };
+      return { rendezVous, patients, users: users.filter(u => u.role === 'admin'), slots };
     }
   });
 
@@ -56,6 +62,15 @@ export default function Agenda() {
       setShowForm(false);
     },
     onError: (error) => handleError(error, "Création rendez-vous")
+  });
+
+  const deleteAppointmentMutation = useMutation({
+    mutationFn: (id) => base44.entities.RendezVous.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendaData'] });
+      handleSuccess("Rendez-vous annulé");
+    },
+    onError: (error) => handleError(error, "Annulation rendez-vous")
   });
 
   const handleSaveAppointment = async (appointmentData) => {
@@ -118,6 +133,18 @@ export default function Agenda() {
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
 
+  const filteredRendezVous = agendaData?.rendezVous.filter(rdv => {
+    const practicienMatch = filterPraticien === 'all' || rdv.medecin_assigne === filterPraticien;
+    const statusMatch = filterStatus === 'all' || rdv.statut === filterStatus;
+    return practicienMatch && statusMatch;
+  }) || [];
+
+  const handleCancelAppointment = (appointmentId) => {
+    if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+      deleteAppointmentMutation.mutate(appointmentId);
+    }
+  };
+
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <div className="space-y-6">
@@ -177,6 +204,64 @@ export default function Agenda() {
           </div>
         </div>
 
+        {/* Filters Bar */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Filtrer par praticien</Label>
+                <Select value={filterPraticien} onValueChange={setFilterPraticien}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les praticiens</SelectItem>
+                    {agendaData?.users?.map(user => (
+                      <SelectItem key={user.email} value={user.email}>
+                        {user.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <Label className="text-sm mb-2 block">Filtrer par statut</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="Planifié">Planifié</SelectItem>
+                    <SelectItem value="Confirmé">Confirmé</SelectItem>
+                    <SelectItem value="En cours">En cours</SelectItem>
+                    <SelectItem value="Terminé">Terminé</SelectItem>
+                    <SelectItem value="Annulé">Annulé</SelectItem>
+                    <SelectItem value="Report">Reporté</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => { 
+                    setFilterPraticien('all'); 
+                    setFilterStatus('all'); 
+                  }}
+                >
+                  Réinitialiser
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            {filteredRendezVous.length} rendez-vous affichés
+          </div>
+        </div>
+
         {showUnavailability && (
           <Card className="mb-4">
             <CardContent className="pt-6">
@@ -200,10 +285,12 @@ export default function Agenda() {
               ) : (
                 <WeeklyCalendar
                   currentDate={currentDate}
-                  rendezVous={agendaData?.rendezVous || []}
+                  rendezVous={filteredRendezVous}
                   patients={agendaData?.patients || []}
+                  slots={agendaData?.slots || []}
                   onNewAppointment={handleNewAppointment}
                   onEditAppointment={handleEditAppointment}
+                  onCancelAppointment={handleCancelAppointment}
                 />
               )}
             </motion.div>

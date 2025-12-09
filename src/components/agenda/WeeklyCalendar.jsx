@@ -1,7 +1,7 @@
 import React from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, MoreHorizontal } from "lucide-react";
+import { Plus, User, Clock, MoreHorizontal } from "lucide-react";
 import { format, addDays, startOfWeek, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
@@ -25,7 +25,7 @@ const getAppointmentStyle = (type, statut) => {
   return styles[type] || styles['Consultation'];
 };
 
-const AppointmentCard = ({ rdv, patientName, onEdit }) => (
+const AppointmentCard = ({ rdv, patientName, onEdit, onCancel }) => (
   <Popover>
     <PopoverTrigger asChild>
       <div className={cn(
@@ -54,7 +54,10 @@ const AppointmentCard = ({ rdv, patientName, onEdit }) => (
           <p><strong>Statut:</strong> {rdv.statut}</p>
           {rdv.motif && <p><strong>Motif:</strong> {rdv.motif}</p>}
         </div>
-        <Button size="sm" className="w-full" onClick={() => onEdit(rdv)}>Voir / Modifier</Button>
+        <div className="flex gap-2">
+          <Button size="sm" className="flex-1" onClick={() => onEdit(rdv)}>Modifier</Button>
+          <Button size="sm" variant="destructive" className="flex-1" onClick={() => onCancel(rdv.id)}>Annuler</Button>
+        </div>
       </div>
     </PopoverContent>
   </Popover>
@@ -64,8 +67,10 @@ export default function WeeklyCalendar({
   currentDate, 
   rendezVous, 
   patients, 
+  slots,
   onNewAppointment, 
   onEditAppointment,
+  onCancelAppointment,
 }) {
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -115,6 +120,13 @@ export default function WeeklyCalendar({
                 rdv.date === dayString && rdv.heure_debut?.startsWith(hour)
               );
 
+              const slotTime = `${hour}:00:00`;
+              const unavailableSlot = slots?.find(s => 
+                format(new Date(s.start_time), 'yyyy-MM-dd') === dayString && 
+                format(new Date(s.start_time), 'HH:00:00') === slotTime &&
+                s.type === 'Bloque'
+              );
+
               return (
                 <Droppable key={dayHourId} droppableId={dayHourId}>
                   {(provided, snapshot) => (
@@ -123,35 +135,49 @@ export default function WeeklyCalendar({
                       {...provided.droppableProps}
                       className={cn(
                         "min-h-[100px] p-1.5 border-b border-r relative group",
-                        snapshot.isDraggingOver && "bg-primary/10 ring-2 ring-primary"
+                        snapshot.isDraggingOver && "bg-primary/10 ring-2 ring-primary",
+                        unavailableSlot && "bg-slate-200 opacity-50"
                       )}
                     >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                        onClick={() => onNewAppointment(dayString, `${hour}:00`)}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
+                      {unavailableSlot ? (
+                        <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-600 font-semibold">
+                          Indisponible
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                            onClick={() => onNewAppointment(dayString, `${hour}:00`)}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
 
-                      <div className="space-y-1.5">
-                        {appointmentsInSlot.map((rdv, index) => (
-                          <Draggable key={rdv.id} draggableId={rdv.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                style={{ ...provided.draggableProps.style }}
-                                className={cn(snapshot.isDragging && "shadow-2xl scale-105")}
-                              >
-                                <AppointmentCard rdv={rdv} patientName={getPatientName(rdv.patient_id)} onEdit={onEditAppointment} />
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                      </div>
+                          <div className="space-y-1.5">
+                            {appointmentsInSlot.map((rdv, index) => (
+                              <Draggable key={rdv.id} draggableId={rdv.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={{ ...provided.draggableProps.style }}
+                                    className={cn(snapshot.isDragging && "shadow-2xl scale-105")}
+                                  >
+                                    <AppointmentCard 
+                                      rdv={rdv} 
+                                      patientName={getPatientName(rdv.patient_id)} 
+                                      onEdit={onEditAppointment}
+                                      onCancel={onCancelAppointment}
+                                    />
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                          </div>
+                        </>
+                      )}
                       {provided.placeholder}
                     </div>
                   )}
