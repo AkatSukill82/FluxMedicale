@@ -80,6 +80,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.inbox'), path: 'Inbox', icon: Inbox },
     { title: t('nav.import'), path: 'Import', icon: Upload },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
+    { title: 'Statistiques', path: 'Statistics', icon: Activity },
   ];
   
   const adminNavItems = [
