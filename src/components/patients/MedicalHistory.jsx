@@ -143,10 +143,10 @@ export default function MedicalHistory({ patient }) {
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           )}
         </TabsContent>
 
