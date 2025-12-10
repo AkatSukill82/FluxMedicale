@@ -27,6 +27,8 @@ import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
 import PatientInsuranceStatus, { calculateBIMPrices } from './PatientInsuranceStatus';
 import { useQuery } from '@tanstack/react-query';
+import { validateActsCompatibility, validateAllActs } from '../nomenclature/ActCompatibilityRules';
+import CompatibilityAlert from '../nomenclature/CompatibilityAlert';
 
 export default function BillingModal({ patient, isOpen, onClose }) {
   const { t, locale } = useI18n();
@@ -35,6 +37,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [amountPaid, setAmountPaid] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [compatibilityValidation, setCompatibilityValidation] = useState(null);
 
   // Fetch insurance status for BIM detection
   const { data: assurabilite } = useQuery({
@@ -81,11 +84,38 @@ export default function BillingModal({ patient, isOpen, onClose }) {
       reimbursed: reimbursed,
       patient_share: patientShare
     };
-    setActs([...acts, newAct]);
+
+    // Check compatibility before adding
+    const validation = validateActsCompatibility(acts, newAct);
+    
+    if (!validation.canProceed) {
+      toast.error(validation.errors[0]?.message || 'Acte incompatible avec la sélection actuelle');
+      return;
+    }
+
+    const updatedActs = [...acts, newAct];
+    setActs(updatedActs);
+    
+    // Validate all acts
+    const fullValidation = validateAllActs(updatedActs);
+    setCompatibilityValidation(fullValidation);
+
+    if (validation.hasWarnings) {
+      toast.warning(validation.warnings[0]?.message);
+    }
   };
 
   const handleRemoveAct = (actId) => {
-    setActs(acts.filter(a => a.id !== actId));
+    const updatedActs = acts.filter(a => a.id !== actId);
+    setActs(updatedActs);
+    
+    // Revalidate after removal
+    if (updatedActs.length > 0) {
+      const fullValidation = validateAllActs(updatedActs);
+      setCompatibilityValidation(fullValidation);
+    } else {
+      setCompatibilityValidation(null);
+    }
   };
 
   const handleQuantityChange = (actId, quantity) => {
@@ -178,6 +208,11 @@ export default function BillingModal({ patient, isOpen, onClose }) {
               />
             </CardContent>
           </Card>
+
+          {/* Validation des incompatibilités */}
+          {compatibilityValidation && (compatibilityValidation.errors.length > 0 || compatibilityValidation.warnings.length > 0) && (
+            <CompatibilityAlert validation={compatibilityValidation} />
+          )}
 
           {/* Liste des actes */}
           {acts.length > 0 && (
@@ -381,7 +416,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
             </Button>
             <Button 
               onClick={() => handleSend(false)} 
-              disabled={isSending || acts.length === 0}
+              disabled={isSending || acts.length === 0 || (compatibilityValidation && !compatibilityValidation.isValid)}
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 px-8"
             >
