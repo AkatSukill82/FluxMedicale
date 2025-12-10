@@ -25,6 +25,8 @@ import {
 import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
+import PatientInsuranceStatus, { calculateBIMPrices } from './PatientInsuranceStatus';
+import { useQuery } from '@tanstack/react-query';
 
 export default function BillingModal({ patient, isOpen, onClose }) {
   const { t, locale } = useI18n();
@@ -34,9 +36,39 @@ export default function BillingModal({ patient, isOpen, onClose }) {
   const [amountPaid, setAmountPaid] = useState('');
   const [isSending, setIsSending] = useState(false);
 
+  // Fetch insurance status for BIM detection
+  const { data: assurabilite } = useQuery({
+    queryKey: ['assurabilite', patient.id],
+    queryFn: async () => {
+      const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value;
+      if (!niss) return null;
+      const results = await base44.entities.Assurabilite.filter({ 
+        patient_niss: niss 
+      }, '-last_checked_at', 1);
+      return results[0] || null;
+    },
+    enabled: !!patient.id && isOpen
+  });
+
+  const hasBIM = assurabilite?.special_rights?.some(right => 
+    right.toLowerCase().includes('bim') || 
+    right.toLowerCase().includes('omnio') ||
+    right.toLowerCase().includes('increased')
+  ) || false;
+
   const handleSelectCode = (nomenCode) => {
     const title = locale === 'nl' ? nomenCode.title_nl : nomenCode.title_fr;
-    const unitPrice = (nomenCode.honorarium || 0) / 100; // Convert cents to euros
+    const basePrice = (nomenCode.honorarium || 0) / 100;
+    const baseReimbursed = (nomenCode.reimbursed || 0) / 100;
+    const basePatientShare = (nomenCode.patient_share || 0) / 100;
+    
+    // Adjust prices for BIM patients
+    const { reimbursed, patientShare } = calculateBIMPrices(
+      basePrice,
+      baseReimbursed,
+      basePatientShare,
+      hasBIM
+    );
     
     const newAct = {
       id: Math.random().toString(),
@@ -44,10 +76,10 @@ export default function BillingModal({ patient, isOpen, onClose }) {
       code: nomenCode.code,
       label: title,
       quantity: 1,
-      unitPrice: unitPrice,
-      amount: unitPrice,
-      reimbursed: (nomenCode.reimbursed || 0) / 100,
-      patient_share: (nomenCode.patient_share || 0) / 100
+      unitPrice: basePrice,
+      amount: basePrice,
+      reimbursed: reimbursed,
+      patient_share: patientShare
     };
     setActs([...acts, newAct]);
   };
@@ -278,10 +310,16 @@ export default function BillingModal({ patient, isOpen, onClose }) {
           <Card>
             <CardContent className="p-6">
               <h3 className="font-semibold text-lg mb-4">Informations mutuelle</h3>
+              
+              {/* Patient insurance status with BIM/MàF detection */}
+              <div className="mb-4 p-4 bg-slate-50 rounded-lg">
+                <PatientInsuranceStatus patient={patient} />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Organisme assureur</Label>
-                  <Input value={patient.mutuelle || 'Non renseigné'} disabled />
+                  <Input value={assurabilite?.oa_name || patient.mutuelle || 'Non renseigné'} disabled />
                 </div>
                 <div>
                   <Label>Type de transaction</Label>
@@ -296,6 +334,22 @@ export default function BillingModal({ patient, isOpen, onClose }) {
                   </Select>
                 </div>
               </div>
+
+              {hasBIM && (
+                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-purple-600 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-purple-900">
+                        Patient BIM/OMNIO détecté
+                      </p>
+                      <p className="text-xs text-purple-700 mt-1">
+                        Les tarifs ont été automatiquement ajustés avec ticket modérateur réduit.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
