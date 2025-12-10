@@ -237,7 +237,7 @@ export default function GlobalInvoicesTable({
                     {getPaymentLabel(invoice.payment_method)}
                   </td>
                   <td className="py-3 px-4 text-right font-semibold">
-                    {(invoice.total_amount || 0).toFixed(2)}€
+                    {((invoice.total_amount || 0) / 100).toFixed(2)}€
                   </td>
                   <td className="py-3 px-4">
                     {getStatusBadge(invoice.status)}
@@ -316,7 +316,7 @@ export default function GlobalInvoicesTable({
         <div className="mt-4 flex items-center justify-between text-sm text-slate-600">
           <p>
             Total: <strong className="text-lg text-slate-900">
-              {invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0).toFixed(2)}€
+              {(invoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) / 100).toFixed(2)}€
             </strong>
           </p>
         </div>

@@ -36,6 +36,7 @@ import GlobalFacturationRecap from '../components/facturation/GlobalFacturationR
 import RecurringInvoiceManager from '../components/facturation/RecurringInvoiceManager';
 import PaymentReminderSystem from '../components/facturation/PaymentReminderSystem';
 import PaymentTracker from '../components/facturation/PaymentTracker';
+import FinancialDashboard from '../components/facturation/FinancialDashboard';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -233,13 +234,21 @@ export default function FacturationPage() {
 
       {/* Zone principale */}
       <div className="flex-1 space-y-4">
-        <Tabs defaultValue="invoices">
+        <Tabs defaultValue="dashboard">
           <TabsList>
-            <TabsTrigger value="invoices">Factures</TabsTrigger>
-            <TabsTrigger value="payments">Suivi des paiements</TabsTrigger>
-            <TabsTrigger value="recurring">Factures récurrentes</TabsTrigger>
-            <TabsTrigger value="reminders">Relances</TabsTrigger>
+            <TabsTrigger value="dashboard">📊 Tableau de bord</TabsTrigger>
+            <TabsTrigger value="invoices">💰 Factures</TabsTrigger>
+            <TabsTrigger value="payments">📈 Suivi paiements</TabsTrigger>
+            <TabsTrigger value="recurring">🔄 Récurrentes</TabsTrigger>
+            <TabsTrigger value="reminders">⏰ Relances</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-4">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-slate-900">Vue d'ensemble financière</h1>
+            </div>
+            <FinancialDashboard invoices={filteredInvoices} />
+          </TabsContent>
 
           <TabsContent value="invoices" className="space-y-4">
         <div className="flex items-center justify-between">
