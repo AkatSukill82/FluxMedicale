@@ -303,9 +303,16 @@ export default function FacturationPage() {
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         ) : filteredInvoices.length > 0 ? (
-          <Card className="border-slate-200">
-            <GlobalInvoicesTable invoices={filteredInvoices} currentUser={currentUser} isLoading={false} />
-          </Card>
+          <GlobalInvoicesTable 
+            invoices={filteredInvoices} 
+            currentUser={currentUser} 
+            isLoading={false}
+            page={1}
+            pageSize={50}
+            onPageChange={() => {}}
+            onPageSizeChange={() => {}}
+            onRefresh={() => {}}
+          />
         ) : (
           <EmptyState />
         )}
