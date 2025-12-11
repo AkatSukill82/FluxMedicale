@@ -1,9 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { User } from "@/entities/User";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   Users, 
   UserPlus, 
@@ -11,40 +38,58 @@ import {
   Shield, 
   Mail,
   Phone,
-  Stethoscope
+  MapPin,
+  Clock,
+  Stethoscope,
+  Edit,
+  Trash2,
+  UserCog
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function Utilisateurs() {
-  const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  
+  const [inviteForm, setInviteForm] = useState({
+    email: "",
+    full_name: "",
+    role: "user",
+    specialite: "",
+    numero_inami: "",
+    telephone_cabinet: ""
+  });
 
-  useEffect(() => {
-    loadUsers();
-    loadCurrentUser();
-  }, []);
+  const queryClient = useQueryClient();
 
-  const loadCurrentUser = async () => {
-    try {
-      const user = await User.me();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error("Erreur chargement utilisateur:", error);
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: !!currentUser
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, newRole }) => {
+      return await base44.entities.User.update(userId, { role: newRole });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['users']);
+      toast.success('Rôle modifié avec succès');
+      setShowEditDialog(false);
+    },
+    onError: () => {
+      toast.error('Erreur lors de la modification du rôle');
     }
-  };
-
-  const loadUsers = async () => {
-    try {
-      const userData = await User.list();
-      setUsers(userData);
-    } catch (error) {
-      console.error("Erreur chargement utilisateurs:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  });
 
   // Vérification des permissions - seuls les admin (médecins) peuvent accéder
   if (currentUser && currentUser.role !== 'admin') {
@@ -65,6 +110,38 @@ export default function Utilisateurs() {
     user.specialite?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleInvite = () => {
+    // Note: Base44 ne permet pas de créer des utilisateurs directement via l'API
+    // Il faut utiliser la fonction d'invitation de la plateforme
+    toast.info('Pour inviter un utilisateur, utilisez la fonction d\'invitation dans les paramètres du compte Base44');
+    setShowInviteDialog(false);
+  };
+
+  const handleEditRole = (user) => {
+    setSelectedUser(user);
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteUser = (user) => {
+    setSelectedUser(user);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmRoleChange = () => {
+    if (selectedUser) {
+      const newRole = selectedUser.role === 'admin' ? 'user' : 'admin';
+      updateRoleMutation.mutate({ 
+        userId: selectedUser.id, 
+        newRole 
+      });
+    }
+  };
+
+  const confirmDelete = () => {
+    toast.info('La suppression d\'utilisateurs doit être effectuée depuis les paramètres Base44');
+    setShowDeleteDialog(false);
+  };
+
   const getRoleBadge = (role) => {
     if (role === 'admin') {
       return <Badge className="bg-blue-100 text-blue-800">MÉDECIN</Badge>;
@@ -80,7 +157,10 @@ export default function Utilisateurs() {
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Gestion des Utilisateurs</h1>
           <p className="text-slate-600">Gérez les accès médecins et secrétaires</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700 shadow-lg"
+          onClick={() => setShowInviteDialog(true)}
+        >
           <UserPlus className="w-4 h-4 mr-2" />
           Inviter un utilisateur
         </Button>
@@ -205,6 +285,23 @@ export default function Utilisateurs() {
                         MFA: {user.mfa_enabled ? 'Activé' : 'Désactivé'}
                       </Badge>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleEditRole(user)}
+                      title="Modifier le rôle"
+                    >
+                      <UserCog className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteUser(user)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Désactiver le compte"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -234,6 +331,137 @@ export default function Utilisateurs() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog d'invitation */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Inviter un utilisateur</DialogTitle>
+            <DialogDescription>
+              Invitez un nouveau médecin ou secrétaire à rejoindre FluxMed
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                placeholder="email@exemple.be"
+                value={inviteForm.email}
+                onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nom complet *</Label>
+              <Input
+                placeholder="Dr. Jean Dupont"
+                value={inviteForm.full_name}
+                onChange={(e) => setInviteForm({...inviteForm, full_name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Rôle *</Label>
+              <Select value={inviteForm.role} onValueChange={(v) => setInviteForm({...inviteForm, role: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Médecin (accès complet)</SelectItem>
+                  <SelectItem value="user">Secrétaire (accès limité)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {inviteForm.role === 'admin' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Spécialité</Label>
+                  <Input
+                    placeholder="Médecine générale"
+                    value={inviteForm.specialite}
+                    onChange={(e) => setInviteForm({...inviteForm, specialite: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Numéro INAMI</Label>
+                  <Input
+                    placeholder="1-12345-67-890"
+                    value={inviteForm.numero_inami}
+                    onChange={(e) => setInviteForm({...inviteForm, numero_inami: e.target.value})}
+                  />
+                </div>
+              </>
+            )}
+            <div className="space-y-2">
+              <Label>Téléphone cabinet</Label>
+              <Input
+                placeholder="+32 2 123 45 67"
+                value={inviteForm.telephone_cabinet}
+                onChange={(e) => setInviteForm({...inviteForm, telephone_cabinet: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleInvite}>
+              Envoyer l'invitation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de modification de rôle */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le rôle</DialogTitle>
+            <DialogDescription>
+              Modifier le rôle de {selectedUser?.full_name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-slate-600 mb-4">
+              Rôle actuel : <strong>{selectedUser?.role === 'admin' ? 'MÉDECIN' : 'SECRÉTAIRE'}</strong>
+            </p>
+            <p className="text-sm text-slate-600">
+              Nouveau rôle : <strong>{selectedUser?.role === 'admin' ? 'SECRÉTAIRE' : 'MÉDECIN'}</strong>
+            </p>
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                ⚠️ Cette action modifiera immédiatement les permissions d'accès de l'utilisateur.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Annuler
+            </Button>
+            <Button onClick={confirmRoleChange} disabled={updateRoleMutation.isPending}>
+              {updateRoleMutation.isPending ? 'Modification...' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmation de suppression */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Désactiver le compte</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir désactiver le compte de {selectedUser?.full_name} ?
+              Cette action doit être effectuée depuis les paramètres de votre compte Base44.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Compris
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
