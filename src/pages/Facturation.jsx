@@ -37,6 +37,7 @@ import RecurringInvoiceManager from '../components/facturation/RecurringInvoiceM
 import PaymentReminderSystem from '../components/facturation/PaymentReminderSystem';
 import PaymentTracker from '../components/facturation/PaymentTracker';
 import FinancialDashboard from '../components/facturation/FinancialDashboard';
+import BatchInvoiceCreator from '../components/facturation/BatchInvoiceCreator';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -57,6 +58,8 @@ export default function FacturationPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [showBatchCreator, setShowBatchCreator] = useState(false);
+  const [selectedForBatch, setSelectedForBatch] = useState([]);
 
   const [filters, setFilters] = useState({
     period: '30',
@@ -118,9 +121,11 @@ export default function FacturationPage() {
         const patient = patients.find(p => p.id === invoice.patient_id);
         const officialName = patient?.name?.find(n => n.use === 'official') || {};
         const patientName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
+        const niss = patient?.identifier?.find(id => id.system.includes('ssin'))?.value || '';
         return {
           ...invoice,
           patient_name: patientName || 'Patient inconnu',
+          patient_niss_masked: niss ? `***-${niss.slice(-4)}` : 'N/A'
         };
     });
 
@@ -182,6 +187,32 @@ export default function FacturationPage() {
   };
 
   const uniqueMedecins = [...new Set(initialData?.allInvoices.map(inv => inv.created_by).filter(Boolean))];
+
+  // Factures prêtes pour le regroupement (SENT et ERROR_CORRECTED)
+  const batchableInvoices = filteredInvoices.filter(inv => 
+    inv.status === 'SENT' || inv.status === 'ERROR_CORRECTED'
+  );
+
+  const handleCreateBatch = () => {
+    if (batchableInvoices.length === 0) {
+      toast.warning('Aucune facture à regrouper');
+      return;
+    }
+    setSelectedForBatch(batchableInvoices);
+    setShowBatchCreator(true);
+  };
+
+  if (showBatchCreator) {
+    return (
+      <BatchInvoiceCreator 
+        invoicesToBatch={selectedForBatch}
+        onBack={() => {
+          setShowBatchCreator(false);
+          setSelectedForBatch([]);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex h-full gap-6">
@@ -251,19 +282,24 @@ export default function FacturationPage() {
           </TabsContent>
 
           <TabsContent value="invoices" className="space-y-4">
-        <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Facturation</h1>
           <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleCreateBatch}
+              disabled={batchableInvoices.length === 0}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Créer facture groupée ({batchableInvoices.length})
+            </Button>
             <Button variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Nouvelle facture
-            </Button>
           </div>
-        </div>
+          </div>
 
         <Card className="border-slate-200">
           <CardContent className="p-4">
@@ -281,14 +317,18 @@ export default function FacturationPage() {
               </Select>
               
               <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">Tous</SelectItem>
-                  <SelectItem value="PAID">Payée</SelectItem>
-                  <SelectItem value="SENT">Envoyée</SelectItem>
+                  <SelectItem value="NOT_SENT">Pas envoyé</SelectItem>
+                  <SelectItem value="SENT">Envoyé</SelectItem>
+                  <SelectItem value="ERROR">Erreur</SelectItem>
+                  <SelectItem value="ERROR_CORRECTED">Erreur corrigée</SelectItem>
+                  <SelectItem value="ACCEPTED">Acceptée</SelectItem>
                   <SelectItem value="REJECTED">Refusée</SelectItem>
+                  <SelectItem value="PAID">Payée</SelectItem>
                 </SelectContent>
               </Select>
 

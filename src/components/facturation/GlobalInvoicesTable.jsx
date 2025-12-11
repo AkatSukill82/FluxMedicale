@@ -49,7 +49,10 @@ export default function GlobalInvoicesTable({
   const getStatusBadge = (status) => {
     const styles = {
       DRAFT: 'bg-slate-100 text-slate-800',
+      NOT_SENT: 'bg-yellow-100 text-yellow-800',
       SENT: 'bg-blue-100 text-blue-800',
+      ERROR: 'bg-red-100 text-red-800',
+      ERROR_CORRECTED: 'bg-orange-100 text-orange-800',
       ACCEPTED: 'bg-green-100 text-green-800',
       REJECTED: 'bg-red-100 text-red-800',
       PAID: 'bg-purple-100 text-purple-800'
@@ -57,13 +60,16 @@ export default function GlobalInvoicesTable({
 
     const labels = {
       DRAFT: 'Brouillon',
-      SENT: 'Envoyée',
+      NOT_SENT: 'Pas envoyé',
+      SENT: 'Envoyé',
+      ERROR: 'Erreur',
+      ERROR_CORRECTED: 'Erreur corrigée',
       ACCEPTED: 'Acceptée',
       REJECTED: 'Refusée',
       PAID: 'Payée'
     };
 
-    return <Badge className={styles[status]}>{labels[status]}</Badge>;
+    return <Badge className={styles[status] || styles.DRAFT}>{labels[status] || status}</Badge>;
   };
 
   const getTypeBadge = (type) => {
