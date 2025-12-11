@@ -32,7 +32,14 @@ export const PERMISSIONS = {
   CREATE_CONSULTATIONS: 'create_consultations',
   EDIT_CONSULTATIONS: 'edit_consultations',
   VIEW_PRESCRIPTIONS: 'view_prescriptions',
-  CREATE_PRESCRIPTIONS: 'create_prescriptions'
+  CREATE_PRESCRIPTIONS: 'create_prescriptions',
+  
+  // Permissions facturation
+  VIEW_INVOICES: 'view_invoices',
+  CREATE_INVOICES: 'create_invoices',
+  EDIT_INVOICES: 'edit_invoices',
+  DELETE_INVOICES: 'delete_invoices',
+  SEND_INVOICES: 'send_invoices'
 };
 
 // Matrice des permissions par rôle (principe du moindre privilège)
@@ -50,6 +57,11 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.CREATE_APPOINTMENTS,
     PERMISSIONS.EDIT_APPOINTMENTS,
     PERMISSIONS.CANCEL_APPOINTMENTS,
+    // Permissions facturation
+    PERMISSIONS.VIEW_INVOICES,
+    PERMISSIONS.CREATE_INVOICES,
+    PERMISSIONS.EDIT_INVOICES,
+    PERMISSIONS.SEND_INVOICES,
     // Pas d'accès aux données cliniques par défaut
   ]
 };
