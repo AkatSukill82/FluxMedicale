@@ -16,6 +16,7 @@ import {
   Loader2,
   FileX2,
   PlusCircle,
+  Euro,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
