@@ -28,6 +28,9 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import ClinicalNotesPanel from '../components/patients/ClinicalNotesPanel';
+import AllergiesManager from '../components/patients/AllergiesManager';
+import VaccinationsPanel from '../components/patients/VaccinationsPanel';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -258,6 +261,11 @@ export default function Patients() {
           <PatientNotifications patient={patient} />
         </div>
 
+        {/* Allergies prioritaires */}
+        <div className="p-4 border-b">
+          <AllergiesManager patient={patient} />
+        </div>
+
         {/* Infos clés */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
@@ -276,13 +284,6 @@ export default function Patients() {
             <div>
               <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
               <p className="text-sm">{patient.mutuelle}</p>
-            </div>
-          )}
-
-          {patient.allergies && (
-            <div>
-              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
-              <p className="text-sm">{patient.allergies}</p>
             </div>
           )}
 
@@ -310,6 +311,16 @@ export default function Patients() {
                 <TabsTrigger value="history" className="gap-2">
                   📋 Historique
                 </TabsTrigger>
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="clinical-notes" className="gap-2">
+                    📝 Notes cliniques
+                  </TabsTrigger>
+                )}
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="vaccinations" className="gap-2">
+                    💉 Vaccinations
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="documents" className="gap-2">
                   📁 Documents
                 </TabsTrigger>
@@ -341,6 +352,16 @@ export default function Patients() {
               <TabsContent value="history" className="m-0">
                 <MedicalHistory patient={patient} />
               </TabsContent>
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="clinical-notes" className="m-0">
+                  <ClinicalNotesPanel patient={patient} />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="vaccinations" className="m-0">
+                  <VaccinationsPanel patient={patient} />
+                </TabsContent>
+              )}
               <TabsContent value="documents" className="m-0">
                 <DocumentsTab patient={patient} />
               </TabsContent>
