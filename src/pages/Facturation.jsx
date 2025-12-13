@@ -38,6 +38,8 @@ import PaymentReminderSystem from '../components/facturation/PaymentReminderSyst
 import PaymentTracker from '../components/facturation/PaymentTracker';
 import FinancialDashboard from '../components/facturation/FinancialDashboard';
 import BatchInvoiceCreator from '../components/facturation/BatchInvoiceCreator';
+import ManualPaymentRecorder from '../components/facturation/ManualPaymentRecorder';
+import AutomaticReminders from '../components/facturation/AutomaticReminders';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -60,6 +62,7 @@ export default function FacturationPage() {
   const [isPending, startTransition] = useTransition();
   const [showBatchCreator, setShowBatchCreator] = useState(false);
   const [selectedForBatch, setSelectedForBatch] = useState([]);
+  const [showPaymentRecorder, setShowPaymentRecorder] = useState(false);
 
   const [filters, setFilters] = useState({
     period: '30',
@@ -294,6 +297,14 @@ export default function FacturationPage() {
               <FileText className="w-4 h-4 mr-2" />
               Créer facture groupée ({batchableInvoices.length})
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowPaymentRecorder(true)}
+            >
+              <Euro className="w-4 h-4 mr-2" />
+              Enregistrer paiement
+            </Button>
             <Button variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               Export
@@ -380,6 +391,14 @@ export default function FacturationPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal enregistrement paiement */}
+      {showPaymentRecorder && (
+        <ManualPaymentRecorder
+          isOpen={showPaymentRecorder}
+          onClose={() => setShowPaymentRecorder(false)}
+        />
+      )}
     </div>
   );
 }

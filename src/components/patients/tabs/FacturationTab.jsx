@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,6 +84,8 @@ export default function FacturationTab({ patient, onNewBilling }) {
 
   return (
     <div className="space-y-6">
+      {/* Historique des paiements */}
+      <PaymentHistory patient={patient} />
       {/* En-tête avec totaux */}
       <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
         <CardContent className="p-6">
