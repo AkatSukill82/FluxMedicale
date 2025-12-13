@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { createPageUrl } from '@/utils';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
+import AttestationGenerator from './AttestationGenerator';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
@@ -283,6 +284,14 @@ export default function GlobalInvoicesTable({
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
+                      {(invoice.status === 'ACCEPTED' || invoice.status === 'SENT') && (
+                        <div className="ml-2">
+                          <AttestationGenerator 
+                            invoice={invoice}
+                            patient={patients.find(p => p.id === invoice.patient_id)}
+                          />
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
