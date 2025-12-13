@@ -74,6 +74,37 @@ export default function Patients() {
     enabled: !!patientId
   });
 
+  // Fetch stats and data for overview
+  const { data: consultations = [] } = useQuery({
+    queryKey: ['consultations_count', patientId],
+    queryFn: () => base44.entities.Consultation.filter({ patient_id: patientId }),
+    enabled: !!patientId
+  });
+
+  const { data: prescriptions = [] } = useQuery({
+    queryKey: ['prescriptions_count', patientId],
+    queryFn: () => base44.entities.Prescription.filter({ patient_id: patientId }),
+    enabled: !!patientId
+  });
+
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['invoices_count', patientId],
+    queryFn: () => base44.entities.Invoice.filter({ patient_id: patientId }),
+    enabled: !!patientId
+  });
+
+  const { data: allergies = [] } = useQuery({
+    queryKey: ['allergies_count', patientId],
+    queryFn: () => base44.entities.Allergy.filter({ patient_id: patientId, status: 'ACTIVE' }),
+    enabled: !!patientId
+  });
+
+  const stats = {
+    consultations: consultations.length,
+    prescriptions: prescriptions.length,
+    invoices: invoices.length
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.altKey) {
@@ -126,6 +157,9 @@ export default function Patients() {
   });
 
   if (!patientId) {
+    const stats = { consultations: 0, prescriptions: 0, invoices: 0 };
+    const allergies = [];
+
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -194,37 +228,6 @@ export default function Patients() {
       </div>
     );
   }
-
-  // Fetch stats and data for overview
-  const { data: consultations = [] } = useQuery({
-    queryKey: ['consultations_count', patientId],
-    queryFn: () => base44.entities.Consultation.filter({ patient_id: patientId }),
-    enabled: !!patientId
-  });
-
-  const { data: prescriptions = [] } = useQuery({
-    queryKey: ['prescriptions_count', patientId],
-    queryFn: () => base44.entities.Prescription.filter({ patient_id: patientId }),
-    enabled: !!patientId
-  });
-
-  const { data: invoices = [] } = useQuery({
-    queryKey: ['invoices_count', patientId],
-    queryFn: () => base44.entities.Invoice.filter({ patient_id: patientId }),
-    enabled: !!patientId
-  });
-
-  const { data: allergies = [] } = useQuery({
-    queryKey: ['allergies_count', patientId],
-    queryFn: () => base44.entities.Allergy.filter({ patient_id: patientId, status: 'ACTIVE' }),
-    enabled: !!patientId
-  });
-
-  const stats = {
-    consultations: consultations.length,
-    prescriptions: prescriptions.length,
-    invoices: invoices.length
-  };
 
   return (
     <div className="h-full bg-slate-50 overflow-hidden flex flex-col">
