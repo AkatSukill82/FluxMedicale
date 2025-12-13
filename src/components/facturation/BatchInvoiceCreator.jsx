@@ -14,10 +14,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import EHealthTransmission from './EHealthTransmission';
 
 export default function BatchInvoiceCreator({ invoicesToBatch, onBack }) {
   const queryClient = useQueryClient();
   const [isSending, setIsSending] = useState(false);
+  const [currentBatchForTransmission, setCurrentBatchForTransmission] = useState(null);
 
   // Regrouper les factures par mutuelle
   const groupedByMutuelle = React.useMemo(() => {
@@ -59,26 +61,24 @@ export default function BatchInvoiceCreator({ invoicesToBatch, onBack }) {
         invoice_count: group.invoice_count,
         total_amount: group.total_amount,
         invoice_ids: group.invoices.map(inv => inv.id),
-        status: 'SENT',
-        sent_at: new Date().toISOString()
+        status: 'PENDING'
       });
 
-      // Mettre à jour les factures
+      // Mettre à jour les factures avec le batch_id
       await Promise.all(
         group.invoices.map(invoice => 
           base44.entities.Invoice.update(invoice.id, {
-            status: 'SENT',
             batch_id: batch.id
           })
         )
       );
 
+      // Lancer la transmission eHealth
+      setCurrentBatchForTransmission(batch);
       queryClient.invalidateQueries(['invoices']);
-      toast.success(`Lot ${batchNumber} envoyé avec succès`);
     } catch (error) {
-      console.error('Erreur envoi lot:', error);
-      toast.error('Erreur lors de l\'envoi du lot');
-    } finally {
+      console.error('Erreur création lot:', error);
+      toast.error('Erreur lors de la création du lot');
       setIsSending(false);
     }
   };
@@ -98,6 +98,35 @@ export default function BatchInvoiceCreator({ invoicesToBatch, onBack }) {
       setIsSending(false);
     }
   };
+
+  // Si transmission en cours, afficher le module eHealth
+  if (currentBatchForTransmission) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => setCurrentBatchForTransmission(null)}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour
+          </Button>
+          <div>
+            <h2 className="text-2xl font-bold">Transmission eHealth en cours</h2>
+            <p className="text-sm text-muted-foreground">
+              Lot {currentBatchForTransmission.batch_number}
+            </p>
+          </div>
+        </div>
+        
+        <EHealthTransmission 
+          batch={currentBatchForTransmission}
+          onComplete={(results) => {
+            setCurrentBatchForTransmission(null);
+            setIsSending(false);
+            toast.success('Transmission terminée');
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
