@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  ArrowLeft, 
-  X, 
-  CreditCard,
-  Pill,
+  ArrowLeft,
   FileText
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
@@ -245,30 +242,30 @@ export default function Patients() {
         <PatientSummaryCard patient={patient} allergies={allergies} stats={stats} />
       </div>
 
-      <div className="flex-1 overflow-hidden flex gap-4">
-        {/* Zone principale - Dossier patient */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="flex-1 overflow-hidden flex">
+        {/* Zone principale - Dossier patient (70%) */}
+        <div className="flex-1 overflow-y-auto p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4">
+            <TabsList className="mb-6">
               <TabsTrigger value="record">📋 Dossier</TabsTrigger>
               <TabsTrigger value="consultations">📝 Consultations</TabsTrigger>
               <TabsTrigger value="documents">📁 Documents</TabsTrigger>
               <TabsTrigger value="billing">💰 Facturation</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="record" className="space-y-4">
+            <TabsContent value="record" className="space-y-6 mt-0">
               <PatientRecordView patient={patient} allergies={allergies} />
               
-              {/* Nouvelle consultation */}
+              {/* Bouton nouvelle consultation */}
               {!showNewConsultation ? (
-                <div className="flex justify-center pt-6">
+                <div className="flex justify-center py-8">
                   <Button 
                     onClick={() => setShowNewConsultation(true)}
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 px-8"
                   >
                     <FileText className="w-5 h-5 mr-2" />
-                    Nouvelle consultation
+                    Créer une nouvelle consultation
                   </Button>
                 </div>
               ) : (
@@ -280,30 +277,26 @@ export default function Patients() {
               )}
             </TabsContent>
 
-            <TabsContent value="consultations" className="space-y-4">
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <ConsultationTab patient={patient} />
-              )}
+            <TabsContent value="consultations" className="space-y-4 mt-0">
+              <ConsultationTab patient={patient} />
             </TabsContent>
 
-            <TabsContent value="documents" className="space-y-4">
+            <TabsContent value="documents" className="space-y-4 mt-0">
               <DocumentsTab patient={patient} />
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <>
-                  <h3 className="font-semibold mt-6 mb-4">Fichiers sécurisés</h3>
-                  <SecureDocuments patient={patient} />
-                </>
-              )}
+              <div className="pt-6">
+                <h3 className="font-semibold mb-4">Fichiers sécurisés</h3>
+                <SecureDocuments patient={patient} />
+              </div>
             </TabsContent>
 
-            <TabsContent value="billing" className="space-y-4">
+            <TabsContent value="billing" className="space-y-4 mt-0">
               <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Colonne historique à droite */}
-        <aside className="w-96 bg-white border-l overflow-y-auto px-4 py-4">
+        {/* Colonne historique à droite (30%) */}
+        <aside className="w-[400px] bg-white border-l overflow-y-auto p-6">
           <PatientTimeline patient={patient} />
         </aside>
       </div>
