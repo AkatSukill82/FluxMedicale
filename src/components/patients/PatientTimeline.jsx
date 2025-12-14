@@ -20,9 +20,16 @@ import { fr } from 'date-fns/locale';
 export default function PatientTimeline({ patient }) {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['timeline_events', patient?.id],
-    queryFn: () => base44.entities.TimelineEvent.filter({ 
-      patient_id: patient.id 
-    }, '-event_date', 100),
+    queryFn: async () => {
+      try {
+        return await base44.entities.TimelineEvent.filter({ 
+          patient_id: patient.id 
+        }, '-event_date', 100);
+      } catch (error) {
+        console.log('TimelineEvent fetch failed, entity may not exist yet');
+        return [];
+      }
+    },
     enabled: !!patient?.id
   });
 
