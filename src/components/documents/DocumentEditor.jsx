@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,11 +18,15 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
+  Mail,
   Printer
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { base44 } from '@/api/base44Client';
+import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import EHealthBoxSender from '../ehealth/EHealthBoxSender';
+import DocumentSignature from '../ehealth/DocumentSignature';
 
 export default function DocumentEditor({ 
   template, 
@@ -42,6 +46,8 @@ export default function DocumentEditor({
   const [errors, setErrors] = useState({});
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipientName, setRecipientName] = useState('');
+  const [showEHealthBoxSender, setShowEHealthBoxSender] = useState(false);
+  const [showSignature, setShowSignature] = useState(false);
 
   useEffect(() => {
     loadUser();
@@ -453,6 +459,25 @@ export default function DocumentEditor({
                 )}
               </Button>
 
+              <Button
+                variant="outline"
+                onClick={() => setShowSignature(true)}
+                disabled={!savedDocument}
+                className="border-green-600 text-green-600 hover:bg-green-50"
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Signer (eID/itsme®)
+              </Button>
+
+              <Button
+                onClick={() => setShowEHealthBoxSender(true)}
+                disabled={!savedDocument}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                eHealthBox
+              </Button>
+
               <div className="flex items-center gap-2 border-l pl-2">
                 <Input
                   placeholder="Email destinataire"
@@ -464,18 +489,47 @@ export default function DocumentEditor({
                 <Button
                   onClick={handleSendEmail}
                   disabled={isSending}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  variant="outline"
                 >
                   {isSending ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Envoi...</>
                   ) : (
-                    <><Send className="w-4 h-4 mr-2" />Envoyer</>
+                    <><Send className="w-4 h-4 mr-2" />Email</>
                   )}
                 </Button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Modale eHealthBox */}
+        {showEHealthBoxSender && savedDocument && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="max-w-2xl w-full">
+              <EHealthBoxSender
+                document={savedDocument}
+                patient={patient}
+                onSent={() => {
+                  setShowEHealthBoxSender(false);
+                  if (onSaved) onSaved();
+                }}
+                onClose={() => setShowEHealthBoxSender(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Modale signature */}
+        <DocumentSignature
+          document={savedDocument || {}}
+          patient={patient}
+          isOpen={showSignature}
+          onClose={() => setShowSignature(false)}
+          onSigned={() => {
+            setShowSignature(false);
+            if (onSaved) onSaved();
+          }}
+        />
       </Card>
     </div>
   );
