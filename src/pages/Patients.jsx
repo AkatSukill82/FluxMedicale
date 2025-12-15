@@ -243,60 +243,40 @@ export default function Patients() {
       </div>
 
       <div className="flex-1 overflow-hidden flex">
-        {/* Zone principale - Dossier patient (70%) */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="record">📋 Dossier</TabsTrigger>
-              <TabsTrigger value="consultations">📝 Consultations</TabsTrigger>
-              <TabsTrigger value="documents">📁 Documents</TabsTrigger>
-              <TabsTrigger value="billing">💰 Facturation</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="record" className="space-y-6 mt-0">
-              <PatientRecordView patient={patient} allergies={allergies} />
-              
-              {/* Bouton nouvelle consultation */}
+        {/* Zone principale sans scroll */}
+        <div className="flex-1 p-4 overflow-hidden">
+          <div className="h-full flex flex-col">
+            {/* Fiche patient compacte */}
+            <PatientRecordView patient={patient} allergies={allergies} />
+            
+            {/* Zone consultation */}
+            <div className="mt-3 flex-1 min-h-0">
               {!showNewConsultation ? (
-                <div className="flex justify-center py-8">
+                <div className="h-full flex items-center justify-center">
                   <Button 
                     onClick={() => setShowNewConsultation(true)}
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 px-8"
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
                     <FileText className="w-5 h-5 mr-2" />
-                    Créer une nouvelle consultation
+                    Nouvelle consultation
                   </Button>
                 </div>
               ) : (
-                <SimplifiedConsultation
-                  patient={patient}
-                  onClose={() => setShowNewConsultation(false)}
-                  onSaved={() => setShowNewConsultation(false)}
-                />
+                <div className="h-full overflow-y-auto">
+                  <SimplifiedConsultation
+                    patient={patient}
+                    onClose={() => setShowNewConsultation(false)}
+                    onSaved={() => setShowNewConsultation(false)}
+                  />
+                </div>
               )}
-            </TabsContent>
-
-            <TabsContent value="consultations" className="space-y-4 mt-0">
-              <ConsultationTab patient={patient} />
-            </TabsContent>
-
-            <TabsContent value="documents" className="space-y-4 mt-0">
-              <DocumentsTab patient={patient} />
-              <div className="pt-6">
-                <h3 className="font-semibold mb-4">Fichiers sécurisés</h3>
-                <SecureDocuments patient={patient} />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="billing" className="space-y-4 mt-0">
-              <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </div>
 
-        {/* Colonne historique à droite (30%) */}
-        <aside className="w-[400px] bg-white border-l overflow-y-auto p-6">
+        {/* Timeline compacte (250px) */}
+        <aside className="w-[250px] bg-white border-l p-3 overflow-y-auto">
           <PatientTimeline patient={patient} />
         </aside>
       </div>

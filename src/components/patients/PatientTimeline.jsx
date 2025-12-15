@@ -129,96 +129,50 @@ export default function PatientTimeline({ patient }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="sticky top-0 bg-white z-10 pb-3 border-b">
-        <h3 className="font-bold text-lg">Historique patient</h3>
-        <p className="text-sm text-muted-foreground">
-          {allEvents.length} événement(s) enregistré(s)
-        </p>
+    <div className="space-y-2">
+      <div className="sticky top-0 bg-white z-10 pb-2 border-b">
+        <h3 className="font-bold text-base">Historique</h3>
+        <p className="text-xs text-muted-foreground">{allEvents.length} événements</p>
       </div>
 
       {allEvents.length === 0 ? (
-        <div className="text-center py-12 text-slate-500">
-          <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun événement enregistré</p>
+        <div className="text-center py-6 text-slate-500">
+          <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-xs">Aucun événement</p>
         </div>
       ) : (
-        <div className="space-y-3 pb-6">
-          {allEvents.map((event, index) => {
+        <div className="space-y-2">
+          {allEvents.slice(0, 10).map((event, index) => {
             const eventDate = event.sortDate;
             const isValidDate = eventDate && !isNaN(eventDate.getTime());
 
             return (
-              <Card 
+              <div 
                 key={`${event.displayType}-${event.id}-${index}`}
-                className="hover:shadow-md transition-shadow border-l-4"
-                style={{ borderLeftColor: getEventColor(event.event_type).split(' ')[0].replace('bg-', '#') }}
+                className="p-2 border rounded hover:bg-slate-50 transition-colors"
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${getEventColor(event.event_type)}`}>
-                      {getEventIcon(event.event_type)}
-                    </div>
+                <div className="flex items-start gap-2">
+                  <div className={`w-6 h-6 rounded flex items-center justify-center ${getEventColor(event.event_type)}`}>
+                    {getEventIcon(event.event_type)}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-xs text-slate-900 leading-tight line-clamp-1">
+                      {event.title}
+                    </h4>
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <h4 className="font-semibold text-sm text-slate-900 leading-tight">
-                          {event.title}
-                        </h4>
-                        <Badge variant="outline" className="text-xs whitespace-nowrap">
-                          {event.event_type || event.displayType}
-                        </Badge>
-                      </div>
-                      
-                      {event.description && (
-                        <p className="text-xs text-slate-600 mt-1 line-clamp-2">
-                          {event.description}
-                        </p>
-                      )}
+                    {event.description && (
+                      <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">
+                        {event.description}
+                      </p>
+                    )}
 
-                      <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
-                        {isValidDate && (
-                          <>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {format(eventDate, 'dd/MM/yyyy HH:mm', { locale: fr })}
-                            </span>
-                            <span>•</span>
-                            <span>
-                              {formatDistanceToNow(eventDate, { 
-                                addSuffix: true, 
-                                locale: fr 
-                              })}
-                            </span>
-                          </>
-                        )}
-                        
-                        {(event.provider || event.created_by) && (
-                          <>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              {(event.provider || event.created_by)?.split('@')[0]}
-                            </span>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Actions selon le type */}
-                      {event.displayType === 'consultation' && event.anamnese && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="mt-2 h-7 text-xs"
-                        >
-                          <ExternalLink className="w-3 h-3 mr-1" />
-                          Voir détails
-                        </Button>
-                      )}
+                    <div className="text-xs text-slate-500 mt-1">
+                      {isValidDate && format(eventDate, 'dd/MM HH:mm', { locale: fr })}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
