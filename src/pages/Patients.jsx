@@ -233,13 +233,11 @@ export default function Patients() {
   return (
     <div className="h-full bg-slate-50 overflow-hidden flex flex-col">
       {/* Header fixe */}
-      <div className="bg-white border-b p-4">
-        <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3">
+      <div className="bg-white border-b p-3">
+        <Button variant="ghost" onClick={handleClose} className="gap-2">
           <ArrowLeft className="w-4 h-4" />
-          Retour au tableau de bord
+          Retour
         </Button>
-        
-        <PatientSummaryCard patient={patient} allergies={allergies} stats={stats} />
       </div>
 
       <div className="flex-1 overflow-hidden flex">
