@@ -18,6 +18,7 @@ import FollowUpTasks from './pages/FollowUpTasks';
 import ReferentialImport from './pages/ReferentialImport';
 import Statistics from './pages/Statistics';
 import Medications from './pages/Medications';
+import Tests from './pages/Tests';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +43,7 @@ export const PAGES = {
     "ReferentialImport": ReferentialImport,
     "Statistics": Statistics,
     "Medications": Medications,
+    "Tests": Tests,
 }
 
 export const pagesConfig = {
