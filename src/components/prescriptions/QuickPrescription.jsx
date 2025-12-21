@@ -4,8 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Pill, Thermometer, Droplets, Wind, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Pill, Thermometer, Droplets, Wind, Loader2, Plus, X, Search } from 'lucide-react';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
+import MedicationSearch from '../medications/MedicationSearch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Templates de prescriptions courantes
 const PRESCRIPTION_TEMPLATES = [
@@ -43,16 +47,27 @@ const PRESCRIPTION_TEMPLATES = [
 export default function QuickPrescription({ patient, isOpen, onClose }) {
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [customMedications, setCustomMedications] = useState([]);
+  const [activeTab, setActiveTab] = useState('templates');
 
   const prescribeMutation = useMutation({
-    mutationFn: async (template) => {
+    mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
       
-      const medicamentsData = template.medications.map(med => ({
-        nom_produit: med.name,
-        posologie: med.posology,
-        duree_traitement: med.duration
-      }));
+      let medicamentsData;
+      if (data.isCustom) {
+        medicamentsData = data.medications.map(med => ({
+          nom_produit: med.product_name || med.name,
+          posologie: med.posology,
+          duree_traitement: med.duration
+        }));
+      } else {
+        medicamentsData = data.medications.map(med => ({
+          nom_produit: med.name,
+          posologie: med.posology,
+          duree_traitement: med.duration
+        }));
+      }
 
       return base44.entities.Prescription.create({
         patient_id: patient.id,
@@ -65,6 +80,7 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
       handleSuccess('Prescription envoyée via Recip-e');
+      setCustomMedications([]);
       onClose();
     },
     onError: (error) => {
@@ -72,77 +88,194 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
     }
   });
 
+  const handleAddMedication = (drug) => {
+    setCustomMedications([...customMedications, {
+      ...drug,
+      posology: '',
+      duration: ''
+    }]);
+  };
+
+  const handleRemoveMedication = (index) => {
+    setCustomMedications(customMedications.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateMedication = (index, field, value) => {
+    const updated = [...customMedications];
+    updated[index][field] = value;
+    setCustomMedications(updated);
+  };
+
+  const handlePrescribeCustom = () => {
+    if (customMedications.length === 0) return;
+    if (customMedications.some(m => !m.posology || !m.duration)) {
+      handleError(new Error('Veuillez remplir tous les champs'), 'Prescription');
+      return;
+    }
+    prescribeMutation.mutate({ medications: customMedications, isCustom: true });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Pill className="w-5 h-5" />
             Prescription rapide
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Sélectionnez un traitement standard pour prescrire en 1 clic
+            Choisissez un template ou cherchez dans la base de médicaments
           </p>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-3 py-4">
-          {PRESCRIPTION_TEMPLATES.map(template => {
-            const Icon = template.icon;
-            return (
-              <Card
-                key={template.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${
-                  selectedTemplate?.id === template.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setSelectedTemplate(template)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${template.color}`}>
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-2">{template.name}</h3>
-                      <div className="space-y-1">
-                        {template.medications.map((med, idx) => (
-                          <div key={idx} className="text-sm text-muted-foreground">
-                            • {med.name} - {med.posology}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="templates">Templates standards</TabsTrigger>
+            <TabsTrigger value="custom">
+              <Search className="w-4 h-4 mr-2" />
+              Recherche médicaments
+            </TabsTrigger>
+          </TabsList>
 
-        {selectedTemplate && (
-          <div className="pt-4 border-t">
-            <Button
-              className="w-full"
-              size="lg"
-              onClick={() => prescribeMutation.mutate(selectedTemplate)}
-              disabled={prescribeMutation.isPending}
-            >
-              {prescribeMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Envoi en cours...
-                </>
-              ) : (
-                <>
-                  <Pill className="w-4 h-4 mr-2" />
-                  Prescrire via Recip-e
-                </>
-              )}
-            </Button>
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              La prescription sera envoyée électroniquement au pharmacien
-            </p>
-          </div>
-        )}
+          <TabsContent value="templates" className="space-y-4">
+            <div className="grid grid-cols-1 gap-3">
+              {PRESCRIPTION_TEMPLATES.map(template => {
+                const Icon = template.icon;
+                return (
+                  <Card
+                    key={template.id}
+                    className={`cursor-pointer transition-all hover:shadow-lg ${
+                      selectedTemplate?.id === template.id ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => setSelectedTemplate(template)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${template.color}`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-2">{template.name}</h3>
+                          <div className="space-y-1">
+                            {template.medications.map((med, idx) => (
+                              <div key={idx} className="text-sm text-muted-foreground">
+                                • {med.name} - {med.posology}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {selectedTemplate && (
+              <div className="pt-4 border-t">
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={() => prescribeMutation.mutate({ ...selectedTemplate, isCustom: false })}
+                  disabled={prescribeMutation.isPending}
+                >
+                  {prescribeMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Pill className="w-4 h-4 mr-2" />
+                      Prescrire via Recip-e
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="custom" className="space-y-4">
+            <MedicationSearch 
+              onSelect={handleAddMedication}
+              selectedMedications={customMedications}
+            />
+
+            {customMedications.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm">Médicaments sélectionnés ({customMedications.length})</h3>
+                {customMedications.map((med, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <p className="font-semibold">{med.product_name}</p>
+                          <p className="text-xs text-slate-600">
+                            {med.substance_name} {med.strength && `• ${med.strength}${med.unit}`}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveMedication(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">Posologie *</Label>
+                          <Input
+                            placeholder="Ex: 1 cp 3x/jour"
+                            value={med.posology}
+                            onChange={(e) => handleUpdateMedication(index, 'posology', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Durée *</Label>
+                          <Input
+                            placeholder="Ex: 7 jours"
+                            value={med.duration}
+                            onChange={(e) => handleUpdateMedication(index, 'duration', e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handlePrescribeCustom}
+                  disabled={prescribeMutation.isPending || customMedications.some(m => !m.posology || !m.duration)}
+                >
+                  {prescribeMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Pill className="w-4 h-4 mr-2" />
+                      Prescrire {customMedications.length} médicament(s) via Recip-e
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {customMedications.length === 0 && (
+              <div className="text-center py-12 text-slate-500">
+                <Search className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p>Recherchez et ajoutez des médicaments</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
