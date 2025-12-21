@@ -255,6 +255,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
               selectedCodes={selectedCodes}
               onCodesChange={setSelectedCodes}
               mutuelle={{ conventioned: patient?.mutuelle !== 'Non conventionné' }}
+              patient={patient}
             />
 
             {selectedCodes.length > 0 && (

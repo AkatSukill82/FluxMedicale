@@ -4,13 +4,17 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { X, Plus, Calculator, AlertCircle } from 'lucide-react';
+import { X, Plus, Calculator, AlertCircle, Edit2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import NomenSearch from '../nomenclature/NomenSearch';
 import { useI18n } from '../i18n/i18nContext';
+import AssurabilityChecker from './AssurabilityChecker';
 
-export default function NomenclatureSelector({ selectedCodes, onCodesChange, mutuelle }) {
+export default function NomenclatureSelector({ selectedCodes, onCodesChange, mutuelle, patient }) {
   const { locale } = useI18n();
   const [quantities, setQuantities] = useState({});
+  const [useCustomPrices, setUseCustomPrices] = useState(false);
+  const [customPrices, setCustomPrices] = useState({});
 
   const handleAddCode = (code) => {
     onCodesChange([...selectedCodes, code]);
@@ -29,6 +33,24 @@ export default function NomenclatureSelector({ selectedCodes, onCodesChange, mut
     setQuantities({ ...quantities, [codeId]: qty });
   };
 
+  const handleCustomPriceChange = (codeId, field, value) => {
+    const numValue = parseInt(value) || 0;
+    setCustomPrices({
+      ...customPrices,
+      [codeId]: {
+        ...customPrices[codeId],
+        [field]: numValue
+      }
+    });
+  };
+
+  const handlePriceCorrection = (codeId, correctedPrices) => {
+    setCustomPrices({
+      ...customPrices,
+      [codeId]: correctedPrices
+    });
+  };
+
   const calculateTotals = () => {
     let totalHonorarium = 0;
     let totalReimbursed = 0;
@@ -36,9 +58,17 @@ export default function NomenclatureSelector({ selectedCodes, onCodesChange, mut
 
     selectedCodes.forEach(code => {
       const qty = quantities[code.id] || 1;
-      totalHonorarium += (code.honorarium || 0) * qty;
-      totalReimbursed += (code.reimbursed || 0) * qty;
-      totalPatientShare += (code.patient_share || 0) * qty;
+      
+      if (useCustomPrices && customPrices[code.id]) {
+        const custom = customPrices[code.id];
+        totalHonorarium += (custom.honorarium || code.honorarium || 0) * qty;
+        totalReimbursed += (custom.reimbursed || code.reimbursed || 0) * qty;
+        totalPatientShare += (custom.patient_share || code.patient_share || 0) * qty;
+      } else {
+        totalHonorarium += (code.honorarium || 0) * qty;
+        totalReimbursed += (code.reimbursed || 0) * qty;
+        totalPatientShare += (code.patient_share || 0) * qty;
+      }
     });
 
     return { totalHonorarium, totalReimbursed, totalPatientShare };
@@ -69,6 +99,21 @@ export default function NomenclatureSelector({ selectedCodes, onCodesChange, mut
       </div>
 
       {selectedCodes.length > 0 && (
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Edit2 className="w-4 h-4 text-slate-600" />
+            <Label className="text-sm font-medium cursor-pointer">
+              Utiliser des prix personnalisés
+            </Label>
+          </div>
+          <Switch
+            checked={useCustomPrices}
+            onCheckedChange={setUseCustomPrices}
+          />
+        </div>
+      )}
+
+      {selectedCodes.length > 0 && (
         <div className="space-y-3">
           <Label className="text-sm font-semibold">Prestations sélectionnées</Label>
           {selectedCodes.map(code => {
@@ -88,6 +133,12 @@ export default function NomenclatureSelector({ selectedCodes, onCodesChange, mut
                       <Badge variant="secondary" className="text-xs">
                         {code.category}
                       </Badge>
+                      {useCustomPrices && (
+                        <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                          <Edit2 className="w-3 h-3 mr-1" />
+                          Prix personnalisé
+                        </Badge>
+                      )}
                       {!code.tiers_payant_allowed && (
                         <Badge variant="destructive" className="text-xs">
                           <AlertCircle className="w-3 h-3 mr-1" />
@@ -97,26 +148,61 @@ export default function NomenclatureSelector({ selectedCodes, onCodesChange, mut
                     </div>
                     <p className="text-sm font-medium mb-1">{title}</p>
                     
-                    <div className="grid grid-cols-3 gap-2 text-xs mt-2">
-                      <div>
-                        <span className="text-muted-foreground">Honoraire:</span>
-                        <p className="font-semibold">
-                          {formatAmount(code.honorarium * qty)}
-                        </p>
+                    {useCustomPrices ? (
+                      <div className="grid grid-cols-3 gap-2 text-xs mt-2">
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">Honoraire (€)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={((customPrices[code.id]?.honorarium || code.honorarium) / 100).toFixed(2)}
+                            onChange={(e) => handleCustomPriceChange(code.id, 'honorarium', Math.round(parseFloat(e.target.value) * 100))}
+                            className="h-8 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">Remboursé (€)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={((customPrices[code.id]?.reimbursed || actualReimbursed) / 100).toFixed(2)}
+                            onChange={(e) => handleCustomPriceChange(code.id, 'reimbursed', Math.round(parseFloat(e.target.value) * 100))}
+                            className="h-8 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground mb-1 block">Ticket mod. (€)</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={((customPrices[code.id]?.patient_share || actualPatientShare) / 100).toFixed(2)}
+                            onChange={(e) => handleCustomPriceChange(code.id, 'patient_share', Math.round(parseFloat(e.target.value) * 100))}
+                            className="h-8 bg-white"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Remboursé:</span>
-                        <p className="font-semibold text-green-600">
-                          {formatAmount(actualReimbursed * qty)}
-                        </p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2 text-xs mt-2">
+                        <div>
+                          <span className="text-muted-foreground">Honoraire:</span>
+                          <p className="font-semibold">
+                            {formatAmount(code.honorarium * qty)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Remboursé:</span>
+                          <p className="font-semibold text-green-600">
+                            {formatAmount(actualReimbursed * qty)}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Ticket mod.:</span>
+                          <p className="font-semibold text-orange-600">
+                            {formatAmount(actualPatientShare * qty)}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-muted-foreground">Ticket mod.:</span>
-                        <p className="font-semibold text-orange-600">
-                          {formatAmount(actualPatientShare * qty)}
-                        </p>
-                      </div>
-                    </div>
+                    )}
 
                     {code.frequency_limit && (
                       <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
