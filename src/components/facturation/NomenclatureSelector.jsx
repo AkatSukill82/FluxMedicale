@@ -238,6 +238,16 @@ export default function NomenclatureSelector({ selectedCodes, onCodesChange, mut
             );
           })}
 
+          {/* Vérification d'assurabilité */}
+          {useCustomPrices && (
+            <AssurabilityChecker
+              patient={patient}
+              selectedCodes={selectedCodes}
+              customPrices={customPrices}
+              onPriceCorrection={handlePriceCorrection}
+            />
+          )}
+
           {/* Total récapitulatif */}
           <Card className="p-4 bg-blue-50 border-blue-200">
             <div className="flex items-center gap-2 mb-3">
