@@ -28,7 +28,6 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import MyHealthSyncPanel from '../components/myhealth/MyHealthSyncPanel';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -36,6 +35,7 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import ConsultationWorkflow from '../components/consultation/ConsultationWorkflow';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -58,6 +58,7 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
+  const [showConsultationWorkflow, setShowConsultationWorkflow] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -221,6 +222,19 @@ export default function Patients() {
 
         {/* Actions rapides */}
         <div className="p-4 border-b space-y-2">
+          {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+            <Button
+              onClick={() => setShowConsultationWorkflow(true)}
+              className="w-full justify-start gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              size="lg"
+            >
+              <FileText className="w-5 h-5" />
+              <div className="text-left flex-1">
+                <div className="font-bold">Nouvelle Consultation</div>
+                <div className="text-xs opacity-90">Tout-en-un: Examen, Rx, Facturation</div>
+              </div>
+            </Button>
+          )}
           {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
             <Button
               onClick={() => setShowQuickBilling(true)}
@@ -257,11 +271,6 @@ export default function Patients() {
         {/* Notifications */}
         <div className="p-4 border-b">
           <PatientNotifications patient={patient} />
-        </div>
-
-        {/* MyHealth@Hand Sync */}
-        <div className="p-4 border-b">
-          <MyHealthSyncPanel patient={patient} />
         </div>
 
         {/* Infos clés */}
@@ -406,6 +415,14 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
-    </div>
-  );
-}
+
+      {showConsultationWorkflow && (
+        <ConsultationWorkflow
+          patient={patient}
+          isOpen={showConsultationWorkflow}
+          onClose={() => setShowConsultationWorkflow(false)}
+        />
+      )}
+      </div>
+      );
+      }
