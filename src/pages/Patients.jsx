@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  ArrowLeft,
+  ArrowLeft, 
+  X, 
+  CreditCard,
+  Pill,
   FileText
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
@@ -16,12 +19,7 @@ import { useEIDReader } from '../components/eid/useEIDReader';
 import { toast } from 'sonner';
 import { usePermissions, PERMISSIONS } from '../components/auth/RBACGuard';
 
-// Import tabs and components
-import PatientOverview from '../components/patients/PatientOverview';
-import PatientSummaryCard from '../components/patients/PatientSummaryCard';
-import PatientRecordView from '../components/patients/PatientRecordView';
-import SimplifiedConsultation from '../components/patients/SimplifiedConsultation';
-import PatientTimeline from '../components/patients/PatientTimeline';
+// Import tabs
 import ConsultationTab from '../components/patients/tabs/ConsultationTab';
 import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrativeTab';
 import HubsTab from '../components/patients/tabs/HubsTab';
@@ -30,9 +28,7 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import ClinicalNotesPanel from '../components/patients/ClinicalNotesPanel';
-import AllergiesManager from '../components/patients/AllergiesManager';
-import VaccinationsPanel from '../components/patients/VaccinationsPanel';
+import MyHealthSyncPanel from '../components/myhealth/MyHealthSyncPanel';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -56,13 +52,12 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('record');
+  const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-  const [showNewConsultation, setShowNewConsultation] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -74,37 +69,6 @@ export default function Patients() {
     },
     enabled: !!patientId
   });
-
-  // Fetch stats and data for overview
-  const { data: consultations = [] } = useQuery({
-    queryKey: ['consultations_count', patientId],
-    queryFn: () => base44.entities.Consultation.filter({ patient_id: patientId }),
-    enabled: !!patientId
-  });
-
-  const { data: prescriptions = [] } = useQuery({
-    queryKey: ['prescriptions_count', patientId],
-    queryFn: () => base44.entities.Prescription.filter({ patient_id: patientId }),
-    enabled: !!patientId
-  });
-
-  const { data: invoices = [] } = useQuery({
-    queryKey: ['invoices_count', patientId],
-    queryFn: () => base44.entities.Invoice.filter({ patient_id: patientId }),
-    enabled: !!patientId
-  });
-
-  const { data: allergies = [] } = useQuery({
-    queryKey: ['allergies_count', patientId],
-    queryFn: () => base44.entities.Allergy.filter({ patient_id: patientId, status: 'ACTIVE' }),
-    enabled: !!patientId
-  });
-
-  const stats = {
-    consultations: consultations.length,
-    prescriptions: prescriptions.length,
-    invoices: invoices.length
-  };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -158,9 +122,6 @@ export default function Patients() {
   });
 
   if (!patientId) {
-    const stats = { consultations: 0, prescriptions: 0, invoices: 0 };
-    const allergies = [];
-
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -230,53 +191,179 @@ export default function Patients() {
     );
   }
 
-  return (
-    <div className="h-full bg-slate-50 overflow-hidden flex flex-col">
-      {/* Header fixe */}
-      <div className="bg-white border-b p-3">
-        <Button variant="ghost" onClick={handleClose} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Retour
-        </Button>
-      </div>
+  const officialName = patient.name?.find(n => n.use === 'official') || {};
+  const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
+  const age = patient.birthDate ? differenceInYears(new Date(), new Date(patient.birthDate)) : null;
+  const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
+  const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
-      <div className="flex-1 overflow-hidden flex">
-        {/* Zone principale sans scroll */}
-        <div className="flex-1 p-4 overflow-hidden">
-          <div className="h-full flex flex-col">
-            {/* Fiche patient compacte */}
-            <PatientRecordView patient={patient} allergies={allergies} />
-            
-            {/* Zone consultation */}
-            <div className="mt-3 flex-1 min-h-0">
-              {!showNewConsultation ? (
-                <div className="h-full flex items-center justify-center">
-                  <Button 
-                    onClick={() => setShowNewConsultation(true)}
-                    size="lg"
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <FileText className="w-5 h-5 mr-2" />
-                    Nouvelle consultation
-                  </Button>
-                </div>
-              ) : (
-                <div className="h-full overflow-y-auto">
-                  <SimplifiedConsultation
-                    patient={patient}
-                    onClose={() => setShowNewConsultation(false)}
-                    onSaved={() => setShowNewConsultation(false)}
-                  />
-                </div>
-              )}
+  return (
+    <div className="flex h-full bg-slate-50">
+      {/* Sidebar gauche - Infos patient */}
+      <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
+        {/* Header patient */}
+        <div className="p-4 border-b">
+          <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
+          
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {age && <span>{age} ans</span>}
+              <span>•</span>
+              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
             </div>
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
           </div>
         </div>
 
-        {/* Timeline compacte (250px) */}
-        <aside className="w-[250px] bg-white border-l p-3 overflow-y-auto">
-          <PatientTimeline patient={patient} />
-        </aside>
+        {/* Actions rapides */}
+        <div className="p-4 border-b space-y-2">
+          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
+            <Button
+              onClick={() => setShowQuickBilling(true)}
+              className="w-full justify-start gap-2"
+              size="sm"
+            >
+              <CreditCard className="w-4 h-4" />
+              Facturer (Alt+F)
+            </Button>
+          )}
+          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+            <>
+              <Button
+                onClick={() => setShowQuickPrescription(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                <Pill className="w-4 h-4" />
+                Prescrire (Alt+P)
+              </Button>
+              <Button
+                onClick={() => setShowQuickVaccination(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                💉 Vacciner (Alt+V)
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <div className="p-4 border-b">
+          <PatientNotifications patient={patient} />
+        </div>
+
+        {/* MyHealth@Hand Sync */}
+        <div className="p-4 border-b">
+          <MyHealthSyncPanel patient={patient} />
+        </div>
+
+        {/* Infos clés */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Contact</h3>
+            <div className="space-y-1 text-sm">
+              {patient.telecom?.find(t => t.system === 'phone')?.value && (
+                <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
+              )}
+              {patient.telecom?.find(t => t.system === 'email')?.value && (
+                <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
+              )}
+            </div>
+          </div>
+
+          {patient.mutuelle && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <p className="text-sm">{patient.mutuelle}</p>
+            </div>
+          )}
+
+          {patient.allergies && (
+            <div>
+              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
+              <p className="text-sm">{patient.allergies}</p>
+            </div>
+          )}
+
+          {patient.antecedents_medicaux && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Antécédents</h3>
+              <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Zone principale */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Barre de navigation tabs */}
+        <div className="bg-white border-b">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="px-6">
+              <TabsList className="h-12 bg-transparent">
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="consultation" className="gap-2">
+                    📝 Consultation
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="history" className="gap-2">
+                  📋 Historique
+                </TabsTrigger>
+                <TabsTrigger value="documents" className="gap-2">
+                  📁 Documents
+                </TabsTrigger>
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="secure-files" className="gap-2">
+                    🔒 Fichiers sécurisés
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="billing" className="gap-2">
+                  💰 Facturation
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="gap-2">
+                  👤 Admin
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </Tabs>
+        </div>
+
+        {/* Contenu scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="p-6">
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="consultation" className="m-0">
+                  <ConsultationTab patient={patient} />
+                </TabsContent>
+              )}
+              <TabsContent value="history" className="m-0">
+                <MedicalHistory patient={patient} />
+              </TabsContent>
+              <TabsContent value="documents" className="m-0">
+                <DocumentsTab patient={patient} />
+              </TabsContent>
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="secure-files" className="m-0">
+                  <SecureDocuments patient={patient} />
+                </TabsContent>
+              )}
+              <TabsContent value="billing" className="m-0">
+                <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
+              </TabsContent>
+              <TabsContent value="admin" className="m-0">
+                <FicheAdministrativeTab patient={patient} />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
       </div>
 
       {/* Modals */}

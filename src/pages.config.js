@@ -1,49 +1,51 @@
 import Agenda from './pages/Agenda';
 import Audit from './pages/Audit';
-import Utilisateurs from './pages/Utilisateurs';
+import Dashboard from './pages/Dashboard';
+import EIDTest from './pages/EIDTest';
+import Facturation from './pages/Facturation';
+import FollowUpTasks from './pages/FollowUpTasks';
+import Health from './pages/Health';
+import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
-import Facturation from './pages/Facturation';
-import Health from './pages/Health';
-import Securite from './pages/Securite';
-import EIDTest from './pages/EIDTest';
-import ProfilMedecin from './pages/ProfilMedecin';
-import Templates from './pages/Templates';
-import Patients from './pages/Patients';
-import Dashboard from './pages/Dashboard';
-import Telemedicine from './pages/Telemedicine';
-import TeleconsultationRoom from './pages/TeleconsultationRoom';
-import PrescriptionRenewals from './pages/PrescriptionRenewals';
-import FollowUpTasks from './pages/FollowUpTasks';
-import ReferentialImport from './pages/ReferentialImport';
-import Statistics from './pages/Statistics';
 import Medications from './pages/Medications';
+import Patients from './pages/Patients';
+import PrescriptionRenewals from './pages/PrescriptionRenewals';
+import ProfilMedecin from './pages/ProfilMedecin';
+import ReferentialImport from './pages/ReferentialImport';
+import Securite from './pages/Securite';
+import Statistics from './pages/Statistics';
+import TeleconsultationRoom from './pages/TeleconsultationRoom';
+import Telemedicine from './pages/Telemedicine';
+import Templates from './pages/Templates';
 import Tests from './pages/Tests';
+import Utilisateurs from './pages/Utilisateurs';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Agenda": Agenda,
     "Audit": Audit,
-    "Utilisateurs": Utilisateurs,
+    "Dashboard": Dashboard,
+    "EIDTest": EIDTest,
+    "Facturation": Facturation,
+    "FollowUpTasks": FollowUpTasks,
+    "Health": Health,
+    "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
-    "Facturation": Facturation,
-    "Health": Health,
-    "Securite": Securite,
-    "EIDTest": EIDTest,
-    "ProfilMedecin": ProfilMedecin,
-    "Templates": Templates,
-    "Patients": Patients,
-    "Dashboard": Dashboard,
-    "Telemedicine": Telemedicine,
-    "TeleconsultationRoom": TeleconsultationRoom,
-    "PrescriptionRenewals": PrescriptionRenewals,
-    "FollowUpTasks": FollowUpTasks,
-    "ReferentialImport": ReferentialImport,
-    "Statistics": Statistics,
     "Medications": Medications,
+    "Patients": Patients,
+    "PrescriptionRenewals": PrescriptionRenewals,
+    "ProfilMedecin": ProfilMedecin,
+    "ReferentialImport": ReferentialImport,
+    "Securite": Securite,
+    "Statistics": Statistics,
+    "TeleconsultationRoom": TeleconsultationRoom,
+    "Telemedicine": Telemedicine,
+    "Templates": Templates,
     "Tests": Tests,
+    "Utilisateurs": Utilisateurs,
 }
 
 export const pagesConfig = {
