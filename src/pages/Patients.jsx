@@ -36,7 +36,6 @@ import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
 import ConsultationWorkflow from '../components/consultation/ConsultationWorkflow';
-import SecurePatientAccess from '../components/security/SecurePatientAccess';
 import GDPRConsent from '../components/security/GDPRConsent';
 
 export default function Patients() {
@@ -48,6 +47,12 @@ export default function Patients() {
   const patientId = urlParams.get('patient');
   
   const [currentUser, setCurrentUser] = React.useState(null);
+  const permissions = usePermissions(currentUser);
+  
+  React.useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+  }, []);
+  
   const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
@@ -57,7 +62,6 @@ export default function Patients() {
   const [showConsultationWorkflow, setShowConsultationWorkflow] = useState(false);
   const [showGDPRConsent, setShowGDPRConsent] = useState(false);
   
-  const permissions = usePermissions(currentUser);
   const { readEID, isReading } = useEIDReader();
 
   const { data: patient, isLoading } = useQuery({
@@ -68,22 +72,6 @@ export default function Patients() {
     },
     enabled: !!patientId
   });
-
-  const { data: allPatients = [], isLoading: isLoadingList } = useQuery({
-    queryKey: ['allPatients'],
-    queryFn: () => base44.entities.Patient.list('-created_date', 500),
-    enabled: !patientId
-  });
-
-  React.useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
-  }, []);
-
-  React.useEffect(() => {
-    if (patient && !patient.gdpr_consent?.has_consented) {
-      setShowGDPRConsent(true);
-    }
-  }, [patient]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -129,6 +117,12 @@ export default function Patients() {
   const handleClose = () => {
     navigate(createPageUrl('Dashboard'));
   };
+
+  const { data: allPatients = [], isLoading: isLoadingList } = useQuery({
+    queryKey: ['allPatients'],
+    queryFn: () => base44.entities.Patient.list('-created_date', 500),
+    enabled: !patientId
+  });
 
   if (!patientId) {
     return (
@@ -205,123 +199,127 @@ export default function Patients() {
   const age = patient.birthDate ? differenceInYears(new Date(), new Date(patient.birthDate)) : null;
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
+  const hasConsent = patient?.gdpr_consent?.has_consented;
 
   return (
-    <SecurePatientAccess 
-      patient={patient}
-      action="VIEW"
-      resourceType="Patient"
-      onAccessDenied={(reason) => {
-        if (reason === 'NO_CONSENT') {
-          setShowGDPRConsent(true);
-        }
-      }}
-    >
-      <div className="flex h-full bg-slate-50">
-        {/* Header fixe avec actions */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
-          <div className="flex items-center justify-between px-4 py-2">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleClose} className="gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Retour
-              </Button>
-              <div className="h-6 w-px bg-slate-200" />
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-700 font-bold text-sm">
-                    {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
-                  </span>
-                </div>
-                <div>
-                  <h2 className="font-bold text-base">{fullName}</h2>
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <span>{age} ans • {patient.gender === 'male' ? 'M' : 'F'}</span>
-                    {patient.mutuelle && <span>• {patient.mutuelle}</span>}
-                  </div>
+    <div className="flex h-full bg-slate-50">
+      {/* Header fixe avec actions */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={handleClose} className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Retour
+            </Button>
+            <div className="h-6 w-px bg-slate-200" />
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+                <span className="text-blue-700 font-bold text-sm">
+                  {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
+                </span>
+              </div>
+              <div>
+                <h2 className="font-bold text-base">{fullName}</h2>
+                <div className="flex items-center gap-2 text-xs text-slate-600">
+                  <span>{age} ans • {patient.gender === 'male' ? 'M' : 'F'}</span>
+                  {patient.mutuelle && <span>• {patient.mutuelle}</span>}
                 </div>
               </div>
+              
+              <button
+                onClick={() => setShowGDPRConsent(true)}
+                className={`ml-4 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors ${
+                  hasConsent 
+                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                    : 'bg-red-100 text-red-800 hover:bg-red-200'
+                }`}
+                title={hasConsent ? 'Consentement RGPD accordé' : 'Consentement RGPD manquant'}
+              >
+                <span className={`w-2 h-2 rounded-full ${hasConsent ? 'bg-green-600' : 'bg-red-600'}`} />
+                RGPD
+              </button>
             </div>
-            
-            <div className="flex items-center gap-2">
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <Button 
-                  onClick={() => setShowConsultationWorkflow(true)} 
-                  size="sm" 
-                  className="gap-2 bg-blue-600 hover:bg-blue-700"
-                >
-                  <FileText className="w-4 h-4" />
-                  Consultation
-                </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+              <Button 
+                onClick={() => setShowConsultationWorkflow(true)} 
+                size="sm" 
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                <FileText className="w-4 h-4" />
+                Consultation
+              </Button>
+            )}
+            {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
+              <Button onClick={() => setShowQuickBilling(true)} size="sm" variant="outline" className="gap-2">
+                <CreditCard className="w-4 h-4" />
+                Facturer
+              </Button>
+            )}
+            {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+              <Button onClick={() => setShowQuickPrescription(true)} size="sm" variant="outline" className="gap-2">
+                <Pill className="w-4 h-4" />
+                Prescrire
+              </Button>
+            )}
+            {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+              <Button onClick={() => setShowQuickVaccination(true)} size="sm" variant="outline">
+                💉 Vacciner
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sidebar gauche - Infos patient */}
+      <aside className="w-72 bg-white border-r flex flex-col overflow-hidden mt-[56px]">
+        <div className="p-4 border-b">
+          <Badge variant="outline" className="font-mono text-xs mb-3">{maskedNISS}</Badge>
+          
+          {patient.allergies && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
+              <h3 className="font-bold text-red-800 text-xs mb-1 flex items-center gap-1">
+                ⚠️ ALLERGIES
+              </h3>
+              <p className="text-xs text-red-700">{patient.allergies}</p>
+            </div>
+          )}
+
+          {patient.antecedents_medicaux && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <h3 className="font-bold text-orange-800 text-xs mb-1">Antécédents</h3>
+              <p className="text-xs text-orange-700">{patient.antecedents_medicaux}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 border-b">
+          <PatientNotifications patient={patient} />
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div>
+            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">Contact</h3>
+            <div className="space-y-1 text-xs">
+              {patient.telecom?.find(t => t.system === 'phone')?.value && (
+                <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
               )}
-              {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
-                <Button onClick={() => setShowQuickBilling(true)} size="sm" variant="outline" className="gap-2">
-                  <CreditCard className="w-4 h-4" />
-                  Facturer
-                </Button>
-              )}
-              {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-                <Button onClick={() => setShowQuickPrescription(true)} size="sm" variant="outline" className="gap-2">
-                  <Pill className="w-4 h-4" />
-                  Prescrire
-                </Button>
-              )}
-              {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-                <Button onClick={() => setShowQuickVaccination(true)} size="sm" variant="outline">
-                  💉 Vacciner
-                </Button>
+              {patient.telecom?.find(t => t.system === 'email')?.value && (
+                <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
               )}
             </div>
           </div>
         </div>
+      </aside>
 
-        {/* Sidebar gauche - Infos patient */}
-        <aside className="w-72 bg-white border-r flex flex-col overflow-hidden mt-[56px]">
-          <div className="p-4 border-b">
-            <Badge variant="outline" className="font-mono text-xs mb-3">{maskedNISS}</Badge>
-            
-            {patient.allergies && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-                <h3 className="font-bold text-red-800 text-xs mb-1 flex items-center gap-1">
-                  ⚠️ ALLERGIES
-                </h3>
-                <p className="text-xs text-red-700">{patient.allergies}</p>
-              </div>
-            )}
-
-            {patient.antecedents_medicaux && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <h3 className="font-bold text-orange-800 text-xs mb-1">Antécédents</h3>
-                <p className="text-xs text-orange-700">{patient.antecedents_medicaux}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="p-4 border-b">
-            <PatientNotifications patient={patient} />
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <div>
-              <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">Contact</h3>
-              <div className="space-y-1 text-xs">
-                {patient.telecom?.find(t => t.system === 'phone')?.value && (
-                  <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
-                )}
-                {patient.telecom?.find(t => t.system === 'email')?.value && (
-                  <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Zone principale */}
-        <div className="flex-1 flex flex-col overflow-hidden mt-[56px]">
-          <div className="bg-white border-b">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="px-6">
-                <TabsList className="h-11 bg-transparent">
+      {/* Zone principale */}
+      <div className="flex-1 flex flex-col overflow-hidden mt-[56px]">
+        <div className="bg-white border-b">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="px-6">
+              <TabsList className="h-11 bg-transparent">
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
@@ -437,7 +435,6 @@ export default function Patients() {
           setShowGDPRConsent(false);
         }}
       />
-      </div>
-    </SecurePatientAccess>
+    </div>
   );
 }
