@@ -25,6 +25,8 @@ import {
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import InteractionChecker from '../medications/InteractionChecker';
+import TemplateSelector from '../medications/TemplateSelector';
 
 // Motifs de consultation fréquents
 const COMMON_REASONS = [
@@ -59,6 +61,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Charger les médicaments
   const { data: allDrugs = [] } = useQuery({
@@ -340,32 +343,94 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 3: Prescription */}
           {currentStep === 2 && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div>
-                <Label className="text-lg font-semibold mb-3 block">Rechercher un médicament</Label>
-                <Input
-                  value={drugSearch}
-                  onChange={(e) => setDrugSearch(e.target.value)}
-                  placeholder="Nom du médicament ou substance active..."
-                  className="text-base h-12"
-                  autoFocus
-                />
-                {drugSearch && filteredDrugs.length > 0 && (
-                  <Card className="mt-2 p-2 max-h-64 overflow-y-auto">
-                    {filteredDrugs.map(drug => (
-                      <button
-                        key={drug.id}
-                        onClick={() => handleAddMedication(drug)}
-                        className="w-full p-3 hover:bg-slate-50 rounded-lg text-left transition-colors"
-                      >
-                        <div className="font-semibold text-base">{drug.product_name}</div>
-                        <div className="text-sm text-slate-600">
-                          {drug.substance_name} • {drug.form} • {drug.strength}{drug.unit}
-                        </div>
-                      </button>
-                    ))}
-                  </Card>
-                )}
+              <div className="flex gap-2">
+                <Button
+                  variant={!showTemplates ? "default" : "outline"}
+                  onClick={() => setShowTemplates(false)}
+                  className="flex-1"
+                >
+                  Recherche médicament
+                </Button>
+                <Button
+                  variant={showTemplates ? "default" : "outline"}
+                  onClick={() => setShowTemplates(true)}
+                  className="flex-1"
+                >
+                  Modèles & Schémas
+                </Button>
               </div>
+
+              {!showTemplates ? (
+                <div>
+                  <Label className="text-lg font-semibold mb-3 block">Rechercher un médicament</Label>
+                  <Input
+                    value={drugSearch}
+                    onChange={(e) => setDrugSearch(e.target.value)}
+                    placeholder="Nom du médicament ou substance active..."
+                    className="text-base h-12"
+                    autoFocus
+                  />
+                  {drugSearch && filteredDrugs.length > 0 && (
+                    <Card className="mt-2 p-2 max-h-64 overflow-y-auto">
+                      {filteredDrugs.map(drug => (
+                        <button
+                          key={drug.id}
+                          onClick={() => handleAddMedication(drug)}
+                          className="w-full p-3 hover:bg-slate-50 rounded-lg text-left transition-colors"
+                        >
+                          <div className="font-semibold text-base">{drug.product_name}</div>
+                          <div className="text-sm text-slate-600">
+                            {drug.substance_name} • {drug.form} • {drug.strength}{drug.unit}
+                          </div>
+                        </button>
+                      ))}
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <TemplateSelector
+                  onSelectTemplate={(selected) => {
+                    const meds = selected.data.medications.map(m => ({
+                      id: m.drug_id,
+                      product_name: m.drug_name,
+                      dosage_prescribed: m.dosage,
+                      frequency: m.frequency,
+                      duration: m.duration
+                    }));
+                    setSelectedMedications([...selectedMedications, ...meds]);
+                    setShowTemplates(false);
+                    toast.success('Modèle appliqué');
+                  }}
+                  onCreateTemplate={async () => {
+                    if (selectedMedications.length === 0) {
+                      toast.error('Aucun médicament à sauvegarder');
+                      return;
+                    }
+                    const name = prompt('Nom du modèle:');
+                    if (name) {
+                      await base44.entities.PrescriptionTemplate.create({
+                        name,
+                        use_case: consultationData.diagnostic || consultationData.motif,
+                        medications: selectedMedications.map(m => ({
+                          drug_id: m.id,
+                          drug_name: m.product_name,
+                          dosage: m.dosage_prescribed,
+                          frequency: m.frequency,
+                          duration: m.duration
+                        })),
+                        category: 'OTHER'
+                      });
+                      toast.success('Modèle créé');
+                    }
+                  }}
+                  currentMedications={selectedMedications}
+                />
+              )}
+
+              <InteractionChecker 
+                selectedMedications={selectedMedications} 
+                patientId={patient.id}
+              />
 
               {selectedMedications.length > 0 && (
                 <div className="space-y-3">
