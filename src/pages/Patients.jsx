@@ -35,7 +35,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import ConsultationWorkflow from '../components/consultation/ConsultationWorkflow';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -58,7 +57,6 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-  const [showConsultationWorkflow, setShowConsultationWorkflow] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -198,8 +196,25 @@ export default function Patients() {
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
+  // Vérifier si le patient a donné son consentement RGPD
+  React.useEffect(() => {
+    if (patient && !patient.gdpr_consent?.has_consented) {
+      setShowGDPRConsent(true);
+    }
+  }, [patient]);
+
   return (
     <div className="flex h-full bg-slate-50">
+      <SecurePatientAccess 
+        patient={patient}
+        action="VIEW"
+        resourceType="Patient"
+        onAccessDenied={(reason) => {
+          if (reason === 'NO_CONSENT') {
+            setShowGDPRConsent(true);
+          }
+        }}
+      >
       {/* Sidebar gauche - Infos patient */}
       <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
         {/* Header patient */}
@@ -222,19 +237,6 @@ export default function Patients() {
 
         {/* Actions rapides */}
         <div className="p-4 border-b space-y-2">
-          {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-            <Button
-              onClick={() => setShowConsultationWorkflow(true)}
-              className="w-full justify-start gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-              size="lg"
-            >
-              <FileText className="w-5 h-5" />
-              <div className="text-left flex-1">
-                <div className="font-bold">Nouvelle Consultation</div>
-                <div className="text-xs opacity-90">Tout-en-un: Examen, Rx, Facturation</div>
-              </div>
-            </Button>
-          )}
           {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
             <Button
               onClick={() => setShowQuickBilling(true)}
@@ -415,14 +417,6 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
-
-      {showConsultationWorkflow && (
-        <ConsultationWorkflow
-          patient={patient}
-          isOpen={showConsultationWorkflow}
-          onClose={() => setShowConsultationWorkflow(false)}
-        />
-      )}
-      </div>
-      );
-      }
+    </div>
+  );
+}
