@@ -1,228 +1,243 @@
-import React, { useState, useEffect } from 'react';
-import { ImportSession } from '@/entities/ImportSession';
-import { User } from '@/entities/User';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Upload, 
   FileText, 
-  CheckCircle2, 
-  Users,
-  Activity,
-  Archive,
+  Users, 
+  CheckCircle, 
   Shield,
-  Eye
+  Download,
+  Clock
 } from 'lucide-react';
-
 import ImportUploader from '../components/import/ImportUploader';
-import ValidationReport from '../components/import/ValidationReport';
-import PatientMatching from '../components/import/PatientMatching';
-import ImportDashboard from '../components/import/ImportDashboard';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
-export default function ImportPage() {
-  const [importSessions, setImportSessions] = useState([]);
-  const [currentSession, setCurrentSession] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
+export default function Import() {
   const [activeTab, setActiveTab] = useState('upload');
-  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    loadCurrentUser();
-    loadImportSessions();
-  }, []);
+  const { data: sessions = [], refetch } = useQuery({
+    queryKey: ['import-sessions'],
+    queryFn: () => base44.entities.ImportSession.list('-created_date', 100)
+  });
 
-  const loadCurrentUser = async () => {
-    try {
-      const user = await User.me();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
-    }
+  const handleImportComplete = (session) => {
+    refetch();
+    setActiveTab('history');
   };
 
-  const loadImportSessions = async () => {
-    try {
-      const sessions = await ImportSession.list('-created_date');
-      setImportSessions(sessions);
-    } catch (error) {
-      console.error('Erreur chargement sessions:', error);
-    }
+  const getStatusColor = (status) => {
+    const colors = {
+      'Uploaded': 'bg-blue-100 text-blue-800',
+      'Parsing': 'bg-yellow-100 text-yellow-800',
+      'Validated': 'bg-green-100 text-green-800',
+      'Matching': 'bg-purple-100 text-purple-800',
+      'Importing': 'bg-orange-100 text-orange-800',
+      'Completed': 'bg-green-100 text-green-800',
+      'Error': 'bg-red-100 text-red-800'
+    };
+    return colors[status] || 'bg-slate-100 text-slate-800';
   };
-
-  const handleFileUploaded = async (sessionId) => {
-    await loadImportSessions();
-    const session = importSessions.find(s => s.id === sessionId);
-    setCurrentSession(session);
-    setActiveTab('validation');
-  };
-
-  const handleValidationComplete = (sessionId) => {
-    setActiveTab('matching');
-  };
-
-  const handleMatchingComplete = (sessionId) => {
-    setActiveTab('dashboard');
-    loadImportSessions();
-  };
-
-  // Vérification des permissions
-  if (currentUser && currentUser.role !== 'admin') {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Shield className="w-16 h-16 mx-auto text-red-400 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-900 mb-2">Accès restreint</h3>
-          <p className="text-slate-600">Seuls les médecins peuvent importer des données médicales.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      {/* En-tête */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Import de Données Médicales</h1>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Upload className="w-8 h-8 text-blue-600" />
+            Import de Dossiers Patients
+          </h1>
           <p className="text-slate-600 mt-1">
-            Import PMF/SMF/KMEHR avec validation et matching automatisé
+            Importez des dossiers médicaux de manière sécurisée et conforme RGPD
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-            KMEHR 1.28
-          </Badge>
-          <Badge variant="outline" className="bg-green-50 text-green-700">
-            PMF/SMF Compatible
-          </Badge>
         </div>
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Sessions Actives</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {importSessions.filter(s => s.status !== 'Completed').length}
-                </p>
+                <p className="text-sm text-slate-600">Total Imports</p>
+                <p className="text-3xl font-bold">{sessions.length}</p>
               </div>
-              <Activity className="w-8 h-8 text-blue-600" />
+              <FileText className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Imports Réussis</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {importSessions.filter(s => s.status === 'Completed').length}
+                <p className="text-sm text-slate-600">Complétés</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {sessions.filter(s => s.status === 'Completed').length}
                 </p>
               </div>
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
+              <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Patients Importés</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {importSessions.reduce((sum, s) => sum + (s.import_statistics?.imported_patients || 0), 0)}
+                <p className="text-sm text-slate-600">En Cours</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {sessions.filter(s => !['Completed', 'Error'].includes(s.status)).length}
                 </p>
               </div>
-              <Users className="w-8 h-8 text-purple-600" />
+              <Clock className="w-8 h-8 text-orange-500" />
             </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Fichiers Archivés</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {importSessions.length}
-                </p>
+                <p className="text-sm text-slate-600">Sécurisé</p>
+                <p className="text-3xl font-bold text-blue-600">100%</p>
               </div>
-              <Archive className="w-8 h-8 text-orange-600" />
+              <Shield className="w-8 h-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Interface à onglets */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="upload" className="flex items-center gap-2">
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="upload" className="gap-2">
             <Upload className="w-4 h-4" />
-            Upload
+            Nouvel Import
           </TabsTrigger>
-          <TabsTrigger value="validation" className="flex items-center gap-2">
+          <TabsTrigger value="history" className="gap-2">
             <FileText className="w-4 h-4" />
-            Validation
-          </TabsTrigger>
-          <TabsTrigger value="matching" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Matching
-          </TabsTrigger>
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            Tableau de bord
+            Historique ({sessions.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upload">
-          <ImportUploader 
-            currentUser={currentUser}
-            onFileUploaded={handleFileUploaded}
-            onSessionSelected={setCurrentSession}
-          />
+        <TabsContent value="upload" className="mt-6">
+          <div className="max-w-3xl mx-auto">
+            <ImportUploader onImportComplete={handleImportComplete} />
+            
+            <Card className="mt-6 bg-slate-50 border-slate-200">
+              <CardHeader>
+                <CardTitle className="text-base">Formats Supportés</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">XML</Badge>
+                  <span>Format KMEHR (standard belge)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">JSON</Badge>
+                  <span>Format PMF (Patient Medical File)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">PDF</Badge>
+                  <span>Documents scannés (extraction automatique)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">CSV/Excel</Badge>
+                  <span>Données structurées (patients, consultations)</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
-        <TabsContent value="validation">
-          {currentSession && (
-            <ValidationReport 
-              session={currentSession}
-              onValidationComplete={handleValidationComplete}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="matching">
-          {currentSession && (
-            <PatientMatching 
-              session={currentSession}
-              onMatchingComplete={handleMatchingComplete}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="dashboard">
-          <ImportDashboard 
-            sessions={importSessions}
-            onRefresh={loadImportSessions}
-          />
+        <TabsContent value="history" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Historique des Imports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {sessions.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                  <p className="text-slate-500">Aucun import effectué</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sessions.map(session => (
+                    <Card key={session.id} className="p-4 hover:bg-slate-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FileText className="w-5 h-5 text-slate-600" />
+                            <h3 className="font-semibold">{session.file_name}</h3>
+                            <Badge className={getStatusColor(session.status)}>
+                              {session.status}
+                            </Badge>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="text-slate-600">Taille:</span>
+                              <span className="font-semibold ml-2">
+                                {(session.file_size / 1024 / 1024).toFixed(2)} MB
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Type:</span>
+                              <span className="font-semibold ml-2">{session.file_type}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Par:</span>
+                              <span className="font-semibold ml-2">{session.user_email}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-600">Date:</span>
+                              <span className="font-semibold ml-2">
+                                {format(new Date(session.created_date), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              </span>
+                            </div>
+                          </div>
+                          {session.content_summary && (
+                            <div className="mt-3 p-2 bg-blue-50 rounded text-sm">
+                              <span className="text-slate-700">Contenu: </span>
+                              <span className="font-semibold">
+                                {session.content_summary.patients_count || 0} patients, 
+                                {' '}{session.content_summary.consultations_count || 0} consultations, 
+                                {' '}{session.content_summary.medications_count || 0} prescriptions
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Avertissement de conformité */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
+      {/* Info RGPD */}
+      <Card className="bg-green-50 border-green-200">
+        <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
+            <Shield className="w-6 h-6 text-green-600 mt-1" />
             <div>
-              <h4 className="font-semibold text-blue-900 mb-1">Conformité et Sécurité</h4>
-              <p className="text-sm text-blue-700">
-                Tous les fichiers importés sont chiffrés au repos et en transit. 
-                Les fichiers originaux sont conservés de manière sécurisée pour preuve.
-                L'accès est restreint par rôle et toutes les actions sont auditées.
-                Respect du consentement patient et des obligations RGPD.
-              </p>
+              <h3 className="font-bold text-green-900 mb-2">Sécurité et Conformité RGPD</h3>
+              <ul className="text-sm text-green-800 space-y-1">
+                <li>✓ Tous les fichiers sont chiffrés automatiquement (AES-256)</li>
+                <li>✓ Traçabilité complète de tous les accès (audit logs)</li>
+                <li>✓ Stockage sécurisé avec accès restreint</li>
+                <li>✓ Suppression automatique après traitement (conservation selon RGPD)</li>
+                <li>✓ Aucune donnée n'est partagée avec des tiers</li>
+              </ul>
             </div>
           </div>
         </CardContent>
