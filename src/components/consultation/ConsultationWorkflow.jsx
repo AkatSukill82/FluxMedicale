@@ -70,10 +70,15 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   });
 
   const [drugSearch, setDrugSearch] = useState('');
-  const filteredDrugs = allDrugs.filter(drug => 
-    drug.product_name.toLowerCase().includes(drugSearch.toLowerCase()) ||
-    drug.substance_name?.toLowerCase().includes(drugSearch.toLowerCase())
-  ).slice(0, 10);
+  const filteredDrugs = allDrugs.filter(drug => {
+    if (!drugSearch || drugSearch.length < 2) return false;
+    const term = drugSearch.toLowerCase();
+    return (
+      drug.product_name?.toLowerCase().includes(term) ||
+      drug.substance_name?.toLowerCase().includes(term) ||
+      drug.atc_code?.toLowerCase().includes(term)
+    );
+  }).slice(0, 15);
 
   const handleAddMedication = (drug) => {
     if (!selectedMedications.find(m => m.id === drug.id)) {
@@ -370,18 +375,50 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                     className="text-base h-12"
                     autoFocus
                   />
-                  {drugSearch && filteredDrugs.length > 0 && (
-                    <Card className="mt-2 p-2 max-h-64 overflow-y-auto">
+                  
+                  {allDrugs.length === 0 && (
+                    <Card className="mt-4 p-6 bg-orange-50 border-orange-200">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
+                        <div>
+                          <p className="font-semibold text-orange-900 mb-2">Base de données vide</p>
+                          <p className="text-sm text-orange-700">
+                            La base de données des médicaments est vide. Importez des médicaments depuis le référentiel SAM/APB.
+                          </p>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+                  
+                  {drugSearch.length > 0 && drugSearch.length < 2 && (
+                    <Card className="mt-2 p-4 text-center text-slate-500">
+                      <p className="text-sm">Tapez au moins 2 caractères pour rechercher</p>
+                    </Card>
+                  )}
+                  
+                  {drugSearch.length >= 2 && filteredDrugs.length === 0 && allDrugs.length > 0 && (
+                    <Card className="mt-2 p-4 text-center text-slate-500">
+                      <p className="text-sm">Aucun médicament trouvé pour "{drugSearch}"</p>
+                    </Card>
+                  )}
+                  
+                  {drugSearch.length >= 2 && filteredDrugs.length > 0 && (
+                    <Card className="mt-2 p-2 max-h-80 overflow-y-auto shadow-lg border-2 border-blue-200">
                       {filteredDrugs.map(drug => (
                         <button
                           key={drug.id}
                           onClick={() => handleAddMedication(drug)}
-                          className="w-full p-3 hover:bg-slate-50 rounded-lg text-left transition-colors"
+                          className="w-full p-3 hover:bg-blue-50 rounded-lg text-left transition-colors border border-transparent hover:border-blue-300"
                         >
                           <div className="font-semibold text-base">{drug.product_name}</div>
                           <div className="text-sm text-slate-600">
-                            {drug.substance_name} • {drug.form} • {drug.strength}{drug.unit}
+                            {drug.substance_name && `${drug.substance_name} • `}
+                            {drug.form && `${drug.form} • `}
+                            {drug.strength && drug.unit && `${drug.strength}${drug.unit}`}
                           </div>
+                          {drug.cnk && (
+                            <Badge variant="outline" className="text-xs mt-1">CNK: {drug.cnk}</Badge>
+                          )}
                         </button>
                       ))}
                     </Card>
