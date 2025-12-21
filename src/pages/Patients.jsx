@@ -48,12 +48,6 @@ export default function Patients() {
   const patientId = urlParams.get('patient');
   
   const [currentUser, setCurrentUser] = React.useState(null);
-  const permissions = usePermissions(currentUser);
-  
-  React.useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
-  }, []);
-  
   const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
@@ -63,6 +57,7 @@ export default function Patients() {
   const [showConsultationWorkflow, setShowConsultationWorkflow] = useState(false);
   const [showGDPRConsent, setShowGDPRConsent] = useState(false);
   
+  const permissions = usePermissions(currentUser);
   const { readEID, isReading } = useEIDReader();
 
   const { data: patient, isLoading } = useQuery({
@@ -73,6 +68,22 @@ export default function Patients() {
     },
     enabled: !!patientId
   });
+
+  const { data: allPatients = [], isLoading: isLoadingList } = useQuery({
+    queryKey: ['allPatients'],
+    queryFn: () => base44.entities.Patient.list('-created_date', 500),
+    enabled: !patientId
+  });
+
+  React.useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+  }, []);
+
+  React.useEffect(() => {
+    if (patient && !patient.gdpr_consent?.has_consented) {
+      setShowGDPRConsent(true);
+    }
+  }, [patient]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -118,12 +129,6 @@ export default function Patients() {
   const handleClose = () => {
     navigate(createPageUrl('Dashboard'));
   };
-
-  const { data: allPatients = [], isLoading: isLoadingList } = useQuery({
-    queryKey: ['allPatients'],
-    queryFn: () => base44.entities.Patient.list('-created_date', 500),
-    enabled: !patientId
-  });
 
   if (!patientId) {
     return (
@@ -201,12 +206,6 @@ export default function Patients() {
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
-  React.useEffect(() => {
-    if (patient && !patient.gdpr_consent?.has_consented) {
-      setShowGDPRConsent(true);
-    }
-  }, [patient]);
-
   return (
     <SecurePatientAccess 
       patient={patient}
@@ -219,7 +218,7 @@ export default function Patients() {
       }}
     >
       <div className="flex h-full bg-slate-50">
-        {/* Header avec actions */}
+        {/* Header fixe avec actions */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
           <div className="flex items-center justify-between px-4 py-2">
             <div className="flex items-center gap-4">
@@ -278,7 +277,6 @@ export default function Patients() {
 
         {/* Sidebar gauche - Infos patient */}
         <aside className="w-72 bg-white border-r flex flex-col overflow-hidden mt-[56px]">
-          {/* Infos essentielles */}
           <div className="p-4 border-b">
             <Badge variant="outline" className="font-mono text-xs mb-3">{maskedNISS}</Badge>
             
@@ -299,12 +297,10 @@ export default function Patients() {
             )}
           </div>
 
-          {/* Notifications */}
           <div className="p-4 border-b">
             <PatientNotifications patient={patient} />
           </div>
 
-          {/* Infos clés */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <div>
               <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">Contact</h3>
@@ -322,68 +318,67 @@ export default function Patients() {
 
         {/* Zone principale */}
         <div className="flex-1 flex flex-col overflow-hidden mt-[56px]">
-          {/* Barre de navigation tabs */}
           <div className="bg-white border-b">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="px-6">
                 <TabsList className="h-11 bg-transparent">
-                  {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                    <TabsTrigger value="consultation" className="gap-2">
-                      📝 Consultation
-                    </TabsTrigger>
-                  )}
-                  <TabsTrigger value="history" className="gap-2">
-                    📋 Historique
-                  </TabsTrigger>
-                  <TabsTrigger value="documents" className="gap-2">
-                    📁 Documents
-                  </TabsTrigger>
-                  {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                    <TabsTrigger value="secure-files" className="gap-2">
-                      🔒 Fichiers sécurisés
-                    </TabsTrigger>
-                  )}
-                  <TabsTrigger value="billing" className="gap-2">
-                    💰 Facturation
-                  </TabsTrigger>
-                  <TabsTrigger value="admin" className="gap-2">
-                    👤 Admin
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-            </Tabs>
-          </div>
-
-          {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="p-6">
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsContent value="consultation" className="m-0">
-                    <ConsultationTab patient={patient} />
-                  </TabsContent>
+                  <TabsTrigger value="consultation" className="gap-2">
+                    📝 Consultation
+                  </TabsTrigger>
                 )}
-                <TabsContent value="history" className="m-0">
-                  <MedicalHistory patient={patient} />
-                </TabsContent>
-                <TabsContent value="documents" className="m-0">
-                  <DocumentsTab patient={patient} />
-                </TabsContent>
+                <TabsTrigger value="history" className="gap-2">
+                  📋 Historique
+                </TabsTrigger>
+                <TabsTrigger value="documents" className="gap-2">
+                  📁 Documents
+                </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsContent value="secure-files" className="m-0">
-                    <SecureDocuments patient={patient} />
-                  </TabsContent>
+                  <TabsTrigger value="secure-files" className="gap-2">
+                    🔒 Fichiers sécurisés
+                  </TabsTrigger>
                 )}
-                <TabsContent value="billing" className="m-0">
-                  <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
-                </TabsContent>
-                <TabsContent value="admin" className="m-0">
-                  <FicheAdministrativeTab patient={patient} />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
+                <TabsTrigger value="billing" className="gap-2">
+                  💰 Facturation
+                </TabsTrigger>
+                <TabsTrigger value="admin" className="gap-2">
+                  👤 Admin
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </Tabs>
         </div>
+
+        {/* Contenu scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="p-6">
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="consultation" className="m-0">
+                  <ConsultationTab patient={patient} />
+                </TabsContent>
+              )}
+              <TabsContent value="history" className="m-0">
+                <MedicalHistory patient={patient} />
+              </TabsContent>
+              <TabsContent value="documents" className="m-0">
+                <DocumentsTab patient={patient} />
+              </TabsContent>
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="secure-files" className="m-0">
+                  <SecureDocuments patient={patient} />
+                </TabsContent>
+              )}
+              <TabsContent value="billing" className="m-0">
+                <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
+              </TabsContent>
+              <TabsContent value="admin" className="m-0">
+                <FicheAdministrativeTab patient={patient} />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+      </div>
 
       {/* Modals */}
       {showBillingModal && (
