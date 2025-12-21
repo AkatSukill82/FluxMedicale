@@ -35,9 +35,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import ConsultationWorkflow from '../components/consultation/ConsultationWorkflow';
-import SecurePatientAccess from '../components/security/SecurePatientAccess';
-import GDPRConsent from '../components/security/GDPRConsent';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -60,8 +57,6 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-  const [showConsultationWorkflow, setShowConsultationWorkflow] = useState(false);
-  const [showGDPRConsent, setShowGDPRConsent] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -201,196 +196,150 @@ export default function Patients() {
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
-  // Vérifier si le patient a donné son consentement RGPD
-  React.useEffect(() => {
-    if (patient && !patient.gdpr_consent?.has_consented) {
-      setShowGDPRConsent(true);
-    }
-  }, [patient]);
-
   return (
-    <SecurePatientAccess 
-      patient={patient}
-      action="VIEW"
-      resourceType="Patient"
-      onAccessDenied={(reason) => {
-        if (reason === 'NO_CONSENT') {
-          setShowGDPRConsent(true);
-        }
-      }}
-    >
-      <div className="flex h-full bg-slate-50">
-        {/* Sidebar gauche - Infos patient */}
-        <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
-        {/* Header patient */}
-        <div className="p-4 border-b">
-          <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
+    <div className="h-full bg-slate-50 overflow-hidden">
+      {/* Header compact */}
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={handleClose} className="gap-2">
             <ArrowLeft className="w-4 h-4" />
             Retour
           </Button>
-          
-          <div className="space-y-2">
-            <h2 className="text-xl font-bold">{fullName}</h2>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {age && <span>{age} ans</span>}
-              <span>•</span>
-              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+          <div className="h-6 w-px bg-slate-200" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-blue-700 font-bold text-sm">
+                {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
+              </span>
             </div>
-            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
+            <div>
+              <h2 className="font-bold text-lg">{fullName}</h2>
+              <div className="flex items-center gap-3 text-xs text-slate-600">
+                <span>{age} ans • {patient.gender === 'male' ? 'M' : 'F'}</span>
+                <span className="font-mono">{maskedNISS}</span>
+                {patient.mutuelle && <span>• {patient.mutuelle}</span>}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Actions rapides */}
-        <div className="p-4 border-b space-y-2">
-          {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-            <Button
-              onClick={() => setShowConsultationWorkflow(true)}
-              className="w-full justify-start gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-              size="lg"
-            >
-              <FileText className="w-5 h-5" />
-              <div className="text-left flex-1">
-                <div className="font-bold">Nouvelle Consultation</div>
-                <div className="text-xs opacity-90">Tout-en-un: Examen, Rx, Facturation</div>
-              </div>
-            </Button>
-          )}
+        
+        <div className="flex items-center gap-2">
           {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
-            <Button
-              onClick={() => setShowQuickBilling(true)}
-              className="w-full justify-start gap-2"
-              size="sm"
-            >
+            <Button onClick={() => setShowQuickBilling(true)} size="sm" className="gap-2">
               <CreditCard className="w-4 h-4" />
-              Facturer (Alt+F)
+              Facturer
             </Button>
           )}
           {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
             <>
-              <Button
-                onClick={() => setShowQuickPrescription(true)}
-                className="w-full justify-start gap-2"
-                size="sm"
-                variant="outline"
-              >
+              <Button onClick={() => setShowQuickPrescription(true)} size="sm" variant="outline" className="gap-2">
                 <Pill className="w-4 h-4" />
-                Prescrire (Alt+P)
+                Prescrire
               </Button>
-              <Button
-                onClick={() => setShowQuickVaccination(true)}
-                className="w-full justify-start gap-2"
-                size="sm"
-                variant="outline"
-              >
-                💉 Vacciner (Alt+V)
+              <Button onClick={() => setShowQuickVaccination(true)} size="sm" variant="outline">
+                💉 Vacciner
               </Button>
             </>
           )}
         </div>
+      </div>
 
-        {/* Notifications */}
-        <div className="p-4 border-b">
-          <PatientNotifications patient={patient} />
-        </div>
-
-        {/* Infos clés */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Contact</h3>
-            <div className="space-y-1 text-sm">
-              {patient.telecom?.find(t => t.system === 'phone')?.value && (
-                <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
-              )}
-              {patient.telecom?.find(t => t.system === 'email')?.value && (
-                <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
-              )}
+      {/* Contenu principal avec layout optimisé */}
+      <div className="h-[calc(100%-4rem)] overflow-y-auto">
+        <div className="max-w-[1800px] mx-auto p-6">
+          {/* Alertes et notifications importantes en haut */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {patient.allergies && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                <h3 className="font-bold text-red-800 mb-2 flex items-center gap-2">
+                  ⚠️ Allergies
+                </h3>
+                <p className="text-sm text-red-700">{patient.allergies}</p>
+              </div>
+            )}
+            {patient.antecedents_medicaux && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <h3 className="font-bold text-orange-800 mb-2">Antécédents</h3>
+                <p className="text-sm text-orange-700">{patient.antecedents_medicaux}</p>
+              </div>
+            )}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-bold text-blue-800 mb-2">Contact</h3>
+              <div className="space-y-1 text-sm text-blue-700">
+                {patient.telecom?.find(t => t.system === 'phone')?.value && (
+                  <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
+                )}
+                {patient.telecom?.find(t => t.system === 'email')?.value && (
+                  <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
+                )}
+              </div>
             </div>
           </div>
 
-          {patient.mutuelle && (
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
-              <p className="text-sm">{patient.mutuelle}</p>
-            </div>
-          )}
+          {/* Notifications patient */}
+          <div className="mb-6">
+            <PatientNotifications patient={patient} />
+          </div>
 
-          {patient.allergies && (
-            <div>
-              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
-              <p className="text-sm">{patient.allergies}</p>
-            </div>
-          )}
-
-          {patient.antecedents_medicaux && (
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Antécédents</h3>
-              <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* Zone principale */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Barre de navigation tabs */}
-        <div className="bg-white border-b">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="px-6">
-              <TabsList className="h-12 bg-transparent">
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="consultation" className="gap-2">
-                    📝 Consultation
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="history" className="gap-2">
-                  📋 Historique
-                </TabsTrigger>
-                <TabsTrigger value="documents" className="gap-2">
-                  📁 Documents
-                </TabsTrigger>
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="secure-files" className="gap-2">
-                    🔒 Fichiers sécurisés
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="billing" className="gap-2">
-                  💰 Facturation
-                </TabsTrigger>
-                <TabsTrigger value="admin" className="gap-2">
-                  👤 Admin
-                </TabsTrigger>
-              </TabsList>
-            </div>
-          </Tabs>
-        </div>
-
-        {/* Contenu scrollable */}
-        <div className="flex-1 overflow-y-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="p-6">
+          {/* Tabs navigation en accordéon visuel */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="bg-white border rounded-lg p-1 grid grid-cols-5 w-full h-auto">
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="consultation" className="m-0">
-                  <ConsultationTab patient={patient} />
-                </TabsContent>
+                <TabsTrigger value="consultation" className="data-[state=active]:bg-blue-100 py-3">
+                  <div className="flex flex-col items-center gap-1">
+                    <FileText className="w-5 h-5" />
+                    <span className="text-xs font-medium">Consultation</span>
+                  </div>
+                </TabsTrigger>
               )}
-              <TabsContent value="history" className="m-0">
-                <MedicalHistory patient={patient} />
+              <TabsTrigger value="history" className="data-[state=active]:bg-blue-100 py-3">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">📋</span>
+                  <span className="text-xs font-medium">Historique</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="data-[state=active]:bg-blue-100 py-3">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">📁</span>
+                  <span className="text-xs font-medium">Documents</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="billing" className="data-[state=active]:bg-blue-100 py-3">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">💰</span>
+                  <span className="text-xs font-medium">Facturation</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="admin" className="data-[state=active]:bg-blue-100 py-3">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg">👤</span>
+                  <span className="text-xs font-medium">Admin</span>
+                </div>
+              </TabsTrigger>
+            </TabsList>
+
+            {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+              <TabsContent value="consultation" className="m-0">
+                <ConsultationTab patient={patient} />
               </TabsContent>
-              <TabsContent value="documents" className="m-0">
+            )}
+            <TabsContent value="history" className="m-0">
+              <MedicalHistory patient={patient} />
+            </TabsContent>
+            <TabsContent value="documents" className="m-0">
+              <div className="space-y-6">
                 <DocumentsTab patient={patient} />
-              </TabsContent>
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="secure-files" className="m-0">
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <SecureDocuments patient={patient} />
-                </TabsContent>
-              )}
-              <TabsContent value="billing" className="m-0">
-                <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
-              </TabsContent>
-              <TabsContent value="admin" className="m-0">
-                <FicheAdministrativeTab patient={patient} />
-              </TabsContent>
-            </div>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="billing" className="m-0">
+              <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
+            </TabsContent>
+            <TabsContent value="admin" className="m-0">
+              <FicheAdministrativeTab patient={patient} />
+            </TabsContent>
           </Tabs>
         </div>
       </div>
@@ -435,24 +384,6 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
-
-      {showConsultationWorkflow && (
-        <ConsultationWorkflow
-          patient={patient}
-          isOpen={showConsultationWorkflow}
-          onClose={() => setShowConsultationWorkflow(false)}
-        />
-      )}
-
-        <GDPRConsent
-          patient={patient}
-          isOpen={showGDPRConsent}
-          onClose={() => setShowGDPRConsent(false)}
-          onConsentGranted={() => {
-            setShowGDPRConsent(false);
-          }}
-        />
-      </div>
-    </SecurePatientAccess>
+    </div>
   );
 }
