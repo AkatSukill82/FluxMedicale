@@ -209,19 +209,19 @@ export default function Patients() {
   }, [patient]);
 
   return (
-    <div className="flex h-full bg-slate-50">
-      <SecurePatientAccess 
-        patient={patient}
-        action="VIEW"
-        resourceType="Patient"
-        onAccessDenied={(reason) => {
-          if (reason === 'NO_CONSENT') {
-            setShowGDPRConsent(true);
-          }
-        }}
-      >
-      {/* Sidebar gauche - Infos patient */}
-      <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
+    <SecurePatientAccess 
+      patient={patient}
+      action="VIEW"
+      resourceType="Patient"
+      onAccessDenied={(reason) => {
+        if (reason === 'NO_CONSENT') {
+          setShowGDPRConsent(true);
+        }
+      }}
+    >
+      <div className="flex h-full bg-slate-50">
+        {/* Sidebar gauche - Infos patient */}
+        <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
         {/* Header patient */}
         <div className="p-4 border-b">
           <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
@@ -444,15 +444,15 @@ export default function Patients() {
         />
       )}
 
-      <GDPRConsent
-        patient={patient}
-        isOpen={showGDPRConsent}
-        onClose={() => setShowGDPRConsent(false)}
-        onConsentGranted={() => {
-          setShowGDPRConsent(false);
-        }}
-      />
-      </SecurePatientAccess>
-    </div>
+        <GDPRConsent
+          patient={patient}
+          isOpen={showGDPRConsent}
+          onClose={() => setShowGDPRConsent(false)}
+          onConsentGranted={() => {
+            setShowGDPRConsent(false);
+          }}
+        />
+      </div>
+    </SecurePatientAccess>
   );
 }
