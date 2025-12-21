@@ -133,25 +133,16 @@ export default function Import() {
             
             <Card className="mt-6 bg-slate-50 border-slate-200">
               <CardHeader>
-                <CardTitle className="text-base">Formats Supportés</CardTitle>
+                <CardTitle className="text-base">Types de fichiers acceptés</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">XML</Badge>
-                  <span>Format KMEHR (standard belge)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">JSON</Badge>
-                  <span>Format PMF (Patient Medical File)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">PDF</Badge>
-                  <span>Documents scannés (extraction automatique)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">CSV/Excel</Badge>
-                  <span>Données structurées (patients, consultations)</span>
-                </div>
+                <p className="text-slate-700">
+                  Tous les formats de dossiers médicaux sont supportés : 
+                  dossiers électroniques, documents scannés, tableaux de données.
+                </p>
+                <p className="text-sm text-slate-600">
+                  Le système détecte automatiquement le format et l'importe de manière sécurisée.
+                </p>
               </CardContent>
             </Card>
           </div>

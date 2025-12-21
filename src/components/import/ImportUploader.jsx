@@ -47,7 +47,7 @@ export default function ImportUploader({ onImportComplete }) {
     ];
     
     if (!allowedTypes.includes(selectedFile.type) && !selectedFile.name.match(/\.(xml|json|pdf|csv|xls|xlsx)$/i)) {
-      toast.error('Type de fichier non supporté. Formats acceptés: XML, JSON, PDF, CSV, Excel');
+      toast.error('Type de fichier non supporté');
       return;
     }
 
@@ -148,9 +148,11 @@ export default function ImportUploader({ onImportComplete }) {
 
   const detectFileType = (filename) => {
     const ext = filename.split('.').pop().toLowerCase();
-    if (ext === 'xml') return 'KMEHR';
-    if (ext === 'json') return 'PMF';
-    return 'SMF';
+    if (ext === 'xml') return 'Dossier électronique';
+    if (ext === 'json') return 'Dossier électronique';
+    if (ext === 'pdf') return 'Document scanné';
+    if (ext === 'csv' || ext === 'xls' || ext === 'xlsx') return 'Tableau de données';
+    return 'Autre';
   };
 
   const parseAndValidateFile = async (sessionId, fileUri, file) => {
@@ -223,8 +225,8 @@ export default function ImportUploader({ onImportComplete }) {
             <ul className="text-sm space-y-1">
               <li>✓ Chiffrement automatique des données</li>
               <li>✓ Support des gros fichiers (jusqu'à 500MB)</li>
-              <li>✓ Traçabilité complète (audit logs)</li>
-              <li>✓ Formats: XML (KMEHR), JSON, PDF, CSV, Excel</li>
+              <li>✓ Traçabilité complète</li>
+              <li>✓ Tous formats de dossiers médicaux acceptés</li>
             </ul>
           </AlertDescription>
         </Alert>
@@ -248,7 +250,7 @@ export default function ImportUploader({ onImportComplete }) {
                 )}
                 {!file && status === 'idle' && (
                   <p className="text-xs text-slate-500">
-                    Cliquez ou glissez un fichier (max 500MB)
+                    Cliquez ou glissez un dossier patient (max 500MB)
                   </p>
                 )}
               </div>
