@@ -13,8 +13,9 @@ export default function LanguageSelector() {
   const { locale, setLocale } = useI18n();
 
   const languages = [
-    { code: 'fr', name: 'Français' },
-    { code: 'en', name: 'English' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+    { code: 'en', name: 'English', flag: '🇬🇧' },
   ];
 
   return (
@@ -27,7 +28,7 @@ export default function LanguageSelector() {
       <DropdownMenuContent align="end">
         {languages.map((lang) => (
           <DropdownMenuItem key={lang.code} onSelect={() => setLocale(lang.code)}>
-            <span className="w-6">{lang.code.toUpperCase()}</span>
+            <span className="text-lg mr-2">{lang.flag}</span>
             <span>{lang.name}</span>
             {locale === lang.code && <Check className="ml-auto h-4 w-4" />}
           </DropdownMenuItem>
