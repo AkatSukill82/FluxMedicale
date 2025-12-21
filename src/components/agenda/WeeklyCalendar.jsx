@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, User, Clock, MoreHorizontal } from "lucide-react";
+import { Plus, User, Clock, MoreHorizontal, Users } from "lucide-react";
 import { format, addDays, startOfWeek, isToday } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
@@ -40,6 +40,12 @@ const AppointmentCard = ({ rdv, patientName, onEdit, onCancel }) => (
           <User className="w-3 h-3 flex-shrink-0" />
           <span className="truncate">{patientName}</span>
         </div>
+        {rdv.medecin_assigne && (
+          <div className="flex items-center gap-1 mt-1 text-[10px] text-blue-700">
+            <Users className="w-2.5 h-2.5" />
+            <span className="truncate">{rdv.medecin_assigne.split('@')[0]}</span>
+          </div>
+        )}
         {rdv.type_consultation === 'Urgence' && (
           <div className="mt-1 text-[10px] font-bold uppercase">🚨 Urgent</div>
         )}
@@ -52,6 +58,7 @@ const AppointmentCard = ({ rdv, patientName, onEdit, onCancel }) => (
           <p><strong>Heure:</strong> {rdv.heure_debut}</p>
           <p><strong>Type:</strong> {rdv.type_consultation}</p>
           <p><strong>Statut:</strong> {rdv.statut}</p>
+          {rdv.medecin_assigne && <p><strong>Médecin:</strong> {rdv.medecin_assigne.split('@')[0]}</p>}
           {rdv.motif && <p><strong>Motif:</strong> {rdv.motif}</p>}
         </div>
         <div className="flex gap-2">
