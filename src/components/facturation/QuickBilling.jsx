@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Euro, Clock, CreditCard, Loader2 } from 'lucide-react';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
+import NomenclatureSelector from './NomenclatureSelector';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Modèles de facturation rapide pour consultations courantes
 const QUICK_BILLING_TEMPLATES = [
@@ -50,10 +52,30 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('CARD');
+  const [selectedCodes, setSelectedCodes] = useState([]);
+  const [activeTab, setActiveTab] = useState('quick');
 
   const billMutation = useMutation({
-    mutationFn: async (template) => {
+    mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
+      
+      let totalAmount, patientShare, insuranceShare, codes, isCustom;
+      
+      if (data.isCustom) {
+        // Facturation personnalisée avec codes INAMI
+        isCustom = true;
+        codes = data.codes;
+        totalAmount = data.codes.reduce((sum, code) => sum + (code.honorarium || 0), 0);
+        insuranceShare = data.codes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
+        patientShare = totalAmount - insuranceShare;
+      } else {
+        // Template rapide
+        isCustom = false;
+        codes = data.template.codes;
+        totalAmount = data.template.amount * 100;
+        patientShare = totalAmount;
+        insuranceShare = 0;
+      }
       
       // Créer la facture
       const invoice = await base44.entities.Invoice.create({
@@ -62,24 +84,38 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
         type: 'EATTEST',
         payment_method: paymentMethod,
         status: 'SENT',
-        total_amount: template.amount * 100, // Convertir en centimes
-        patient_contribution: template.amount * 100,
-        insurance_contribution: 0,
+        total_amount: totalAmount,
+        patient_contribution: patientShare,
+        insurance_contribution: insuranceShare,
         invoice_date: new Date().toISOString().split('T')[0],
         created_by: currentUser.email
       });
 
       // Créer les lignes de facture
-      for (const code of template.codes) {
-        await base44.entities.InvoiceLine.create({
-          invoice_id: invoice.id,
-          nomenclature_code: code,
-          nomenclature_label: template.name,
-          quantity: 1,
-          unit_price: template.amount,
-          amount: template.amount,
-          date_prestation: new Date().toISOString().split('T')[0]
-        });
+      if (isCustom) {
+        for (const code of codes) {
+          await base44.entities.InvoiceLine.create({
+            invoice_id: invoice.id,
+            nomenclature_code: code.code,
+            nomenclature_label: code.title_fr,
+            quantity: 1,
+            unit_price: code.honorarium,
+            amount: code.honorarium,
+            date_prestation: new Date().toISOString().split('T')[0]
+          });
+        }
+      } else {
+        for (const code of codes) {
+          await base44.entities.InvoiceLine.create({
+            invoice_id: invoice.id,
+            nomenclature_code: code,
+            nomenclature_label: data.template.name,
+            quantity: 1,
+            unit_price: data.template.amount,
+            amount: data.template.amount,
+            date_prestation: new Date().toISOString().split('T')[0]
+          });
+        }
       }
 
       return invoice;
@@ -96,22 +132,29 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-4">
           <DialogTitle className="flex items-center gap-3 text-xl">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
               <Euro className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Facturation rapide</h2>
+              <h2 className="text-xl font-bold">Facturation</h2>
               <p className="text-sm font-normal text-muted-foreground">
-                Sélectionnez le type de consultation
+                {patient?.name?.[0] ? `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` : 'Patient'}
               </p>
             </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4 py-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="quick">Facturation rapide</TabsTrigger>
+            <TabsTrigger value="custom">Codes INAMI</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="quick" className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
           {QUICK_BILLING_TEMPLATES.map(template => {
             const Icon = template.icon;
             const isSelected = selectedTemplate?.id === template.id;
@@ -148,10 +191,10 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                 </div>
               </button>
             );
-          })}
-        </div>
+            })}
+            </div>
 
-        {selectedTemplate && (
+            {selectedTemplate && (
           <div className="space-y-6 pt-6 border-t">
             <div>
               <p className="text-sm font-semibold mb-3">Mode de paiement</p>
@@ -188,7 +231,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
               size="lg"
-              onClick={() => billMutation.mutate(selectedTemplate)}
+              onClick={() => billMutation.mutate({ template: selectedTemplate, isCustom: false })}
               disabled={billMutation.isPending}
             >
               {billMutation.isPending ? (
@@ -203,8 +246,73 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                 </>
               )}
             </Button>
-          </div>
-        )}
+            </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="custom" className="space-y-4">
+            <NomenclatureSelector
+              selectedCodes={selectedCodes}
+              onCodesChange={setSelectedCodes}
+              mutuelle={{ conventioned: patient?.mutuelle !== 'Non conventionné' }}
+            />
+
+            {selectedCodes.length > 0 && (
+              <div className="space-y-4 pt-4 border-t">
+                <div>
+                  <p className="text-sm font-semibold mb-3">Mode de paiement</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      variant={paymentMethod === 'CARD' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('CARD')}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <CreditCard className="w-5 h-5" />
+                      <span className="text-xs">Bancontact</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('CASH')}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <Euro className="w-5 h-5" />
+                      <span className="text-xs">Comptant</span>
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'BANK' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('BANK')}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      <span className="text-xs">Virement</span>
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                  onClick={() => billMutation.mutate({ codes: selectedCodes, isCustom: true })}
+                  disabled={billMutation.isPending}
+                >
+                  {billMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Enregistrement en cours...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-5 h-5 mr-2" />
+                      Créer la facture
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
