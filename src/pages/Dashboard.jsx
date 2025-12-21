@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +13,12 @@ import {
   Loader2,
   AlertTriangle,
   CheckCircle,
-  Download,
-  Activity,
-  Zap,
-  XCircle
+  Settings,
+  Layout
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
+import { format } from "date-fns";
 import { fr, nl, enUS } from "date-fns/locale";
 import { useEIDReader } from "../components/eid/useEIDReader";
 import EIDInstallationModal from "../components/eid/EIDInstallationModal";
@@ -30,6 +28,10 @@ import { useAutoOpenEID } from '../components/eid/useAutoOpenEID';
 import { useI18n } from '../components/i18n/i18nContext';
 import QuickActions from '../components/dashboard/QuickActions';
 import NewPatientDialog from '../components/patients/NewPatientDialog';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import DashboardWidget from '../components/dashboard/DashboardWidget';
+import WidgetSelector from '../components/dashboard/WidgetSelector';
+import { AVAILABLE_WIDGETS, DEFAULT_WIDGET_ORDER } from '../components/dashboard/widgetConfig';
 
 
 export default function Dashboard() {
@@ -39,10 +41,29 @@ export default function Dashboard() {
   const [showEIDModal, setShowEIDModal] = useState(false);
   const [duplicateDialog, setDuplicateDialog] = useState(null);
   const [showNewPatient, setShowNewPatient] = useState(false);
+  const [showWidgetSelector, setShowWidgetSelector] = useState(false);
+  
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
+  });
+
+  // Configuration des widgets
+  const widgetOrder = user?.dashboard_widgets || DEFAULT_WIDGET_ORDER;
+  const activeWidgets = widgetOrder
+    .map(id => AVAILABLE_WIDGETS.find(w => w.id === id))
+    .filter(Boolean);
+
+  const updateWidgetsMutation = useMutation({
+    mutationFn: async (newOrder) => {
+      await base44.auth.updateMe({ dashboard_widgets: newOrder });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success('Configuration enregistrée');
+    }
   });
 
   const { data: patients = [], isLoading: isLoadingPatients } = useQuery({
@@ -117,12 +138,35 @@ export default function Dashboard() {
   };
 
   const handleRetestEID = async () => {
-    const status = await detectMiddleware(true); // force re-test
+    const status = await detectMiddleware(true);
     if (status.isDetected) {
         toast.success(t('toast.eidViewerDetected'));
     } else {
         toast.error(t('toast.eidViewerNotDetected'));
     }
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const items = Array.from(widgetOrder);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    updateWidgetsMutation.mutate(items);
+  };
+
+  const handleToggleWidget = (widgetId) => {
+    const newOrder = widgetOrder.includes(widgetId)
+      ? widgetOrder.filter(id => id !== widgetId)
+      : [...widgetOrder, widgetId];
+    
+    updateWidgetsMutation.mutate(newOrder);
+  };
+
+  const handleRemoveWidget = (widgetId) => {
+    const newOrder = widgetOrder.filter(id => id !== widgetId);
+    updateWidgetsMutation.mutate(newOrder);
   };
 
 
@@ -139,7 +183,16 @@ export default function Dashboard() {
             {format(new Date(), 'eeee d MMMM yyyy', { locale: locales[locale] || fr })}
           </p>
         </div>
-        <QuickActions />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setShowWidgetSelector(true)}
+          >
+            <Layout className="w-4 h-4 mr-2" />
+            Personnaliser
+          </Button>
+          <QuickActions />
+        </div>
       </div>
 
       {/* Search */}
@@ -188,6 +241,55 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
+
+      {/* Widgets personnalisables */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <Droppable droppableId="dashboard-widgets">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              {activeWidgets.map((widget, index) => (
+                <Draggable key={widget.id} draggableId={widget.id} index={index}>
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                    >
+                      <DashboardWidget
+                        widget={widget}
+                        onRemove={handleRemoveWidget}
+                        dragHandleProps={provided.dragHandleProps}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      {activeWidgets.length === 0 && (
+        <Card className="border-2 border-dashed">
+          <CardContent className="p-12 text-center">
+            <Layout className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
+              Personnalisez votre tableau de bord
+            </h3>
+            <p className="text-slate-600 mb-6">
+              Ajoutez des widgets pour afficher vos informations importantes
+            </p>
+            <Button onClick={() => setShowWidgetSelector(true)}>
+              <Settings className="w-4 h-4 mr-2" />
+              Ajouter des widgets
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -252,6 +354,12 @@ export default function Dashboard() {
       </div>
 
       <NewPatientDialog isOpen={showNewPatient} onClose={() => setShowNewPatient(false)} />
+      <WidgetSelector
+        isOpen={showWidgetSelector}
+        onClose={() => setShowWidgetSelector(false)}
+        selectedWidgets={widgetOrder}
+        onToggleWidget={handleToggleWidget}
+      />
       <EIDInstallationModal isOpen={showEIDModal} onClose={() => setShowEIDModal(false)} onRetest={handleRetestEID} platform={eidStatus.platform} />
       {duplicateDialog && (
         <DuplicateResolutionDialog
