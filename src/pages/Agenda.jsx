@@ -18,6 +18,8 @@ import AppointmentForm from "../components/agenda/AppointmentForm";
 import RecurringSlotManager from "../components/agenda/RecurringSlotManager";
 import UnavailabilityManager from "../components/agenda/UnavailabilityManager";
 import ReminderSettings from "../components/agenda/ReminderSettings";
+import DoctorAvailabilityView from "../components/agenda/DoctorAvailabilityView";
+import AppointmentNotifications from "../components/agenda/AppointmentNotifications";
 
 export default function Agenda() {
   const queryClient = useQueryClient();
@@ -29,6 +31,7 @@ export default function Agenda() {
   const [showRecurringSlots, setShowRecurringSlots] = useState(false);
   const [showUnavailability, setShowUnavailability] = useState(false);
   const [showReminders, setShowReminders] = useState(false);
+  const [showAvailability, setShowAvailability] = useState(false);
   const [filterPraticien, setFilterPraticien] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -148,6 +151,7 @@ export default function Agenda() {
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <div className="space-y-6">
+        <AppointmentNotifications />
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Agenda</h1>
@@ -192,6 +196,13 @@ export default function Agenda() {
               onClick={() => setShowReminders(true)}
             >
               Rappels
+            </Button>
+
+            <Button 
+              variant="outline"
+              onClick={() => setShowAvailability(!showAvailability)}
+            >
+              Disponibilités
             </Button>
             
             <Button 
@@ -268,6 +279,10 @@ export default function Agenda() {
               <UnavailabilityManager />
             </CardContent>
           </Card>
+        )}
+
+        {showAvailability && (
+          <DoctorAvailabilityView currentDate={currentDate} />
         )}
 
         <AnimatePresence mode="wait">
