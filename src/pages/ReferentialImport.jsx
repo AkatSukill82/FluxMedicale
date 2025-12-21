@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   Upload, 
   Database, 
@@ -13,7 +14,8 @@ import {
   Loader2,
   Pill,
   FileText,
-  Download
+  Download,
+  FileUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -121,6 +123,8 @@ export default function ReferentialImport() {
   const queryClient = useQueryClient();
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef(null);
 
   const { data: existingDrugs = [] } = useQuery({
     queryKey: ['drugs'],
@@ -176,6 +180,85 @@ export default function ReferentialImport() {
       toast.success('Base de données vidée');
     }
   });
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    setProgress(0);
+
+    try {
+      // Upload le fichier
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      toast.info('Analyse du fichier SAMV2 en cours...');
+      
+      // Extraire les données avec l'IA
+      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url: file_url,
+        json_schema: {
+          type: "object",
+          properties: {
+            drugs: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  product_name: { type: "string" },
+                  substance_name: { type: "string" },
+                  form: { type: "string" },
+                  strength: { type: "string" },
+                  unit: { type: "string" },
+                  route: { type: "string" },
+                  package_size: { type: "string" },
+                  package_unit: { type: "string" },
+                  cnk: { type: "string" },
+                  atc_code: { type: "string" },
+                  sam_id: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (result.status === 'success' && result.output?.drugs) {
+        const drugs = result.output.drugs;
+        toast.success(`${drugs.length} médicaments détectés, import en cours...`);
+        
+        let imported = 0;
+        const total = drugs.length;
+        
+        for (const drug of drugs) {
+          try {
+            await base44.entities.Drug.create({
+              ...drug,
+              lang: 'fr',
+              is_current: true
+            });
+            imported++;
+            setProgress((imported / total) * 100);
+          } catch (error) {
+            console.error('Erreur import:', error);
+          }
+        }
+        
+        queryClient.invalidateQueries({ queryKey: ['drugs'] });
+        toast.success(`${imported} médicaments importés avec succès`);
+      } else {
+        toast.error(result.details || 'Erreur lors de l\'extraction des données');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'import: ' + error.message);
+    } finally {
+      setUploadingFile(false);
+      setProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -326,21 +409,96 @@ export default function ReferentialImport() {
         </CardContent>
       </Card>
 
+      {/* Import SAMV2 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Database className="w-5 h-5" />
+            Import SAMV2 - Base complète
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-green-900 mb-1">Import automatique SAMV2</p>
+                <p className="text-green-700 mb-3">
+                  Téléchargez le fichier SAMV2 officiel et importez-le ici. L'IA extraira automatiquement 
+                  tous les médicaments (CSV, XML, Excel supportés).
+                </p>
+                <div className="space-y-2 text-xs text-green-600">
+                  <p><strong>Où télécharger SAMV2 ?</strong></p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Site INAMI: <a href="https://www.inami.fgov.be" target="_blank" className="underline">www.inami.fgov.be</a></li>
+                    <li>APB (Association Pharmaceutique Belge): référentiel SAM/APB</li>
+                    <li>Formats acceptés: CSV, XML, XLSX</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {uploadingFile && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Import du fichier SAMV2...</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.xml,.xlsx,.xls"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingFile}
+            size="lg"
+            className="w-full"
+            variant="outline"
+          >
+            {uploadingFile ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Analyse et import en cours...
+              </>
+            ) : (
+              <>
+                <FileUp className="w-5 h-5 mr-2" />
+                Sélectionner le fichier SAMV2 (CSV/XML/Excel)
+              </>
+            )}
+          </Button>
+
+          <p className="text-xs text-center text-muted-foreground">
+            L'import peut prendre plusieurs minutes selon la taille du fichier
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Info production */}
       <Card className="bg-slate-50">
         <CardContent className="p-6">
           <div className="flex items-start gap-3">
             <Download className="w-6 h-6 text-slate-600 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-lg mb-2">Import en production</h3>
+              <h3 className="font-semibold text-lg mb-2">À propos de SAMV2</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Pour un environnement de production, vous devez importer le référentiel officiel SAM/APB 
-                (Banque de Données des Médicaments) qui contient tous les médicaments autorisés en Belgique.
+                SAMV2 est la base de données officielle des médicaments autorisés en Belgique, 
+                maintenue par l'INAMI et l'APB. Elle contient:
               </p>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Téléchargez le fichier SAM/APB depuis le site officiel</li>
-                <li>Utilisez l'outil d'import pour charger le fichier XML</li>
-                <li>Vérifiez l'intégrité des données importées</li>
+                <li>Plus de 30,000 médicaments et spécialités</li>
+                <li>Codes CNK, ATC, prix, remboursements</li>
+                <li>Compositions, dosages, formes galéniques</li>
+                <li>Mise à jour mensuelle recommandée</li>
               </ul>
             </div>
           </div>
