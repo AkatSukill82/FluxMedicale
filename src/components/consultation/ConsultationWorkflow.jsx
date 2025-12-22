@@ -68,7 +68,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   // Charger les médicaments
   const { data: allDrugs = [] } = useQuery({
     queryKey: ['drugs'],
-    queryFn: () => base44.entities.Drug.list('-created_date', 500)
+    queryFn: () => base44.entities.Drug.list('-created_date', 10000)
   });
 
   const [drugSearch, setDrugSearch] = useState('');

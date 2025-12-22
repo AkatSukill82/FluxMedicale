@@ -199,6 +199,11 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
           </TabsContent>
 
           <TabsContent value="custom" className="space-y-4">
+            <div className="mb-4">
+              <p className="text-sm text-slate-600 mb-2">
+                💊 <strong>{customMedications.length === 0 ? 'Aucun médicament sélectionné' : `${customMedications.length} médicament(s) sélectionné(s)`}</strong>
+              </p>
+            </div>
             <MedicationSearch 
               onSelect={handleAddMedication}
               selectedMedications={customMedications}
