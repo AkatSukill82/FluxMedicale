@@ -27,6 +27,8 @@ import NomenSearch from '../nomenclature/NomenSearch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import InteractionChecker from '../medications/InteractionChecker';
 import TemplateSelector from '../medications/TemplateSelector';
+import DosageScheduler from '../medications/DosageScheduler';
+import GenericAlternatives from '../medications/GenericAlternatives';
 
 // Motifs de consultation fréquents
 const COMMON_REASONS = [
@@ -471,51 +473,57 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
 
               {selectedMedications.length > 0 && (
                 <div className="space-y-3">
-                  <Label className="text-lg font-semibold block">Médicaments prescrits</Label>
+                  <Label className="text-lg font-semibold block">Médicaments prescrits ({selectedMedications.length})</Label>
                   {selectedMedications.map(med => (
-                    <Card key={med.id} className="p-4">
-                      <div className="flex items-start gap-4">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-bold text-lg">{med.product_name}</h3>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleRemoveMedication(med.id)}
-                              className="text-red-500 hover:bg-red-50"
-                            >
-                              <X className="w-5 h-5" />
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-3 gap-3">
-                            <div>
-                              <Label className="text-sm">Dosage</Label>
-                              <Input
-                                value={med.dosage_prescribed}
-                                onChange={(e) => handleMedicationChange(med.id, 'dosage_prescribed', e.target.value)}
-                                className="h-10 text-base"
-                              />
+                    <div key={med.id} className="space-y-3">
+                      <Card className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="font-bold text-lg">{med.product_name}</h3>
+                                {med.substance_name && (
+                                  <p className="text-sm text-slate-600">{med.substance_name}</p>
+                                )}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveMedication(med.id)}
+                                className="text-red-500 hover:bg-red-50"
+                              >
+                                <X className="w-5 h-5" />
+                              </Button>
                             </div>
-                            <div>
-                              <Label className="text-sm">Fréquence</Label>
-                              <Input
-                                value={med.frequency}
-                                onChange={(e) => handleMedicationChange(med.id, 'frequency', e.target.value)}
-                                className="h-10 text-base"
-                              />
-                            </div>
-                            <div>
-                              <Label className="text-sm">Durée</Label>
-                              <Input
-                                value={med.duration}
-                                onChange={(e) => handleMedicationChange(med.id, 'duration', e.target.value)}
-                                className="h-10 text-base"
-                              />
-                            </div>
+                            
+                            <DosageScheduler
+                              medication={med}
+                              onChange={(data) => {
+                                handleMedicationChange(med.id, 'frequency', data.frequency);
+                                handleMedicationChange(med.id, 'duration', data.duration);
+                                handleMedicationChange(med.id, 'instructions', data.instructions);
+                              }}
+                            />
                           </div>
                         </div>
-                      </div>
-                    </Card>
+                      </Card>
+                      
+                      <GenericAlternatives
+                        medication={med}
+                        onSelectAlternative={(alt) => {
+                          const updatedMeds = selectedMedications.map(m => 
+                            m.id === med.id ? {
+                              ...alt,
+                              dosage_prescribed: med.dosage_prescribed,
+                              frequency: med.frequency,
+                              duration: med.duration,
+                              instructions: med.instructions
+                            } : m
+                          );
+                          setSelectedMedications(updatedMeds);
+                        }}
+                      />
+                    </div>
                   ))}
                 </div>
               )}

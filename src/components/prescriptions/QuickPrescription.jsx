@@ -10,6 +10,9 @@ import { Pill, Thermometer, Droplets, Wind, Loader2, Plus, X, Search } from 'luc
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import MedicationSearch from '../medications/MedicationSearch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DosageScheduler from '../medications/DosageScheduler';
+import GenericAlternatives from '../medications/GenericAlternatives';
+import InteractionChecker from '../medications/InteractionChecker';
 
 // Templates de prescriptions courantes
 const PRESCRIPTION_TEMPLATES = [
@@ -91,21 +94,9 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
   const handleAddMedication = (drug) => {
     setCustomMedications([...customMedications, {
       ...drug,
-      posology: '1x/jour',
-      duration: '7 jours',
-      schedule: { morning: 1, noon: 0, evening: 0, night: 0 }
+      posology: '',
+      duration: ''
     }]);
-  };
-
-  const handleReplaceWithGeneric = (oldDrug, newDrug) => {
-    setCustomMedications(customMedications.map(med => 
-      med.id === oldDrug.id ? { 
-        ...newDrug, 
-        posology: med.posology, 
-        duration: med.duration,
-        schedule: med.schedule
-      } : med
-    ));
   };
 
   const handleRemoveMedication = (index) => {
@@ -121,7 +112,7 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
   const handlePrescribeCustom = () => {
     if (customMedications.length === 0) return;
     if (customMedications.some(m => !m.posology || !m.duration)) {
-      handleError(new Error('Veuillez compléter le schéma posologique'), 'Prescription');
+      handleError(new Error('Veuillez remplir tous les champs'), 'Prescription');
       return;
     }
     prescribeMutation.mutate({ medications: customMedications, isCustom: true });
@@ -213,10 +204,13 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
               selectedMedications={customMedications}
             />
 
-            {customMedications.length > 0 && <InteractionChecker selectedMedications={customMedications} patientId={patient.id} />}
-
             {customMedications.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                <InteractionChecker
+                  selectedMedications={customMedications}
+                  patientId={patient.id}
+                />
+
                 <h3 className="font-semibold text-sm">Médicaments sélectionnés ({customMedications.length})</h3>
                 {customMedications.map((med, index) => (
                   <div key={index} className="space-y-3">
@@ -241,16 +235,10 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
 
                         <DosageScheduler
                           medication={med}
-                          onChange={(scheduleData) => {
-                            const updated = [...customMedications];
-                            updated[index] = {
-                              ...updated[index],
-                              posology: scheduleData.frequency,
-                              duration: scheduleData.duration,
-                              instructions: scheduleData.instructions,
-                              schedule: scheduleData.schedule
-                            };
-                            setCustomMedications(updated);
+                          onChange={(data) => {
+                            handleUpdateMedication(index, 'posology', data.frequency);
+                            handleUpdateMedication(index, 'duration', data.duration);
+                            handleUpdateMedication(index, 'instructions', data.instructions);
                           }}
                         />
                       </CardContent>
@@ -258,7 +246,16 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
 
                     <GenericAlternatives
                       medication={med}
-                      onSelectAlternative={(alt) => handleReplaceWithGeneric(med, alt)}
+                      onSelectAlternative={(alt) => {
+                        const updated = [...customMedications];
+                        updated[index] = {
+                          ...alt,
+                          posology: med.posology,
+                          duration: med.duration,
+                          instructions: med.instructions
+                        };
+                        setCustomMedications(updated);
+                      }}
                     />
                   </div>
                 ))}
@@ -267,7 +264,7 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
                   className="w-full"
                   size="lg"
                   onClick={handlePrescribeCustom}
-                  disabled={prescribeMutation.isPending}
+                  disabled={prescribeMutation.isPending || customMedications.some(m => !m.posology || !m.duration)}
                 >
                   {prescribeMutation.isPending ? (
                     <>
