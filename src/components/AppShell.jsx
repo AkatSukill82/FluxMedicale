@@ -75,7 +75,6 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.dashboard'), path: 'Dashboard', icon: LayoutDashboard },
     { title: t('nav.patients'), path: 'Patients', icon: Users },
     { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
-    { title: 'Médicaments', path: 'Medications', icon: Stethoscope },
     { title: t('nav.templates'), path: 'Templates', icon: FileText },
     { title: t('nav.inbox'), path: 'Inbox', icon: Inbox },
     { title: t('nav.import'), path: 'Import', icon: Upload },
