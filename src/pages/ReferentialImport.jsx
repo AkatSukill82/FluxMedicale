@@ -17,6 +17,7 @@ import {
   Download,
   FileUp
 } from 'lucide-react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 // Données de démo pour test
@@ -124,12 +125,58 @@ export default function ReferentialImport() {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateAvailable, setUpdateAvailable] = useState(null);
   const fileInputRef = useRef(null);
 
   const { data: existingDrugs = [] } = useQuery({
     queryKey: ['drugs'],
     queryFn: () => base44.entities.Drug.list('-created_date', 1000)
   });
+
+  // Récupérer la version actuelle
+  const currentVersion = existingDrugs.length > 0 
+    ? existingDrugs[0]?.version || '1.0.0'
+    : null;
+
+  // Vérifier les mises à jour au chargement
+  useEffect(() => {
+    if (currentVersion) {
+      checkForUpdates();
+    }
+  }, [currentVersion]);
+
+  const checkForUpdates = async () => {
+    setCheckingUpdate(true);
+    try {
+      // Simuler une vérification de version (en production, cela appellerait l'API INAMI/APB)
+      const latestVersion = '2024.12.0'; // Version format: YYYY.MM.patch
+      
+      if (currentVersion && currentVersion !== latestVersion) {
+        setUpdateAvailable({
+          version: latestVersion,
+          releaseDate: '2024-12-15',
+          changes: [
+            'Nouveaux médicaments ajoutés (450+)',
+            'Mise à jour des prix et remboursements',
+            'Corrections de données obsolètes',
+            'Nouveaux codes CNK'
+          ]
+        });
+        toast.info(`Nouvelle version SAMV2 disponible: ${latestVersion}`, {
+          duration: 10000,
+          action: {
+            label: 'Voir détails',
+            onClick: () => {}
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Erreur vérification mises à jour:', error);
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
 
   const importDemoMutation = useMutation({
     mutationFn: async () => {
@@ -227,6 +274,9 @@ export default function ReferentialImport() {
         const drugs = result.output.drugs;
         toast.success(`${drugs.length} médicaments détectés, import en cours...`);
         
+        // Déterminer la version à partir du nom de fichier ou date
+        const newVersion = `${new Date().getFullYear()}.${String(new Date().getMonth() + 1).padStart(2, '0')}.0`;
+        
         let imported = 0;
         const total = drugs.length;
         
@@ -235,7 +285,9 @@ export default function ReferentialImport() {
             await base44.entities.Drug.create({
               ...drug,
               lang: 'fr',
-              is_current: true
+              is_current: true,
+              version: newVersion,
+              import_date: new Date().toISOString()
             });
             imported++;
             setProgress((imported / total) * 100);
@@ -245,7 +297,8 @@ export default function ReferentialImport() {
         }
         
         queryClient.invalidateQueries({ queryKey: ['drugs'] });
-        toast.success(`${imported} médicaments importés avec succès`);
+        toast.success(`${imported} médicaments importés avec succès (v${newVersion})`);
+        setUpdateAvailable(null);
       } else {
         toast.error(result.details || 'Erreur lors de l\'extraction des données');
       }
@@ -268,6 +321,54 @@ export default function ReferentialImport() {
           Gérez l'importation des bases de données de médicaments et nomenclature INAMI
         </p>
       </div>
+
+      {/* Alerte mise à jour disponible */}
+      {updateAvailable && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg mb-2">
+                  Mise à jour SAMV2 disponible - Version {updateAvailable.version}
+                </h3>
+                <p className="text-sm text-orange-900 mb-3">
+                  Publiée le {new Date(updateAvailable.releaseDate).toLocaleDateString('fr-FR')}
+                </p>
+                <div className="bg-white rounded-lg p-3 mb-4">
+                  <p className="text-sm font-semibold mb-2">Nouveautés :</p>
+                  <ul className="text-sm space-y-1">
+                    {updateAvailable.changes.map((change, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                        <span>{change}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    size="lg"
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Installer la mise à jour
+                  </Button>
+                  <Button
+                    onClick={() => setUpdateAvailable(null)}
+                    variant="outline"
+                  >
+                    Plus tard
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -292,10 +393,23 @@ export default function ReferentialImport() {
                 <Database className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Statut</p>
-                <Badge variant={existingDrugs.length > 0 ? "default" : "secondary"}>
-                  {existingDrugs.length > 0 ? 'Actif' : 'Vide'}
-                </Badge>
+                <p className="text-sm text-muted-foreground">Version actuelle</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-lg font-bold">{currentVersion || 'Aucune'}</p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={checkForUpdates}
+                    disabled={checkingUpdate || !currentVersion}
+                    className="h-6 px-2"
+                  >
+                    {checkingUpdate ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      '🔄'
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -308,8 +422,10 @@ export default function ReferentialImport() {
                 <FileText className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Dernière MAJ</p>
-                <p className="text-sm font-medium">Aujourd'hui</p>
+                <p className="text-sm text-muted-foreground">Statut</p>
+                <Badge variant={existingDrugs.length > 0 ? "default" : "secondary"}>
+                  {existingDrugs.length > 0 ? 'Actif' : 'Vide'}
+                </Badge>
               </div>
             </div>
           </CardContent>
