@@ -133,7 +133,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           medecin_email: currentUser.email,
           date_prescription: new Date().toISOString(),
           medicaments: medicaments,
-          statut_recip_e: 'Brouillon'
+          statut_recip_e: 'Envoyé'
         });
       }
 

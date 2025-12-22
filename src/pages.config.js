@@ -9,7 +9,6 @@ import Health from './pages/Health';
 import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
-import Medications from './pages/Medications';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import ProfilMedecin from './pages/ProfilMedecin';
@@ -36,7 +35,6 @@ export const PAGES = {
     "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
-    "Medications": Medications,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "ProfilMedecin": ProfilMedecin,
