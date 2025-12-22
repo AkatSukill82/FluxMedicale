@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Search, Pill, Plus } from 'lucide-react';
+import { Search, Pill, Plus, AlertCircle, ArrowRight } from 'lucide-react';
+import { createPageUrl } from '@/utils';
 
 export default function MedicationSearch({ onSelect, selectedMedications = [], showPrice = false }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,6 +43,30 @@ export default function MedicationSearch({ onSelect, selectedMedications = [], s
   const isSelected = (drugId) => {
     return selectedMedications.some(m => m.id === drugId || m.drug_id === drugId);
   };
+
+  // Alerte si base vide
+  if (drugs.length === 0) {
+    return (
+      <Card className="p-6 bg-orange-50 border-2 border-orange-300">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
+          <div className="flex-1">
+            <p className="font-semibold text-orange-900 mb-2">Base de données vide</p>
+            <p className="text-sm text-orange-700 mb-3">
+              La base de données des médicaments est vide. Vous devez d'abord importer des médicaments de test ou le référentiel SAM/APB complet.
+            </p>
+            <Button
+              onClick={() => window.location.href = createPageUrl('ReferentialImport')}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <ArrowRight className="w-4 h-4 mr-2" />
+              Aller à la page d'import
+            </Button>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div className="relative">
