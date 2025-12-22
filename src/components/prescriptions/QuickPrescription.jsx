@@ -91,9 +91,21 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
   const handleAddMedication = (drug) => {
     setCustomMedications([...customMedications, {
       ...drug,
-      posology: '',
-      duration: ''
+      posology: '1x/jour',
+      duration: '7 jours',
+      schedule: { morning: 1, noon: 0, evening: 0, night: 0 }
     }]);
+  };
+
+  const handleReplaceWithGeneric = (oldDrug, newDrug) => {
+    setCustomMedications(customMedications.map(med => 
+      med.id === oldDrug.id ? { 
+        ...newDrug, 
+        posology: med.posology, 
+        duration: med.duration,
+        schedule: med.schedule
+      } : med
+    ));
   };
 
   const handleRemoveMedication = (index) => {
@@ -109,7 +121,7 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
   const handlePrescribeCustom = () => {
     if (customMedications.length === 0) return;
     if (customMedications.some(m => !m.posology || !m.duration)) {
-      handleError(new Error('Veuillez remplir tous les champs'), 'Prescription');
+      handleError(new Error('Veuillez compléter le schéma posologique'), 'Prescription');
       return;
     }
     prescribeMutation.mutate({ medications: customMedications, isCustom: true });
@@ -201,57 +213,61 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
               selectedMedications={customMedications}
             />
 
+            {customMedications.length > 0 && <InteractionChecker selectedMedications={customMedications} patientId={patient.id} />}
+
             {customMedications.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-semibold text-sm">Médicaments sélectionnés ({customMedications.length})</h3>
                 {customMedications.map((med, index) => (
-                  <Card key={index}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="font-semibold">{med.product_name}</p>
-                          <p className="text-xs text-slate-600">
-                            {med.substance_name} {med.strength && `• ${med.strength}${med.unit}`}
-                          </p>
+                  <div key={index} className="space-y-3">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-semibold">{med.product_name}</p>
+                            <p className="text-xs text-slate-600">
+                              {med.substance_name} {med.strength && `• ${med.strength}${med.unit}`}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveMedication(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveMedication(index)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-xs">Posologie *</Label>
-                          <Input
-                            placeholder="Ex: 1 cp 3x/jour"
-                            value={med.posology}
-                            onChange={(e) => handleUpdateMedication(index, 'posology', e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs">Durée *</Label>
-                          <Input
-                            placeholder="Ex: 7 jours"
-                            value={med.duration}
-                            onChange={(e) => handleUpdateMedication(index, 'duration', e.target.value)}
-                            className="text-sm"
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+
+                        <DosageScheduler
+                          medication={med}
+                          onChange={(scheduleData) => {
+                            const updated = [...customMedications];
+                            updated[index] = {
+                              ...updated[index],
+                              posology: scheduleData.frequency,
+                              duration: scheduleData.duration,
+                              instructions: scheduleData.instructions,
+                              schedule: scheduleData.schedule
+                            };
+                            setCustomMedications(updated);
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+
+                    <GenericAlternatives
+                      medication={med}
+                      onSelectAlternative={(alt) => handleReplaceWithGeneric(med, alt)}
+                    />
+                  </div>
                 ))}
 
                 <Button
                   className="w-full"
                   size="lg"
                   onClick={handlePrescribeCustom}
-                  disabled={prescribeMutation.isPending || customMedications.some(m => !m.posology || !m.duration)}
+                  disabled={prescribeMutation.isPending}
                 >
                   {prescribeMutation.isPending ? (
                     <>
