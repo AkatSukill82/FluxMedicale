@@ -773,8 +773,14 @@ export default function ReferentialImport() {
       
       const total = DEMO_DRUGS.length;
       let imported = 0;
+      let processed = 0;
+      
+      console.log('🔄 Début import:', total, 'médicaments à traiter');
+      console.log('📊 Médicaments existants:', existingDrugs.length);
       
       for (const drug of DEMO_DRUGS) {
+        processed++;
+        
         // Vérifier si existe déjà
         const exists = existingDrugs.find(d => 
           d.product_name === drug.product_name && 
@@ -782,22 +788,33 @@ export default function ReferentialImport() {
         );
         
         if (!exists) {
-          await base44.entities.Drug.create(drug);
-          imported++;
+          console.log('➕ Création:', drug.product_name);
+          try {
+            const result = await base44.entities.Drug.create(drug);
+            console.log('✅ Créé:', result.id);
+            imported++;
+          } catch (error) {
+            console.error('❌ Erreur création:', drug.product_name, error);
+            throw error;
+          }
+        } else {
+          console.log('⏭️ Existe déjà:', drug.product_name);
         }
         
-        setProgress(((imported + 1) / total) * 100);
-        await new Promise(resolve => setTimeout(resolve, 200)); // Délai pour animation
+        setProgress((processed / total) * 100);
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
       
+      console.log('✅ Import terminé:', imported, 'médicaments importés sur', total);
       return imported;
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['drugs'] });
-      toast.success(`${count} médicaments importés avec succès`);
+      toast.success(`${count} médicament${count > 1 ? 's' : ''} importé${count > 1 ? 's' : ''} avec succès`);
       setImporting(false);
     },
     onError: (error) => {
+      console.error('💥 Erreur mutation:', error);
       toast.error('Erreur lors de l\'importation: ' + error.message);
       setImporting(false);
     }
