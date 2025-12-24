@@ -171,6 +171,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           patient_id: patient.id,
           provider_id: currentUser.email,
           type: 'EATTEST',
+          payment_method: 'CARD',
           status: 'SENT',
           total_amount: totalHonorarium,
           patient_contribution: totalPatientShare,
