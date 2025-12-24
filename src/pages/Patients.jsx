@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -28,9 +28,6 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import PatientSearchBar from '../components/patients/PatientSearchBar';
-import PatientNotes from '../components/patients/PatientNotes';
-import ConsultationsTimeline from '../components/patients/ConsultationsTimeline';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -46,6 +43,7 @@ export default function Patients() {
   
   const urlParams = new URLSearchParams(location.search);
   const patientId = urlParams.get('patient');
+  const tabParam = urlParams.get('tab');
   
   const [currentUser, setCurrentUser] = React.useState(null);
   const permissions = usePermissions(currentUser);
@@ -54,7 +52,14 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('consultation');
+  const [activeTab, setActiveTab] = useState(tabParam || 'consultation');
+  
+  // Update tab when URL param changes
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
@@ -123,51 +128,26 @@ export default function Patients() {
     enabled: !patientId
   });
 
-  const [filteredPatients, setFilteredPatients] = useState([]);
-  
-  const handleFilteredPatients = useCallback((patients) => {
-    setFilteredPatients(patients);
-  }, []);
-
-  // Initialize filtered patients when allPatients loads
-  useEffect(() => {
-    if (allPatients.length > 0 && filteredPatients.length === 0) {
-      setFilteredPatients(allPatients);
-    }
-  }, [allPatients]);
-
   if (!patientId) {
-    const displayPatients = filteredPatients.length > 0 || allPatients.length === 0 ? filteredPatients : allPatients;
-    
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Tous les patients</h2>
           <Badge variant="outline">{allPatients.length} patients</Badge>
         </div>
-
-        <PatientSearchBar 
-          patients={allPatients} 
-          onFilteredPatients={handleFilteredPatients} 
-        />
         
         {isLoadingList ? (
           <div className="flex items-center justify-center h-64">
             <p className="text-muted-foreground">Chargement...</p>
           </div>
-        ) : displayPatients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center">
-            <p className="text-muted-foreground text-lg">Aucun patient trouvé</p>
-            <p className="text-sm text-slate-400 mt-1">Essayez de modifier vos critères de recherche</p>
-          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayPatients.map(p => {
+            {allPatients.map(p => {
               const officialName = p.name?.find(n => n.use === 'official') || {};
               const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
               const birthDate = p.birthDate ? new Date(p.birthDate) : null;
               const age = birthDate && !isNaN(birthDate.getTime()) ? differenceInYears(new Date(), birthDate) : null;
-              const niss = p.identifier?.find(id => id.system?.includes('ssin'))?.value || '';
+              const niss = p.identifier?.find(id => id.system.includes('ssin'))?.value || '';
               
               return (
                 <button
@@ -320,18 +300,6 @@ export default function Patients() {
               <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
             </div>
           )}
-
-          {/* Notes générales */}
-          <PatientNotes patient={patient} />
-
-          {/* Timeline consultations */}
-          <ConsultationsTimeline 
-            patient={patient} 
-            maxItems={5}
-            onSelectConsultation={(consultation) => {
-              setActiveTab('history');
-            }}
-          />
         </div>
       </aside>
 
