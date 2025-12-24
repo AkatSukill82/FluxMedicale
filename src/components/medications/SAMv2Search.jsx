@@ -28,6 +28,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import debounce from 'lodash/debounce';
 import { samV2Search } from '@/functions/samV2Search';
+import ChapterIVRequestForm from '../chapterIV/ChapterIVRequestForm';
 
 // Catégories de remboursement INAMI
 const REIMBURSEMENT_CATEGORIES = {
@@ -46,12 +47,14 @@ const INTERACTION_SEVERITY = {
   'CONTRAINDICATED': { label: 'Contre-indiqué', color: 'bg-red-600 text-white', icon: XCircle }
 };
 
-export default function SAMv2Search({ onSelect, selectedMedications = [], patientStatus = 'normal' }) {
+export default function SAMv2Search({ onSelect, selectedMedications = [], patientStatus = 'normal', patient }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedMed, setSelectedMed] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showChapterIV, setShowChapterIV] = useState(false);
+  const [chapterIVMed, setChapterIVMed] = useState(null);
 
   // Recherche SAM v2
   const searchMutation = useMutation({
@@ -112,12 +115,36 @@ export default function SAMv2Search({ onSelect, selectedMedications = [], patien
   };
 
   const handleAddToPresciption = (med) => {
+    // Vérifier si Chapitre IV requis
+    if (med.chapter_iv?.required) {
+      setChapterIVMed(med);
+      setShowChapterIV(true);
+      return;
+    }
+    
     if (onSelect) {
       onSelect({
         ...med,
         source: 'sam_v2'
       });
     }
+    setShowDetails(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
+  const handleChapterIVSuccess = (result) => {
+    // Ajouter le médicament après demande Chapitre IV
+    if (onSelect && chapterIVMed) {
+      onSelect({
+        ...chapterIVMed,
+        source: 'sam_v2',
+        chapter_iv_request_id: result.request_id,
+        chapter_iv_reference: result.mycarenet_reference
+      });
+    }
+    setShowChapterIV(false);
+    setChapterIVMed(null);
     setShowDetails(false);
     setSearchQuery('');
     setSearchResults([]);
@@ -208,6 +235,20 @@ export default function SAMv2Search({ onSelect, selectedMedications = [], patien
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modal Chapitre IV */}
+      {showChapterIV && chapterIVMed && patient && (
+        <ChapterIVRequestForm
+          isOpen={showChapterIV}
+          onClose={() => {
+            setShowChapterIV(false);
+            setChapterIVMed(null);
+          }}
+          patient={patient}
+          medication={chapterIVMed}
+          onSuccess={handleChapterIVSuccess}
+        />
+      )}
     </div>
   );
 }

@@ -217,6 +217,7 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
             <SAMv2Search
               onSelect={handleAddMedication}
               selectedMedications={customMedications}
+              patient={patient}
               patientStatus={patient?.assurabilite?.special_rights?.includes('BIM') ? 'bim' : 
                             patient?.assurabilite?.special_rights?.includes('OMNIO') ? 'omnio' : 'normal'}
             />
