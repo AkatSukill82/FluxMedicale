@@ -57,14 +57,14 @@ const EHEALTH_MODULES = [
     description: 'Système de prescription électronique dématérialisée pour médicaments',
     category: 'prescription',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: FileText,
     color: 'blue',
     features: [
       { name: 'Création prescription', implemented: true },
-      { name: 'Envoi Recip-e', implemented: false },
-      { name: 'RID (identifiant unique)', implemented: false },
-      { name: 'Annulation prescription', implemented: false },
+      { name: 'Envoi Recip-e', implemented: true },
+      { name: 'RID (identifiant unique)', implemented: true },
+      { name: 'Annulation prescription', implemented: true },
       { name: 'Historique prescriptions', implemented: true }
     ],
     links: [
@@ -417,7 +417,7 @@ export default function ModulesEHealthPage() {
           <div className="space-y-4">
             {[
               { phase: 1, title: 'SAM v2 API complète', desc: 'Sync temps réel, prix INAMI, disponibilité', status: 'completed' },
-              { phase: 2, title: 'Recip-e v4 intégration', desc: 'Envoi prescriptions, RID, dématérialisation', status: 'planned' },
+              { phase: 2, title: 'Recip-e v4 intégration', desc: 'Envoi prescriptions, RID, dématérialisation', status: 'completed' },
               { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'planned' },
               { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'planned' },
               { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'completed' }
