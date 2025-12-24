@@ -159,8 +159,10 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
       // 3. Créer la facture si codes INAMI
       if (selectedCodes.length > 0) {
         const totalHonorarium = selectedCodes.reduce((sum, code) => {
-          const amount = isConventionne ? code.original_honorarium : (code.is_custom_price ? code.custom_honorarium : code.honorarium);
-          return sum + (amount || 0);
+          const amount = isConventionne 
+            ? (code.original_honorarium || code.honorarium || 0) 
+            : (code.is_custom_price ? (code.custom_honorarium || 0) : (code.honorarium || 0));
+          return sum + amount;
         }, 0);
         const totalReimbursed = selectedCodes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
         const totalPatientShare = totalHonorarium - totalReimbursed;
@@ -179,7 +181,9 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
 
         // Créer les lignes de facture
         for (const code of selectedCodes) {
-          const lineAmount = isConventionne ? code.original_honorarium : (code.is_custom_price ? code.custom_honorarium : code.honorarium);
+          const lineAmount = isConventionne 
+            ? (code.original_honorarium || code.honorarium || 0) 
+            : (code.is_custom_price ? (code.custom_honorarium || 0) : (code.honorarium || 0));
           await base44.entities.InvoiceLine.create({
             invoice_id: invoice.id,
             nomenclature_code: code.code,
@@ -237,8 +241,10 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   };
 
   const totalFacturation = selectedCodes.reduce((sum, code) => {
-    const amount = isConventionne ? code.original_honorarium : (code.is_custom_price ? code.custom_honorarium : code.honorarium);
-    return sum + (amount || 0);
+    const amount = isConventionne 
+      ? (code.original_honorarium || code.honorarium || 0) 
+      : (code.is_custom_price ? (code.custom_honorarium || 0) : (code.honorarium || 0));
+    return sum + amount;
   }, 0);
 
   return (
@@ -620,10 +626,12 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                   onSelect={(code) => {
                     if (!selectedCodes.find(c => c.id === code.id)) {
                       // Ajouter avec les prix originaux et personnalisés
+                      const honorarium = code.honorarium || 0;
                       setSelectedCodes([...selectedCodes, {
                         ...code,
-                        original_honorarium: code.honorarium,
-                        custom_honorarium: code.honorarium,
+                        honorarium: honorarium,
+                        original_honorarium: honorarium,
+                        custom_honorarium: honorarium,
                         is_custom_price: false
                       }]);
                     }
