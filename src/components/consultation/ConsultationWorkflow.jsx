@@ -159,7 +159,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
       // 3. Créer la facture si codes INAMI
       if (selectedCodes.length > 0) {
         const totalHonorarium = selectedCodes.reduce((sum, code) => {
-          const amount = code.is_custom_price ? code.custom_honorarium : code.honorarium;
+          const amount = isConventionne ? code.original_honorarium : (code.is_custom_price ? code.custom_honorarium : code.honorarium);
           return sum + (amount || 0);
         }, 0);
         const totalReimbursed = selectedCodes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
@@ -179,7 +179,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
 
         // Créer les lignes de facture
         for (const code of selectedCodes) {
-          const lineAmount = code.is_custom_price ? code.custom_honorarium : code.honorarium;
+          const lineAmount = isConventionne ? code.original_honorarium : (code.is_custom_price ? code.custom_honorarium : code.honorarium);
           await base44.entities.InvoiceLine.create({
             invoice_id: invoice.id,
             nomenclature_code: code.code,
@@ -237,7 +237,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   };
 
   const totalFacturation = selectedCodes.reduce((sum, code) => {
-    const amount = code.is_custom_price ? code.custom_honorarium : code.honorarium;
+    const amount = isConventionne ? code.original_honorarium : (code.is_custom_price ? code.custom_honorarium : code.honorarium);
     return sum + (amount || 0);
   }, 0);
 
@@ -657,7 +657,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                             </div>
                             <p className="font-medium text-base">{code.title_fr}</p>
                             
-                            {isEditing ? (
+                            {isEditing && !isConventionne ? (
                               <div className="mt-3 p-3 bg-white rounded-lg border">
                                 <Label className="text-sm mb-2 block">Modifier l'honoraire (en centimes)</Label>
                                 <div className="flex items-center gap-2">
@@ -704,13 +704,13 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                             ) : (
                               <div className="flex items-center gap-6 mt-2 text-sm">
                                 <span className="text-slate-600">
-                                  Honoraire: <strong className={code.is_custom_price ? 'text-orange-600' : ''}>{formatAmount(displayHonorarium)}</strong>
+                                  Honoraire: <strong className={!isConventionne && code.is_custom_price ? 'text-orange-600' : ''}>{formatAmount(isConventionne ? code.original_honorarium : displayHonorarium)}</strong>
                                 </span>
                                 <span className="text-green-600">
                                   Remboursé: <strong>{formatAmount(code.reimbursed)}</strong>
                                 </span>
                                 <span className="text-orange-600">
-                                  Patient: <strong>{formatAmount(displayPatientShare > 0 ? displayPatientShare : 0)}</strong>
+                                  Patient: <strong>{formatAmount(Math.max(0, (isConventionne ? code.original_honorarium : displayHonorarium) - (code.reimbursed || 0)))}</strong>
                                 </span>
                                 {!isConventionne && (
                                   <Button
