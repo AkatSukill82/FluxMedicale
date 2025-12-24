@@ -87,7 +87,7 @@ const EHEALTH_MODULES = [
       { name: 'eDMG (gestion DMG)', implemented: true },
       { name: 'Assurabilité patient', implemented: true },
       { name: 'Tiers-payant', implemented: true },
-      { name: 'Chapitre IV', implemented: false }
+      { name: 'Chapitre IV', implemented: true }
     ],
     links: [
       { label: 'MyCareNet', url: 'https://mycarenet.be' }
@@ -420,7 +420,7 @@ export default function ModulesEHealthPage() {
               { phase: 2, title: 'Recip-e v4 intégration', desc: 'Envoi prescriptions, RID, dématérialisation', status: 'planned' },
               { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'planned' },
               { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'planned' },
-              { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'future' }
+              { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'completed' }
             ].map(item => (
               <div key={item.phase} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
