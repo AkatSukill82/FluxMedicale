@@ -9,6 +9,7 @@ import { fr } from 'date-fns/locale';
 import VitalSignsChart from '../../clinical/VitalSignsChart';
 import CareGoalsPanel from '../../clinical/CareGoalsPanel';
 import ContextualInspector from '../../clinical/ContextualInspector';
+import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
 
 export default function ConsultationTab({ patient }) {
   const queryClient = useQueryClient();
@@ -36,18 +37,42 @@ export default function ConsultationTab({ patient }) {
     return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
   }
   
-  if (isFormOpen || selectedConsultation) {
-    // Placeholder for ConsultationForm
+  if (selectedConsultation) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{selectedConsultation ? "Détails de la consultation" : "Nouvelle consultation"}</CardTitle>
+          <CardTitle>Détails de la consultation</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground py-8">
-            Le formulaire de consultation sera implémenté ici.
-          </p>
-          <Button onClick={() => {setIsFormOpen(false); setSelectedConsultation(null);}}>Retour</Button>
+        <CardContent className="space-y-4">
+          <div>
+            <p className="text-sm text-muted-foreground">Motif</p>
+            <p className="font-medium">{selectedConsultation.motif || '-'}</p>
+          </div>
+          {selectedConsultation.anamnese && (
+            <div>
+              <p className="text-sm text-muted-foreground">Anamnèse</p>
+              <p>{selectedConsultation.anamnese}</p>
+            </div>
+          )}
+          {selectedConsultation.examen_clinique && (
+            <div>
+              <p className="text-sm text-muted-foreground">Examen clinique</p>
+              <p>{selectedConsultation.examen_clinique}</p>
+            </div>
+          )}
+          {selectedConsultation.diagnostic && (
+            <div>
+              <p className="text-sm text-muted-foreground">Diagnostic</p>
+              <p className="font-medium">{selectedConsultation.diagnostic}</p>
+            </div>
+          )}
+          {selectedConsultation.prescriptions && (
+            <div>
+              <p className="text-sm text-muted-foreground">Prescriptions</p>
+              <p>{selectedConsultation.prescriptions}</p>
+            </div>
+          )}
+          <Button onClick={() => setSelectedConsultation(null)}>Retour</Button>
         </CardContent>
       </Card>
     );
@@ -69,11 +94,18 @@ export default function ConsultationTab({ patient }) {
       <CareGoalsPanel patientId={patient.id} />
 
       <div className="flex justify-end">
-        <Button onClick={() => setIsFormOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button onClick={() => setIsFormOpen(true)} size="lg" className="gap-2">
+          <Plus className="w-5 h-5" />
           Nouvelle Consultation
         </Button>
       </div>
+
+      {/* Modal de consultation */}
+      <ConsultationWorkflow
+        patient={patient}
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+      />
       {consultations.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">Aucune consultation enregistrée pour ce patient.</p>
       ) : (
