@@ -15,6 +15,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { createPageUrl } from '@/utils';
+import { useNavigate } from 'react-router-dom';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import AttestationGenerator from './AttestationGenerator';
 import { useQuery } from '@tanstack/react-query';
@@ -30,6 +31,7 @@ export default function GlobalInvoicesTable({
   onPageSizeChange,
   onRefresh 
 }) {
+  const navigate = useNavigate();
   const [sortColumn, setSortColumn] = useState('invoice_date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -125,8 +127,10 @@ export default function GlobalInvoicesTable({
   const totalPages = Math.ceil(sortedInvoices.length / pageSize);
 
   const handleOpenPatient = (invoice) => {
-    const url = createPageUrl('Patients') + `?patient=${invoice.patient_id}`;
-    window.open(url, '_blank');
+    // Navigate to patient profile, history tab, with invoice date as filter
+    const invoiceDate = invoice.invoice_date;
+    const url = createPageUrl('Patients') + `?patient=${invoice.patient_id}&tab=history&date=${invoiceDate}`;
+    navigate(url);
   };
 
   const handleDownloadPDF = (invoice) => {
