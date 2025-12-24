@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -28,6 +28,9 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import PatientSearchBar from '../components/patients/PatientSearchBar';
+import PatientNotes from '../components/patients/PatientNotes';
+import ConsultationsTimeline from '../components/patients/ConsultationsTimeline';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -35,8 +38,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import ConsultationWorkflow from '../components/consultation/ConsultationWorkflow';
-import GDPRConsent from '../components/security/GDPRConsent';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -59,8 +60,6 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-  const [showConsultationWorkflow, setShowConsultationWorkflow] = useState(false);
-  const [showGDPRConsent, setShowGDPRConsent] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -124,26 +123,51 @@ export default function Patients() {
     enabled: !patientId
   });
 
+  const [filteredPatients, setFilteredPatients] = useState([]);
+  
+  const handleFilteredPatients = useCallback((patients) => {
+    setFilteredPatients(patients);
+  }, []);
+
+  // Initialize filtered patients when allPatients loads
+  useEffect(() => {
+    if (allPatients.length > 0 && filteredPatients.length === 0) {
+      setFilteredPatients(allPatients);
+    }
+  }, [allPatients]);
+
   if (!patientId) {
+    const displayPatients = filteredPatients.length > 0 || allPatients.length === 0 ? filteredPatients : allPatients;
+    
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Tous les patients</h2>
           <Badge variant="outline">{allPatients.length} patients</Badge>
         </div>
+
+        <PatientSearchBar 
+          patients={allPatients} 
+          onFilteredPatients={handleFilteredPatients} 
+        />
         
         {isLoadingList ? (
           <div className="flex items-center justify-center h-64">
             <p className="text-muted-foreground">Chargement...</p>
           </div>
+        ) : displayPatients.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <p className="text-muted-foreground text-lg">Aucun patient trouvé</p>
+            <p className="text-sm text-slate-400 mt-1">Essayez de modifier vos critères de recherche</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {allPatients.map(p => {
+            {displayPatients.map(p => {
               const officialName = p.name?.find(n => n.use === 'official') || {};
               const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
               const birthDate = p.birthDate ? new Date(p.birthDate) : null;
               const age = birthDate && !isNaN(birthDate.getTime()) ? differenceInYears(new Date(), birthDate) : null;
-              const niss = p.identifier?.find(id => id.system.includes('ssin'))?.value || '';
+              const niss = p.identifier?.find(id => id.system?.includes('ssin'))?.value || '';
               
               return (
                 <button
@@ -199,110 +223,74 @@ export default function Patients() {
   const age = patient.birthDate ? differenceInYears(new Date(), new Date(patient.birthDate)) : null;
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
-  const hasConsent = patient?.gdpr_consent?.has_consented;
 
   return (
     <div className="flex h-full bg-slate-50">
-      {/* Header fixe avec actions */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleClose} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Retour
-            </Button>
-            <div className="h-6 w-px bg-slate-200" />
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-                <span className="text-blue-700 font-bold text-sm">
-                  {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
-                </span>
-              </div>
-              <div>
-                <h2 className="font-bold text-base">{fullName}</h2>
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <span>{age} ans • {patient.gender === 'male' ? 'M' : 'F'}</span>
-                  {patient.mutuelle && <span>• {patient.mutuelle}</span>}
-                </div>
-              </div>
-              
-              <button
-                onClick={() => setShowGDPRConsent(true)}
-                className={`ml-4 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-                  hasConsent 
-                    ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                    : 'bg-red-100 text-red-800 hover:bg-red-200'
-                }`}
-                title={hasConsent ? 'Consentement RGPD accordé' : 'Consentement RGPD manquant'}
-              >
-                <span className={`w-2 h-2 rounded-full ${hasConsent ? 'bg-green-600' : 'bg-red-600'}`} />
-                RGPD
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-              <Button 
-                onClick={() => setShowConsultationWorkflow(true)} 
-                size="sm" 
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
-              >
-                <FileText className="w-4 h-4" />
-                Consultation
-              </Button>
-            )}
-            {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
-              <Button onClick={() => setShowQuickBilling(true)} size="sm" variant="outline" className="gap-2">
-                <CreditCard className="w-4 h-4" />
-                Facturer
-              </Button>
-            )}
-            {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-              <Button onClick={() => setShowQuickPrescription(true)} size="sm" variant="outline" className="gap-2">
-                <Pill className="w-4 h-4" />
-                Prescrire
-              </Button>
-            )}
-            {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-              <Button onClick={() => setShowQuickVaccination(true)} size="sm" variant="outline">
-                💉 Vacciner
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Sidebar gauche - Infos patient */}
-      <aside className="w-72 bg-white border-r flex flex-col overflow-hidden mt-[56px]">
+      <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
+        {/* Header patient */}
         <div className="p-4 border-b">
-          <Badge variant="outline" className="font-mono text-xs mb-3">{maskedNISS}</Badge>
+          <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
           
-          {patient.allergies && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-2">
-              <h3 className="font-bold text-red-800 text-xs mb-1 flex items-center gap-1">
-                ⚠️ ALLERGIES
-              </h3>
-              <p className="text-xs text-red-700">{patient.allergies}</p>
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {age && <span>{age} ans</span>}
+              <span>•</span>
+              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
             </div>
-          )}
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
+          </div>
+        </div>
 
-          {patient.antecedents_medicaux && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-              <h3 className="font-bold text-orange-800 text-xs mb-1">Antécédents</h3>
-              <p className="text-xs text-orange-700">{patient.antecedents_medicaux}</p>
-            </div>
+        {/* Actions rapides */}
+        <div className="p-4 border-b space-y-2">
+          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
+            <Button
+              onClick={() => setShowQuickBilling(true)}
+              className="w-full justify-start gap-2"
+              size="sm"
+            >
+              <CreditCard className="w-4 h-4" />
+              Facturer (Alt+F)
+            </Button>
+          )}
+          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+            <>
+              <Button
+                onClick={() => setShowQuickPrescription(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                <Pill className="w-4 h-4" />
+                Prescrire (Alt+P)
+              </Button>
+              <Button
+                onClick={() => setShowQuickVaccination(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                💉 Vacciner (Alt+V)
+              </Button>
+            </>
           )}
         </div>
 
+        {/* Notifications */}
         <div className="p-4 border-b">
           <PatientNotifications patient={patient} />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {/* Infos clés */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase mb-2">Contact</h3>
-            <div className="space-y-1 text-xs">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Contact</h3>
+            <div className="space-y-1 text-sm">
               {patient.telecom?.find(t => t.system === 'phone')?.value && (
                 <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
               )}
@@ -311,15 +299,49 @@ export default function Patients() {
               )}
             </div>
           </div>
+
+          {patient.mutuelle && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <p className="text-sm">{patient.mutuelle}</p>
+            </div>
+          )}
+
+          {patient.allergies && (
+            <div>
+              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
+              <p className="text-sm">{patient.allergies}</p>
+            </div>
+          )}
+
+          {patient.antecedents_medicaux && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Antécédents</h3>
+              <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
+            </div>
+          )}
+
+          {/* Notes générales */}
+          <PatientNotes patient={patient} />
+
+          {/* Timeline consultations */}
+          <ConsultationsTimeline 
+            patient={patient} 
+            maxItems={5}
+            onSelectConsultation={(consultation) => {
+              setActiveTab('history');
+            }}
+          />
         </div>
       </aside>
 
       {/* Zone principale */}
-      <div className="flex-1 flex flex-col overflow-hidden mt-[56px]">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Barre de navigation tabs */}
         <div className="bg-white border-b">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6">
-              <TabsList className="h-11 bg-transparent">
+              <TabsList className="h-12 bg-transparent">
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
@@ -418,23 +440,6 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
-
-      {showConsultationWorkflow && (
-        <ConsultationWorkflow
-          patient={patient}
-          isOpen={showConsultationWorkflow}
-          onClose={() => setShowConsultationWorkflow(false)}
-        />
-      )}
-
-      <GDPRConsent
-        patient={patient}
-        isOpen={showGDPRConsent}
-        onClose={() => setShowGDPRConsent(false)}
-        onConsentGranted={() => {
-          setShowGDPRConsent(false);
-        }}
-      />
     </div>
   );
 }
