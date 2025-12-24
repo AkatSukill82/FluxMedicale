@@ -14,8 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
 import InteractionChecker from '../medications/InteractionChecker';
+import PrescriptionHistory from './PrescriptionHistory';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Database } from 'lucide-react';
+import { Sparkles, Database, History } from 'lucide-react';
+import { recipE } from '@/functions/recipE';
 
 // Templates de prescriptions courantes
 const PRESCRIPTION_TEMPLATES = [
@@ -56,6 +58,11 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
   const [customMedications, setCustomMedications] = useState([]);
   const [activeTab, setActiveTab] = useState('templates');
 
+  // Récupérer NISS du patient
+  const getNISS = (patient) => {
+    return patient?.identifier?.find(id => id.system?.includes('ssin'))?.value || '';
+  };
+
   const prescribeMutation = useMutation({
     mutationFn: async (data) => {
       const currentUser = await base44.auth.me();
@@ -63,29 +70,39 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
       let medicamentsData;
       if (data.isCustom) {
         medicamentsData = data.medications.map(med => ({
-          nom_produit: med.product_name || med.name,
-          posologie: med.posology,
-          duree_traitement: med.duration
+          product_name: med.product_name || med.name,
+          cnk: med.cnk,
+          substance_name: med.substance_name,
+          posology: med.posology,
+          duration: med.duration,
+          quantity: med.quantity || 1,
+          instructions: med.instructions
         }));
       } else {
         medicamentsData = data.medications.map(med => ({
-          nom_produit: med.name,
-          posologie: med.posology,
-          duree_traitement: med.duration
+          product_name: med.name,
+          posology: med.posology,
+          duration: med.duration,
+          quantity: 1
         }));
       }
 
-      return base44.entities.Prescription.create({
+      // Envoyer via Recip-e
+      const response = await recipE({
+        action: 'create_prescription',
         patient_id: patient.id,
-        medecin_email: currentUser.email,
-        date_prescription: new Date().toISOString(),
-        medicaments: medicamentsData,
-        statut_recip_e: 'Envoyé'
+        patient_niss: getNISS(patient),
+        medications: medicamentsData,
+        prescriber_nihii: currentUser.numero_inami,
+        validity_days: 3
       });
+
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
-      handleSuccess('Prescription envoyée via Recip-e');
+      queryClient.invalidateQueries({ queryKey: ['prescription-history'] });
+      handleSuccess(`Prescription envoyée via Recip-e (RID: ${data.rid})`);
       setCustomMedications([]);
       onClose();
     },
@@ -135,7 +152,7 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="sam" className="gap-1">
               <Database className="w-4 h-4" />
@@ -143,7 +160,11 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
             </TabsTrigger>
             <TabsTrigger value="custom">
               <Search className="w-4 h-4 mr-2" />
-              Recherche locale
+              Recherche
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-1">
+              <History className="w-4 h-4" />
+              Historique
             </TabsTrigger>
           </TabsList>
 
@@ -381,6 +402,10 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
                 <p>Recherchez et ajoutez des médicaments</p>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="history" className="space-y-4">
+            <PrescriptionHistory patient={patient} />
           </TabsContent>
         </Tabs>
       </DialogContent>
