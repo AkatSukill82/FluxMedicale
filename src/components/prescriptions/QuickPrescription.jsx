@@ -9,10 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Pill, Thermometer, Droplets, Wind, Loader2, Plus, X, Search } from 'lucide-react';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import MedicationSearch from '../medications/MedicationSearch';
+import SAMv2Search from '../medications/SAMv2Search';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
 import InteractionChecker from '../medications/InteractionChecker';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Database } from 'lucide-react';
 
 // Templates de prescriptions courantes
 const PRESCRIPTION_TEMPLATES = [
@@ -132,11 +135,15 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="templates">Templates standards</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="sam" className="gap-1">
+              <Database className="w-4 h-4" />
+              SAM v2
+            </TabsTrigger>
             <TabsTrigger value="custom">
               <Search className="w-4 h-4 mr-2" />
-              Recherche médicaments
+              Recherche locale
             </TabsTrigger>
           </TabsList>
 
@@ -191,6 +198,87 @@ export default function QuickPrescription({ patient, isOpen, onClose }) {
                     <>
                       <Pill className="w-4 h-4 mr-2" />
                       Prescrire via Recip-e
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="sam" className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Badge className="bg-purple-600 gap-1">
+                <Sparkles className="w-3 h-3" />
+                Source Authentique des Médicaments
+              </Badge>
+              <span className="text-xs text-slate-500">Données officielles AFMPS, CBIP, INAMI</span>
+            </div>
+            
+            <SAMv2Search
+              onSelect={handleAddMedication}
+              selectedMedications={customMedications}
+              patientStatus={patient?.assurabilite?.special_rights?.includes('BIM') ? 'bim' : 
+                            patient?.assurabilite?.special_rights?.includes('OMNIO') ? 'omnio' : 'normal'}
+            />
+
+            {customMedications.length > 0 && (
+              <div className="space-y-4 pt-4 border-t">
+                <InteractionChecker
+                  selectedMedications={customMedications}
+                  patientId={patient.id}
+                />
+
+                <h3 className="font-semibold text-sm">Médicaments sélectionnés ({customMedications.length})</h3>
+                {customMedications.map((med, index) => (
+                  <div key={index} className="space-y-3">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-semibold">{med.product_name}</p>
+                            <p className="text-xs text-slate-600">
+                              {med.substance_name} {med.strength && `• ${med.strength}${med.unit}`}
+                            </p>
+                            {med.cnk && <Badge variant="outline" className="text-xs mt-1">CNK: {med.cnk}</Badge>}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveMedication(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        <DosageScheduler
+                          medication={med}
+                          onChange={(data) => {
+                            handleUpdateMedication(index, 'posology', data.frequency);
+                            handleUpdateMedication(index, 'duration', data.duration);
+                            handleUpdateMedication(index, 'instructions', data.instructions);
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={handlePrescribeCustom}
+                  disabled={prescribeMutation.isPending || customMedications.some(m => !m.posology || !m.duration)}
+                >
+                  {prescribeMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Envoi en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Pill className="w-4 h-4 mr-2" />
+                      Prescrire {customMedications.length} médicament(s) via Recip-e
                     </>
                   )}
                 </Button>
