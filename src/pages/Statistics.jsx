@@ -16,11 +16,12 @@ import UnpaidInvoicesReport from '../components/statistics/UnpaidInvoicesReport'
 import FinancialReports from '../components/statistics/FinancialReports';
 import BudgetForecasting from '../components/statistics/BudgetForecasting';
 import InteractiveKPIDashboard from '../components/statistics/InteractiveKPIDashboard';
+import DoctorAnalytics from '../components/statistics/DoctorAnalytics';
 import { exportToPDF, exportToCSV } from '../components/statistics/ExportUtils';
 
 export default function StatisticsPage() {
   const [period, setPeriod] = useState('month');
-  const [selectedTab, setSelectedTab] = useState('kpi');
+  const [selectedTab, setSelectedTab] = useState('doctor');
 
   const { data: analytics, isLoading } = useQuery({
     queryKey: ['analytics', period],
@@ -137,7 +138,8 @@ export default function StatisticsPage() {
       </div>
 
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="doctor">📊 Mon activité INAMI</TabsTrigger>
           <TabsTrigger value="kpi">Tableau de bord</TabsTrigger>
           <TabsTrigger value="interactive">KPI Interactifs</TabsTrigger>
           <TabsTrigger value="reports">Rapports financiers</TabsTrigger>
@@ -146,6 +148,10 @@ export default function StatisticsPage() {
           <TabsTrigger value="acts">Actes fréquents</TabsTrigger>
           <TabsTrigger value="unpaid">Factures impayées</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="doctor">
+          <DoctorAnalytics />
+        </TabsContent>
 
         <TabsContent value="kpi">
           <KPIDashboard analytics={analytics} isLoading={isLoading} />
