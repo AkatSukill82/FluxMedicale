@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { FileText, Pill, Activity, Calendar, ChevronRight } from 'lucide-react';
-import { format } from 'date-fns';
+import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X } from 'lucide-react';
+import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLocation } from 'react-router-dom';
 
 export default function MedicalHistory({ patient }) {
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
+  const filterDate = urlParams.get('date');
+  
+  const [highlightDate, setHighlightDate] = useState(filterDate);
+  const highlightRef = useRef(null);
   const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
     queryKey: ['consultations', patient.id],
     queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation', 100)
@@ -32,6 +39,31 @@ export default function MedicalHistory({ patient }) {
     }
   });
 
+  const { data: invoices = [] } = useQuery({
+    queryKey: ['patientInvoices', patient.id],
+    queryFn: () => base44.entities.Invoice.filter({ patient_id: patient.id }, '-invoice_date', 100)
+  });
+
+  // Scroll to highlighted item when date filter is set
+  useEffect(() => {
+    if (highlightDate && highlightRef.current) {
+      setTimeout(() => {
+        highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }, [highlightDate, consultations, invoices]);
+
+  const isHighlighted = (itemDate) => {
+    if (!highlightDate || !itemDate) return false;
+    try {
+      const filterDateObj = parseISO(highlightDate);
+      const itemDateObj = typeof itemDate === 'string' ? parseISO(itemDate) : itemDate;
+      return isSameDay(filterDateObj, itemDateObj);
+    } catch {
+      return false;
+    }
+  };
+
   if (isLoadingConsultations) {
     return (
       <div className="space-y-3">
@@ -42,8 +74,27 @@ export default function MedicalHistory({ patient }) {
 
   return (
     <div className="space-y-4">
+      {/* Date filter indicator */}
+      {highlightDate && (
+        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <Filter className="w-4 h-4 text-blue-600" />
+          <span className="text-sm text-blue-800">
+            Affichage des éléments du <strong>{format(parseISO(highlightDate), 'dd MMMM yyyy', { locale: fr })}</strong>
+          </span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="ml-auto h-6 px-2"
+            onClick={() => setHighlightDate(null)}
+          >
+            <X className="w-3 h-3 mr-1" />
+            Effacer filtre
+          </Button>
+        </div>
+      )}
+
       <Tabs defaultValue="consultations">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="consultations" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
             Consultations ({consultations.length})
@@ -51,6 +102,10 @@ export default function MedicalHistory({ patient }) {
           <TabsTrigger value="prescriptions" className="flex items-center gap-2">
             <Pill className="w-4 h-4" />
             Ordonnances ({prescriptions.length})
+          </TabsTrigger>
+          <TabsTrigger value="invoices" className="flex items-center gap-2">
+            <CreditCard className="w-4 h-4" />
+            Factures ({invoices.length})
           </TabsTrigger>
           <TabsTrigger value="vitals" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
@@ -67,8 +122,13 @@ export default function MedicalHistory({ patient }) {
           ) : (
             consultations.map(consult => {
               const consultDate = new Date(consult.date_consultation);
+              const highlighted = isHighlighted(consult.date_consultation);
               return (
-                <Card key={consult.id} className="hover:border-blue-300 transition-colors">
+                <Card 
+                  key={consult.id} 
+                  ref={highlighted ? highlightRef : null}
+                  className={`transition-colors ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-blue-300'}`}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -80,6 +140,7 @@ export default function MedicalHistory({ patient }) {
                           <Badge variant="outline" className="text-xs">
                             Dr. {consult.medecin_email?.split('@')[0]}
                           </Badge>
+                          {highlighted && <Badge className="bg-blue-600">Aujourd'hui</Badge>}
                         </div>
                         
                         {consult.motif && (
@@ -147,6 +208,79 @@ export default function MedicalHistory({ patient }) {
                 </CardContent>
               </Card>
             ))
+          )}
+        </TabsContent>
+
+        <TabsContent value="invoices" className="space-y-3 mt-4">
+          {invoices.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>Aucune facture enregistrée</p>
+            </div>
+          ) : (
+            invoices.map(invoice => {
+              const highlighted = isHighlighted(invoice.invoice_date);
+              const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date) : null;
+              
+              const getStatusBadge = (status) => {
+                const styles = {
+                  DRAFT: 'bg-slate-100 text-slate-800',
+                  NOT_SENT: 'bg-yellow-100 text-yellow-800',
+                  SENT: 'bg-blue-100 text-blue-800',
+                  ACCEPTED: 'bg-green-100 text-green-800',
+                  REJECTED: 'bg-red-100 text-red-800',
+                  PAID: 'bg-purple-100 text-purple-800'
+                };
+                const labels = {
+                  DRAFT: 'Brouillon',
+                  NOT_SENT: 'Pas envoyé',
+                  SENT: 'Envoyé',
+                  ACCEPTED: 'Acceptée',
+                  REJECTED: 'Refusée',
+                  PAID: 'Payée'
+                };
+                return <Badge className={styles[status] || styles.DRAFT}>{labels[status] || status}</Badge>;
+              };
+              
+              return (
+                <Card 
+                  key={invoice.id}
+                  ref={highlighted ? highlightRef : null}
+                  className={`transition-colors ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-green-300'}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CreditCard className="w-4 h-4 text-green-600" />
+                          <span className="font-medium">
+                            {invoiceDate && !isNaN(invoiceDate.getTime()) && format(invoiceDate, 'dd MMMM yyyy', { locale: fr })}
+                          </span>
+                          {getStatusBadge(invoice.status)}
+                          <Badge variant="outline" className="text-xs">{invoice.type}</Badge>
+                          {highlighted && <Badge className="bg-blue-600">Ce jour</Badge>}
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-slate-600">
+                            <strong>Montant:</strong> {((invoice.total_amount || 0) / 100).toFixed(2)}€
+                          </span>
+                          {invoice.payment_method && (
+                            <span className="text-slate-500">
+                              Paiement: {invoice.payment_method === 'CARD' ? 'Carte' : invoice.payment_method === 'CASH' ? 'Espèces' : invoice.payment_method}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="text-xs text-slate-400 mt-2 font-mono">
+                          ID: {invoice.id.substring(0, 12)}...
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </TabsContent>
 
