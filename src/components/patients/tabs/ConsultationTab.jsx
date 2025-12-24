@@ -3,12 +3,15 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Clock } from 'lucide-react';
+import { Loader2, Clock, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import CareGoalsPanel from '../../clinical/CareGoalsPanel';
+import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
 
 export default function ConsultationTab({ patient }) {
   const [selectedConsultation, setSelectedConsultation] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { data: consultations = [], isLoading } = useQuery({
     queryKey: ['consultations', patient.id],
@@ -62,7 +65,26 @@ export default function ConsultationTab({ patient }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Objectifs de Soins */}
+      <CareGoalsPanel patientId={patient.id} />
+
+      {/* Bouton Nouvelle Consultation */}
+      <div className="flex justify-end">
+        <Button onClick={() => setIsFormOpen(true)} size="lg" className="gap-2">
+          <Plus className="w-5 h-5" />
+          Nouvelle Consultation
+        </Button>
+      </div>
+
+      {/* Modal de consultation */}
+      <ConsultationWorkflow
+        patient={patient}
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+      />
+
+      {/* Liste des consultations */}
       {consultations.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">Aucune consultation enregistrée pour ce patient.</p>
       ) : (

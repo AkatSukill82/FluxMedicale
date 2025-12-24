@@ -197,31 +197,25 @@ export default function Patients() {
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
   return (
-    <div className="h-full bg-slate-50">
-
-
-      {/* Zone principale */}
-      <div className="flex flex-col overflow-hidden h-full">
-        {/* Header patient simplifié */}
-        <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={handleClose} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Retour
-            </Button>
-            <div>
-              <h2 className="text-lg font-bold">{fullName}</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {age && <span>{age} ans</span>}
-                <span>•</span>
-                <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
-                <span>•</span>
-                <span className="font-mono text-xs">{maskedNISS}</span>
-              </div>
-            </div>
+    <div className="h-full bg-slate-50 flex flex-col">
+      {/* Header patient */}
+      <div className="bg-white border-b px-6 py-3 flex items-center gap-4">
+        <Button variant="ghost" onClick={handleClose} className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Retour
+        </Button>
+        <div>
+          <h2 className="text-lg font-bold">{fullName}</h2>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {age && <span>{age} ans</span>}
+            <span>•</span>
+            <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
           </div>
         </div>
+      </div>
 
+      {/* Zone principale */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Barre de navigation tabs */}
         <div className="bg-white border-b">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
