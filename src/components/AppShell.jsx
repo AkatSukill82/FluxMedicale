@@ -32,6 +32,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Dot,
+  Database,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -81,6 +82,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Médicaments SAM', path: 'ReferentialImport', icon: Upload },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Statistiques', path: 'Statistics', icon: Activity },
+    { title: 'Modules eHealth', path: 'ModulesEHealth', icon: Database },
   ];
   
   const adminNavItems = [
