@@ -31,6 +31,8 @@ import InteractionChecker from '../medications/InteractionChecker';
 import TemplateSelector from '../medications/TemplateSelector';
 import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
+import SAMv2Search from '../medications/SAMv2Search';
+import { recipE } from '@/functions/recipE';
 
 // Motifs de consultation fréquents
 const COMMON_REASONS = [
@@ -82,43 +84,37 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
     }
   }, [currentUser]);
 
-  // Charger les médicaments
-  const { data: allDrugs = [] } = useQuery({
-    queryKey: ['drugs'],
-    queryFn: () => base44.entities.Drug.list('-created_date', 10000)
-  });
-
-  const [drugSearch, setDrugSearch] = useState('');
-  const filteredDrugs = allDrugs.filter(drug => {
-    if (!drugSearch || drugSearch.length < 2) return false;
-    const term = drugSearch.toLowerCase();
-    return (
-      drug.product_name?.toLowerCase().includes(term) ||
-      drug.substance_name?.toLowerCase().includes(term) ||
-      drug.atc_code?.toLowerCase().includes(term)
-    );
-  }).slice(0, 15);
-
   const handleAddMedication = (drug) => {
-    if (!selectedMedications.find(m => m.id === drug.id)) {
+    // Vérifier si le médicament n'est pas déjà ajouté (par CNK ou nom)
+    const alreadyExists = selectedMedications.find(m => 
+      (m.cnk && drug.cnk && m.cnk === drug.cnk) || 
+      m.product_name === drug.product_name
+    );
+    
+    if (!alreadyExists) {
       setSelectedMedications([...selectedMedications, {
         ...drug,
-        dosage_prescribed: `${drug.strength}${drug.unit}`,
+        id: drug.cnk || `temp-${Date.now()}`,
+        dosage_prescribed: drug.strength ? `${drug.strength}${drug.unit || ''}` : '',
         frequency: '1x/jour',
         duration: '7 jours'
       }]);
     }
-    setDrugSearch('');
   };
 
-  const handleRemoveMedication = (drugId) => {
-    setSelectedMedications(selectedMedications.filter(m => m.id !== drugId));
+  const handleRemoveMedication = (index) => {
+    setSelectedMedications(selectedMedications.filter((_, i) => i !== index));
   };
 
-  const handleMedicationChange = (drugId, field, value) => {
-    setSelectedMedications(selectedMedications.map(m => 
-      m.id === drugId ? { ...m, [field]: value } : m
+  const handleMedicationChange = (index, field, value) => {
+    setSelectedMedications(selectedMedications.map((m, i) => 
+      i === index ? { ...m, [field]: value } : m
     ));
+  };
+
+  // Récupérer NISS du patient
+  const getNISS = (patient) => {
+    return patient?.identifier?.find(id => id.system?.includes('ssin'))?.value || '';
   };
 
   const saveMutation = useMutation({
@@ -139,20 +135,26 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         statut: 'Completee'
       });
 
-      // 2. Créer la prescription si médicaments
+      // 2. Créer la prescription si médicaments (via Recip-e)
       if (selectedMedications.length > 0) {
-        const medicaments = selectedMedications.map(m => ({
-          nom_produit: m.product_name,
-          posologie: `${m.dosage_prescribed} - ${m.frequency}`,
-          duree_traitement: m.duration
+        const medicamentsData = selectedMedications.map(m => ({
+          product_name: m.product_name,
+          cnk: m.cnk,
+          substance_name: m.substance_name,
+          posology: `${m.dosage_prescribed} - ${m.frequency}`,
+          duration: m.duration,
+          quantity: 1,
+          instructions: m.instructions || ''
         }));
 
-        await base44.entities.Prescription.create({
+        // Envoyer via Recip-e
+        await recipE({
+          action: 'create_prescription',
           patient_id: patient.id,
-          medecin_email: currentUser.email,
-          date_prescription: new Date().toISOString(),
-          medicaments: medicaments,
-          statut_recip_e: 'Envoyé'
+          patient_niss: getNISS(patient),
+          medications: medicamentsData,
+          prescriber_nihii: currentUser.numero_inami,
+          validity_days: 3
         });
       }
 
@@ -388,75 +390,25 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                   onClick={() => setShowTemplates(false)}
                   className="flex-1"
                 >
-                  Recherche médicament
+                  🔍 Recherche SAM v2
                 </Button>
                 <Button
                   variant={showTemplates ? "default" : "outline"}
                   onClick={() => setShowTemplates(true)}
                   className="flex-1"
                 >
-                  Modèles & Schémas
+                  📋 Modèles & Schémas
                 </Button>
               </div>
 
               {!showTemplates ? (
                 <div>
-                  <Label className="text-lg font-semibold mb-3 block">Rechercher un médicament</Label>
-                  <Input
-                    value={drugSearch}
-                    onChange={(e) => setDrugSearch(e.target.value)}
-                    placeholder="Nom du médicament ou substance active..."
-                    className="text-base h-12"
-                    autoFocus
+                  <Label className="text-lg font-semibold mb-3 block">Rechercher un médicament (SAM v2)</Label>
+                  <SAMv2Search
+                    onSelect={handleAddMedication}
+                    selectedMedications={selectedMedications}
+                    patient={patient}
                   />
-                  
-                  {allDrugs.length === 0 && (
-                    <Card className="mt-4 p-6 bg-orange-50 border-orange-200">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
-                        <div>
-                          <p className="font-semibold text-orange-900 mb-2">Base de données vide</p>
-                          <p className="text-sm text-orange-700">
-                            La base de données des médicaments est vide. Importez des médicaments depuis le référentiel SAM/APB.
-                          </p>
-                        </div>
-                      </div>
-                    </Card>
-                  )}
-                  
-                  {drugSearch.length > 0 && drugSearch.length < 2 && (
-                    <Card className="mt-2 p-4 text-center text-slate-500">
-                      <p className="text-sm">Tapez au moins 2 caractères pour rechercher</p>
-                    </Card>
-                  )}
-                  
-                  {drugSearch.length >= 2 && filteredDrugs.length === 0 && allDrugs.length > 0 && (
-                    <Card className="mt-2 p-4 text-center text-slate-500">
-                      <p className="text-sm">Aucun médicament trouvé pour "{drugSearch}"</p>
-                    </Card>
-                  )}
-                  
-                  {drugSearch.length >= 2 && filteredDrugs.length > 0 && (
-                    <Card className="mt-2 p-2 max-h-80 overflow-y-auto shadow-lg border-2 border-blue-200">
-                      {filteredDrugs.map(drug => (
-                        <button
-                          key={drug.id}
-                          onClick={() => handleAddMedication(drug)}
-                          className="w-full p-3 hover:bg-blue-50 rounded-lg text-left transition-colors border border-transparent hover:border-blue-300"
-                        >
-                          <div className="font-semibold text-base">{drug.product_name}</div>
-                          <div className="text-sm text-slate-600">
-                            {drug.substance_name && `${drug.substance_name} • `}
-                            {drug.form && `${drug.form} • `}
-                            {drug.strength && drug.unit && `${drug.strength}${drug.unit}`}
-                          </div>
-                          {drug.cnk && (
-                            <Badge variant="outline" className="text-xs mt-1">CNK: {drug.cnk}</Badge>
-                          )}
-                        </button>
-                      ))}
-                    </Card>
-                  )}
                 </div>
               ) : (
                 <TemplateSelector
@@ -506,8 +458,8 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
               {selectedMedications.length > 0 && (
                 <div className="space-y-3">
                   <Label className="text-lg font-semibold block">Médicaments prescrits ({selectedMedications.length})</Label>
-                  {selectedMedications.map(med => (
-                    <div key={med.id} className="space-y-3">
+                  {selectedMedications.map((med, index) => (
+                    <div key={med.cnk || index} className="space-y-3">
                       <Card className="p-4">
                         <div className="flex items-start gap-4">
                           <div className="flex-1 space-y-3">
@@ -517,11 +469,14 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                                 {med.substance_name && (
                                   <p className="text-sm text-slate-600">{med.substance_name}</p>
                                 )}
+                                {med.cnk && (
+                                  <Badge variant="outline" className="text-xs mt-1">CNK: {med.cnk}</Badge>
+                                )}
                               </div>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleRemoveMedication(med.id)}
+                                onClick={() => handleRemoveMedication(index)}
                                 className="text-red-500 hover:bg-red-50"
                               >
                                 <X className="w-5 h-5" />
@@ -531,9 +486,9 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                             <DosageScheduler
                               medication={med}
                               onChange={(data) => {
-                                handleMedicationChange(med.id, 'frequency', data.frequency);
-                                handleMedicationChange(med.id, 'duration', data.duration);
-                                handleMedicationChange(med.id, 'instructions', data.instructions);
+                                handleMedicationChange(index, 'frequency', data.frequency);
+                                handleMedicationChange(index, 'duration', data.duration);
+                                handleMedicationChange(index, 'instructions', data.instructions);
                               }}
                             />
                           </div>
@@ -543,9 +498,10 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                       <GenericAlternatives
                         medication={med}
                         onSelectAlternative={(alt) => {
-                          const updatedMeds = selectedMedications.map(m => 
-                            m.id === med.id ? {
+                          const updatedMeds = selectedMedications.map((m, i) => 
+                            i === index ? {
                               ...alt,
+                              id: alt.cnk || `temp-${Date.now()}`,
                               dosage_prescribed: med.dosage_prescribed,
                               frequency: med.frequency,
                               duration: med.duration,
