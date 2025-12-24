@@ -30,7 +30,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
-import ReAuthDialog from '../components/auth/ReAuthDialog';
+
 import { validateIBAN, validateEmail, validatePhone } from '../components/utils/validators';
 
 export default function ProfilMedecinPage() {
@@ -39,7 +39,7 @@ export default function ProfilMedecinPage() {
   const [originalData, setOriginalData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [showReAuth, setShowReAuth] = useState(false);
+
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -168,18 +168,12 @@ export default function ProfilMedecinPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       toast.error('Veuillez corriger les erreurs');
       return;
     }
 
-    // Déclencher re-authentification
-    setShowReAuth(true);
-  };
-
-  const handleReAuthSuccess = async () => {
-    setShowReAuth(false);
     setIsSaving(true);
 
     try {
@@ -245,7 +239,28 @@ export default function ProfilMedecinPage() {
 
     } catch (error) {
       console.error('Erreur sauvegarde profil:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      
+      // Message d'erreur détaillé en français
+      let errorMessage = 'Erreur lors de la sauvegarde';
+      if (error?.message) {
+        if (error.message.includes('IBAN')) {
+          errorMessage = 'Le format de l\'IBAN est invalide';
+        } else if (error.message.includes('phone') || error.message.includes('telephone')) {
+          errorMessage = 'Le numéro de téléphone est invalide';
+        } else if (error.message.includes('email')) {
+          errorMessage = 'L\'adresse email est invalide';
+        } else if (error.message.includes('required') || error.message.includes('obligatoire')) {
+          errorMessage = 'Certains champs obligatoires ne sont pas remplis';
+        } else if (error.message.includes('network') || error.message.includes('Network')) {
+          errorMessage = 'Problème de connexion internet. Vérifiez votre connexion et réessayez.';
+        } else if (error.message.includes('unauthorized') || error.message.includes('401')) {
+          errorMessage = 'Votre session a expiré. Veuillez vous reconnecter.';
+        } else {
+          errorMessage = `Erreur: ${error.message}`;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -977,15 +992,7 @@ export default function ProfilMedecinPage() {
         </div>
       </div>
 
-      {/* Dialogue re-auth */}
-      {showReAuth && (
-        <ReAuthDialog
-          isOpen={showReAuth}
-          onSuccess={handleReAuthSuccess}
-          onCancel={() => setShowReAuth(false)}
-          user={currentUser}
-        />
-      )}
+
     </div>
   );
 }
