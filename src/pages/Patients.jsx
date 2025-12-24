@@ -28,6 +28,7 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import LabResultsPanel from '../components/labs/LabResultsPanel';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -43,7 +44,6 @@ export default function Patients() {
   
   const urlParams = new URLSearchParams(location.search);
   const patientId = urlParams.get('patient');
-  const tabParam = urlParams.get('tab');
   
   const [currentUser, setCurrentUser] = React.useState(null);
   const permissions = usePermissions(currentUser);
@@ -52,14 +52,7 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState(tabParam || 'consultation');
-  
-  // Update tab when URL param changes
-  useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam);
-    }
-  }, [tabParam]);
+  const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
@@ -322,11 +315,16 @@ export default function Patients() {
                   📁 Documents
                 </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="secure-files" className="gap-2">
-                    🔒 Fichiers sécurisés
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="billing" className="gap-2">
+                    <TabsTrigger value="secure-files" className="gap-2">
+                      🔒 Fichiers sécurisés
+                    </TabsTrigger>
+                  )}
+                  {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                    <TabsTrigger value="lab-results" className="gap-2">
+                      🧪 Laboratoire
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
                 <TabsTrigger value="admin" className="gap-2">
@@ -355,6 +353,11 @@ export default function Patients() {
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="secure-files" className="m-0">
                   <SecureDocuments patient={patient} />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="lab-results" className="m-0">
+                  <LabResultsPanel patient={patient} />
                 </TabsContent>
               )}
               <TabsContent value="billing" className="m-0">
