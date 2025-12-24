@@ -34,16 +34,16 @@ const EHEALTH_MODULES = [
     description: 'Base de données de référence des médicaments belges (AFMPS, CBIP, INAMI, SPF Économie)',
     category: 'prescription',
     mandatory: true,
-    status: 'partial', // none, partial, implemented
+    status: 'implemented',
     icon: Pill,
     color: 'purple',
     features: [
       { name: 'Recherche médicaments', implemented: true },
       { name: 'Données CBIP (RCM)', implemented: true },
-      { name: 'Prix et remboursement INAMI', implemented: false },
+      { name: 'Prix et remboursement INAMI', implemented: true },
       { name: 'Interactions médicamenteuses', implemented: true },
       { name: 'Génériques/biosimilaires', implemented: true },
-      { name: 'Sync temps réel SAM API', implemented: false }
+      { name: 'Sync temps réel SAM API', implemented: true }
     ],
     links: [
       { label: 'SAM Portal', url: 'https://www.samportal.be' },
@@ -416,7 +416,7 @@ export default function ModulesEHealthPage() {
         <CardContent>
           <div className="space-y-4">
             {[
-              { phase: 1, title: 'SAM v2 API complète', desc: 'Sync temps réel, prix INAMI, disponibilité', status: 'in_progress' },
+              { phase: 1, title: 'SAM v2 API complète', desc: 'Sync temps réel, prix INAMI, disponibilité', status: 'completed' },
               { phase: 2, title: 'Recip-e v4 intégration', desc: 'Envoi prescriptions, RID, dématérialisation', status: 'planned' },
               { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'planned' },
               { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'planned' },

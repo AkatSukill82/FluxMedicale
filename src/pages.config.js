@@ -9,6 +9,7 @@ import Health from './pages/Health';
 import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
+import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import ProfilMedecin from './pages/ProfilMedecin';
@@ -20,7 +21,6 @@ import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
-import ModulesEHealth from './pages/ModulesEHealth';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +36,7 @@ export const PAGES = {
     "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
+    "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "ProfilMedecin": ProfilMedecin,
@@ -47,7 +48,6 @@ export const PAGES = {
     "Templates": Templates,
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
-    "ModulesEHealth": ModulesEHealth,
 }
 
 export const pagesConfig = {
