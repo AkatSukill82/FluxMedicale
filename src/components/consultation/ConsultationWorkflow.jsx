@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Stethoscope, 
   FileText, 
@@ -20,7 +21,8 @@ import {
   Clock,
   AlertCircle,
   Save,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
@@ -64,6 +66,21 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [isConventionne, setIsConventionne] = useState(true);
+  const [editingCodeId, setEditingCodeId] = useState(null);
+
+  // Charger les infos du médecin pour savoir s'il est conventionné
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  // Mettre à jour le statut conventionné basé sur le profil du médecin
+  useEffect(() => {
+    if (currentUser?.is_conventionne === false || currentUser?.conventionnement === 'non_conventionne') {
+      setIsConventionne(false);
+    }
+  }, [currentUser]);
 
   // Charger les médicaments
   const { data: allDrugs = [] } = useQuery({
@@ -141,7 +158,10 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
 
       // 3. Créer la facture si codes INAMI
       if (selectedCodes.length > 0) {
-        const totalHonorarium = selectedCodes.reduce((sum, code) => sum + (code.honorarium || 0), 0);
+        const totalHonorarium = selectedCodes.reduce((sum, code) => {
+          const amount = code.is_custom_price ? code.custom_honorarium : code.honorarium;
+          return sum + (amount || 0);
+        }, 0);
         const totalReimbursed = selectedCodes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
         const totalPatientShare = totalHonorarium - totalReimbursed;
 
@@ -159,14 +179,16 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
 
         // Créer les lignes de facture
         for (const code of selectedCodes) {
+          const lineAmount = code.is_custom_price ? code.custom_honorarium : code.honorarium;
           await base44.entities.InvoiceLine.create({
             invoice_id: invoice.id,
             nomenclature_code: code.code,
             nomenclature_label: code.title_fr,
             quantity: 1,
-            unit_price: code.honorarium,
-            amount: code.honorarium,
-            date_prestation: new Date().toISOString().split('T')[0]
+            unit_price: lineAmount,
+            amount: lineAmount,
+            date_prestation: new Date().toISOString().split('T')[0],
+            is_convention_price: isConventionne
           });
         }
       }
@@ -214,7 +236,10 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
     return `${(cents / 100).toFixed(2).replace('.', ',')} €`;
   };
 
-  const totalFacturation = selectedCodes.reduce((sum, code) => sum + (code.honorarium || 0), 0);
+  const totalFacturation = selectedCodes.reduce((sum, code) => {
+    const amount = code.is_custom_price ? code.custom_honorarium : code.honorarium;
+    return sum + (amount || 0);
+  }, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -545,12 +570,62 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 4: Facturation */}
           {currentStep === 3 && (
             <div className="space-y-6 max-w-4xl mx-auto">
+              {/* Choix tarif conventionné/non-conventionné */}
+              <Card className="p-4 bg-slate-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="conventionne"
+                        checked={isConventionne}
+                        onCheckedChange={(checked) => setIsConventionne(checked)}
+                      />
+                      <label
+                        htmlFor="conventionne"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Prix conventionné
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="non-conventionne"
+                        checked={!isConventionne}
+                        onCheckedChange={(checked) => setIsConventionne(!checked)}
+                      />
+                      <label
+                        htmlFor="non-conventionne"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        Prix personnel (non-conventionné)
+                      </label>
+                    </div>
+                  </div>
+                  {!isConventionne && (
+                    <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+                      Tarif libre
+                    </Badge>
+                  )}
+                </div>
+                {currentUser?.is_conventionne === false && (
+                  <p className="text-xs text-slate-500 mt-2">
+                    ⚠️ Votre profil indique que vous êtes non-conventionné. Le tarif personnel est activé par défaut.
+                  </p>
+                )}
+              </Card>
+
               <div>
                 <Label className="text-lg font-semibold mb-3 block">Codes INAMI</Label>
                 <NomenSearch 
                   onSelect={(code) => {
                     if (!selectedCodes.find(c => c.id === code.id)) {
-                      setSelectedCodes([...selectedCodes, code]);
+                      // Ajouter avec les prix originaux et personnalisés
+                      setSelectedCodes([...selectedCodes, {
+                        ...code,
+                        original_honorarium: code.honorarium,
+                        custom_honorarium: code.honorarium,
+                        is_custom_price: false
+                      }]);
                     }
                   }} 
                   selectedCodes={selectedCodes}
@@ -560,43 +635,117 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
               {selectedCodes.length > 0 && (
                 <div className="space-y-3">
                   <Label className="text-lg font-semibold block">Prestations</Label>
-                  {selectedCodes.map(code => (
-                    <Card key={code.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="font-mono text-base">
-                              {code.code}
-                            </Badge>
-                            <Badge variant="secondary">{code.category}</Badge>
+                  {selectedCodes.map(code => {
+                    const displayHonorarium = code.is_custom_price ? code.custom_honorarium : code.honorarium;
+                    const displayPatientShare = displayHonorarium - (code.reimbursed || 0);
+                    const isEditing = editingCodeId === code.id;
+                    
+                    return (
+                      <Card key={code.id} className={`p-4 ${code.is_custom_price ? 'border-orange-300 bg-orange-50/50' : ''}`}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="font-mono text-base">
+                                {code.code}
+                              </Badge>
+                              <Badge variant="secondary">{code.category}</Badge>
+                              {code.is_custom_price && (
+                                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 text-xs">
+                                  Prix modifié
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="font-medium text-base">{code.title_fr}</p>
+                            
+                            {isEditing ? (
+                              <div className="mt-3 p-3 bg-white rounded-lg border">
+                                <Label className="text-sm mb-2 block">Modifier l'honoraire (en centimes)</Label>
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    value={code.custom_honorarium}
+                                    onChange={(e) => {
+                                      const newValue = parseInt(e.target.value) || 0;
+                                      setSelectedCodes(selectedCodes.map(c => 
+                                        c.id === code.id 
+                                          ? { ...c, custom_honorarium: newValue, is_custom_price: newValue !== c.original_honorarium }
+                                          : c
+                                      ));
+                                    }}
+                                    className="w-32"
+                                  />
+                                  <span className="text-sm text-slate-500">
+                                    = {formatAmount(code.custom_honorarium)}
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedCodes(selectedCodes.map(c => 
+                                        c.id === code.id 
+                                          ? { ...c, custom_honorarium: c.original_honorarium, is_custom_price: false }
+                                          : c
+                                      ));
+                                    }}
+                                  >
+                                    Réinitialiser
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => setEditingCodeId(null)}
+                                  >
+                                    OK
+                                  </Button>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">
+                                  Prix conventionné: {formatAmount(code.original_honorarium)}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-6 mt-2 text-sm">
+                                <span className="text-slate-600">
+                                  Honoraire: <strong className={code.is_custom_price ? 'text-orange-600' : ''}>{formatAmount(displayHonorarium)}</strong>
+                                </span>
+                                <span className="text-green-600">
+                                  Remboursé: <strong>{formatAmount(code.reimbursed)}</strong>
+                                </span>
+                                <span className="text-orange-600">
+                                  Patient: <strong>{formatAmount(displayPatientShare > 0 ? displayPatientShare : 0)}</strong>
+                                </span>
+                                {!isConventionne && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setEditingCodeId(code.id)}
+                                    className="h-7 px-2"
+                                  >
+                                    <Pencil className="w-3 h-3 mr-1" />
+                                    Modifier
+                                  </Button>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <p className="font-medium text-base">{code.title_fr}</p>
-                          <div className="flex gap-6 mt-2 text-sm">
-                            <span className="text-slate-600">
-                              Honoraire: <strong>{formatAmount(code.honorarium)}</strong>
-                            </span>
-                            <span className="text-green-600">
-                              Remboursé: <strong>{formatAmount(code.reimbursed)}</strong>
-                            </span>
-                            <span className="text-orange-600">
-                              Patient: <strong>{formatAmount(code.patient_share)}</strong>
-                            </span>
-                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setSelectedCodes(selectedCodes.filter(c => c.id !== code.id))}
+                            className="text-red-500 hover:bg-red-50"
+                          >
+                            <X className="w-5 h-5" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedCodes(selectedCodes.filter(c => c.id !== code.id))}
-                          className="text-red-500 hover:bg-red-50"
-                        >
-                          <X className="w-5 h-5" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                   <Card className="p-4 bg-blue-50 border-blue-200">
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-semibold text-blue-900">Total Honoraires</span>
+                      <div>
+                        <span className="text-lg font-semibold text-blue-900">Total Honoraires</span>
+                        {!isConventionne && (
+                          <p className="text-xs text-blue-700">Tarif personnel appliqué</p>
+                        )}
+                      </div>
                       <span className="text-2xl font-bold text-blue-900">{formatAmount(totalFacturation)}</span>
                     </div>
                   </Card>
