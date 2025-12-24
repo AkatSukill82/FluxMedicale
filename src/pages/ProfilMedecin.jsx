@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { User } from '@/entities/User';
 import { AuditLog } from '@/entities/AuditLog';
@@ -22,7 +21,13 @@ import {
   X,
   RefreshCw,
   AlertTriangle,
-  Lock
+  Lock,
+  FileKey,
+  Heart,
+  Upload,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ReAuthDialog from '../components/auth/ReAuthDialog';
@@ -77,7 +82,22 @@ export default function ProfilMedecinPage() {
         // Notifications (éditables)
         notif_mycarenet: user.notif_mycarenet !== false,
         notif_oa_alerts: user.notif_oa_alerts !== false,
-        notif_appointments: user.notif_appointments !== false
+        notif_appointments: user.notif_appointments !== false,
+        
+        // eHealth
+        ehealth_certificate_url: user.ehealth_certificate_url || '',
+        ehealth_certificate_expiry: user.ehealth_certificate_expiry || '',
+        ehealth_nihii: user.ehealth_nihii || '',
+        ehealth_quality: user.ehealth_quality || 'doctor',
+        
+        // DMG
+        dmg_auto_check: user.dmg_auto_check !== false,
+        dmg_auto_renewal_reminder: user.dmg_auto_renewal_reminder !== false,
+        dmg_default_open: user.dmg_default_open !== false,
+        
+        // Conventionnement
+        is_conventionne: user.is_conventionne !== false,
+        conventionnement: user.conventionnement || 'conventionne'
       };
 
       setFormData(profileData);
@@ -180,7 +200,22 @@ export default function ProfilMedecinPage() {
         // Notifications
         notif_mycarenet: formData.notif_mycarenet,
         notif_oa_alerts: formData.notif_oa_alerts,
-        notif_appointments: formData.notif_appointments
+        notif_appointments: formData.notif_appointments,
+        
+        // eHealth
+        ehealth_certificate_url: formData.ehealth_certificate_url,
+        ehealth_certificate_expiry: formData.ehealth_certificate_expiry,
+        ehealth_nihii: formData.ehealth_nihii,
+        ehealth_quality: formData.ehealth_quality,
+        
+        // DMG
+        dmg_auto_check: formData.dmg_auto_check,
+        dmg_auto_renewal_reminder: formData.dmg_auto_renewal_reminder,
+        dmg_default_open: formData.dmg_default_open,
+        
+        // Conventionnement
+        is_conventionne: formData.is_conventionne,
+        conventionnement: formData.conventionnement
       };
 
       // Si super admin, peut aussi modifier identité
@@ -274,7 +309,7 @@ export default function ProfilMedecinPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="identite" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="identite">
             <UserIcon className="w-4 h-4 mr-2" />
             Identité
@@ -282,6 +317,14 @@ export default function ProfilMedecinPage() {
           <TabsTrigger value="coordonnees">
             <MapPin className="w-4 h-4 mr-2" />
             Coordonnées
+          </TabsTrigger>
+          <TabsTrigger value="ehealth">
+            <FileKey className="w-4 h-4 mr-2" />
+            eHealth
+          </TabsTrigger>
+          <TabsTrigger value="dmg">
+            <Heart className="w-4 h-4 mr-2" />
+            DMG
           </TabsTrigger>
           <TabsTrigger value="facturation">
             <CreditCard className="w-4 h-4 mr-2" />
@@ -420,6 +463,286 @@ export default function ProfilMedecinPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Tab eHealth */}
+        <TabsContent value="ehealth" className="mt-6">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileKey className="w-5 h-5 text-blue-600" />
+                  Certificat eHealth
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="w-4 h-4 text-blue-600" />
+                  <AlertDescription className="text-blue-900">
+                    Le certificat eHealth est nécessaire pour les communications sécurisées avec les services belges 
+                    (MyCareNet, Recip-e, eHealthBox, etc.)
+                  </AlertDescription>
+                </Alert>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Numéro NIHII *</Label>
+                    <Input
+                      value={formData.ehealth_nihii}
+                      onChange={(e) => handleChange('ehealth_nihii', e.target.value)}
+                      placeholder="1-12345-67-890"
+                      disabled={!canEditIdentity}
+                      className={!canEditIdentity ? 'bg-slate-100' : ''}
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      Numéro d'identification INAMI
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Qualité eHealth</Label>
+                    <Select
+                      value={formData.ehealth_quality}
+                      onValueChange={(value) => handleChange('ehealth_quality', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="doctor">Médecin</SelectItem>
+                        <SelectItem value="dentist">Dentiste</SelectItem>
+                        <SelectItem value="pharmacist">Pharmacien</SelectItem>
+                        <SelectItem value="nurse">Infirmier</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="border-2 border-dashed border-slate-300 rounded-lg p-6">
+                  <div className="text-center">
+                    {formData.ehealth_certificate_url ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center gap-2 text-green-600">
+                          <CheckCircle className="w-8 h-8" />
+                          <span className="text-lg font-semibold">Certificat installé</span>
+                        </div>
+                        {formData.ehealth_certificate_expiry && (
+                          <p className="text-sm text-slate-600">
+                            Expire le: <strong>{formData.ehealth_certificate_expiry}</strong>
+                          </p>
+                        )}
+                        <Button variant="outline" size="sm">
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          Remplacer le certificat
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <Upload className="w-12 h-12 mx-auto text-slate-400" />
+                        <div>
+                          <p className="font-medium text-slate-700">Importer votre certificat eHealth</p>
+                          <p className="text-sm text-slate-500">Format .p12 ou .pfx</p>
+                        </div>
+                        <Input
+                          type="file"
+                          accept=".p12,.pfx"
+                          className="max-w-xs mx-auto"
+                          onChange={(e) => {
+                            // TODO: Upload certificat
+                            toast.info('Upload certificat - À configurer avec eHealth');
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                  <div>
+                    <p className="font-medium">Obtenir un certificat eHealth</p>
+                    <p className="text-sm text-slate-600">
+                      Commandez votre certificat sur le portail eHealth
+                    </p>
+                  </div>
+                  <Button variant="outline" asChild>
+                    <a href="https://www.ehealth.fgov.be" target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Portail eHealth
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Services eHealth activés</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">MyCareNet</span>
+                      <Badge className={formData.ehealth_certificate_url ? 'bg-green-600' : 'bg-slate-400'}>
+                        {formData.ehealth_certificate_url ? 'Actif' : 'Inactif'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      eAttest, eFact, assurabilité
+                    </p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Recip-e</span>
+                      <Badge className={formData.ehealth_certificate_url ? 'bg-green-600' : 'bg-slate-400'}>
+                        {formData.ehealth_certificate_url ? 'Actif' : 'Inactif'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Prescriptions électroniques
+                    </p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">eHealthBox</span>
+                      <Badge className={formData.ehealth_certificate_url ? 'bg-green-600' : 'bg-slate-400'}>
+                        {formData.ehealth_certificate_url ? 'Actif' : 'Inactif'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Messagerie sécurisée
+                    </p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Hub RSW/Vitalink</span>
+                      <Badge className={formData.ehealth_certificate_url ? 'bg-green-600' : 'bg-slate-400'}>
+                        {formData.ehealth_certificate_url ? 'Actif' : 'Inactif'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Accès dossiers patients
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Tab DMG */}
+        <TabsContent value="dmg" className="mt-6">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-red-500" />
+                  Dossier Médical Global (DMG)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <AlertDescription className="text-green-900">
+                    Le DMG permet une meilleure coordination des soins et ouvre droit à des honoraires majorés 
+                    pour les consultations et visites.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div>
+                      <div className="font-medium">Vérification automatique DMG</div>
+                      <p className="text-xs text-slate-600">
+                        Vérifier automatiquement le statut DMG lors de l'ouverture d'un dossier patient
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.dmg_auto_check}
+                      onChange={(e) => handleChange('dmg_auto_check', e.target.checked)}
+                      className="w-5 h-5"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div>
+                      <div className="font-medium">Rappels de renouvellement</div>
+                      <p className="text-xs text-slate-600">
+                        Recevoir des notifications pour les DMG arrivant à expiration
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.dmg_auto_renewal_reminder}
+                      onChange={(e) => handleChange('dmg_auto_renewal_reminder', e.target.checked)}
+                      className="w-5 h-5"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div>
+                      <div className="font-medium">Proposer l'ouverture DMG par défaut</div>
+                      <p className="text-xs text-slate-600">
+                        Suggérer automatiquement l'ouverture d'un DMG pour les patients éligibles
+                      </p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.dmg_default_open}
+                      onChange={(e) => handleChange('dmg_default_open', e.target.checked)}
+                      className="w-5 h-5"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Statut conventionnement</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label>Statut de conventionnement</Label>
+                  <Select
+                    value={formData.conventionnement}
+                    onValueChange={(value) => {
+                      handleChange('conventionnement', value);
+                      handleChange('is_conventionne', value === 'conventionne');
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="conventionne">Conventionné</SelectItem>
+                      <SelectItem value="partiellement_conventionne">Partiellement conventionné</SelectItem>
+                      <SelectItem value="non_conventionne">Non conventionné</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-slate-500 mt-2">
+                    {formData.conventionnement === 'conventionne' && 
+                      "Vous appliquez les tarifs INAMI officiels pour tous les patients."}
+                    {formData.conventionnement === 'partiellement_conventionne' && 
+                      "Vous appliquez les tarifs conventionnés pour certains patients (BIM, etc.)."}
+                    {formData.conventionnement === 'non_conventionne' && 
+                      "Vous êtes libre de fixer vos honoraires au-dessus des tarifs INAMI."}
+                  </p>
+                </div>
+
+                <Alert className={formData.is_conventionne ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}>
+                  <AlertCircle className={`w-4 h-4 ${formData.is_conventionne ? 'text-blue-600' : 'text-orange-600'}`} />
+                  <AlertDescription className={formData.is_conventionne ? 'text-blue-900' : 'text-orange-900'}>
+                    {formData.is_conventionne 
+                      ? "Les facturations utiliseront les tarifs conventionnés par défaut."
+                      : "Vous pourrez modifier les honoraires lors de chaque facturation."}
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+
 
         {/* Tab Facturation */}
         <TabsContent value="facturation" className="mt-6">

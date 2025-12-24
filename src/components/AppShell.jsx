@@ -207,28 +207,31 @@ export default function AppShell({ children, currentPageName }) {
               </div>
               
               {user && (
-                <div className="flex items-center gap-3">
-                  <CommandPalette />
-                  <LanguageSelector />
-                  
-                  <div className="text-right hidden md:block">
-                    <p className="text-sm font-medium text-foreground">
-                      {user.role === 'admin' ? 'Dr.' : ''} {user.full_name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t('common.connected')} • {user.role === 'admin' ? t('users.doctor').toUpperCase() : t('users.secretary').toUpperCase()}
-                    </p>
-                  </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleLogout}
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-3">
+                <CommandPalette />
+                <LanguageSelector />
+
+                <Link 
+                  to={createPageUrl('ProfilMedecin')}
+                  className="text-right hidden md:block hover:bg-slate-100 rounded-lg px-3 py-2 transition-colors cursor-pointer"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    {user.role === 'admin' ? 'Dr.' : ''} {user.full_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('common.connected')} • {user.role === 'admin' ? t('users.doctor').toUpperCase() : t('users.secretary').toUpperCase()}
+                  </p>
+                </Link>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
               )}
             </div>
           </header>
