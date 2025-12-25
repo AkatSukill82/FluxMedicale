@@ -21,6 +21,7 @@ import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Securite from './pages/Securite';
+import GDPRRegistry from './pages/GDPRRegistry';
 import __Layout from './Layout.jsx';
 
 
@@ -48,6 +49,7 @@ export const PAGES = {
     "Utilisateurs": Utilisateurs,
     "ModulesEHealth": ModulesEHealth,
     "Securite": Securite,
+    "GDPRRegistry": GDPRRegistry,
 }
 
 export const pagesConfig = {
