@@ -331,6 +331,42 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
 
             {selectedTemplate && (
           <div className="space-y-6 pt-6 border-t">
+            {/* Bouton vérification tarifs */}
+            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="flex items-center gap-2">
+                {tarifChecked ? (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                )}
+                <span className="text-sm font-medium">
+                  {tarifChecked ? 'Tarifs vérifiés ✓' : 'Vérifiez les tarifs avant facturation'}
+                </span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCheckTarif}
+                disabled={checkingTarif}
+                className="gap-2"
+              >
+                {checkingTarif ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Vérification...</>
+                ) : (
+                  <>Vérifier tarifs INAMI</>
+                )}
+              </Button>
+            </div>
+
+            {tarifResult && (
+              <Alert className="bg-green-50 border-green-200">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <AlertDescription className="text-green-800 text-sm">
+                  {tarifResult.codesVerified} code(s) vérifié(s) - Tarifs conformes INAMI 2024
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div>
               <p className="text-sm font-semibold mb-3">Mode de paiement</p>
               <div className="grid grid-cols-3 gap-3">
@@ -366,7 +402,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
               size="lg"
-              onClick={() => billMutation.mutate({ template: selectedTemplate, isCustom: false })}
+              onClick={() => attemptBill({ template: selectedTemplate, isCustom: false })}
               disabled={billMutation.isPending}
             >
               {billMutation.isPending ? (
