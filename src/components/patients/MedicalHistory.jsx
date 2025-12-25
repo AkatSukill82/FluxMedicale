@@ -317,6 +317,16 @@ export default function MedicalHistory({ patient }) {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Modal d'édition de consultation */}
+      {selectedConsultation && (
+        <ConsultationEditModal
+          consultation={selectedConsultation}
+          patient={patient}
+          isOpen={!!selectedConsultation}
+          onClose={() => setSelectedConsultation(null)}
+        />
+      )}
     </div>
   );
 }
