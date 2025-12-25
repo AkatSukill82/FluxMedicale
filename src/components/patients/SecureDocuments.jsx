@@ -9,12 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { Upload, Download, Eye, FileText, Trash2, Lock, File, Filter, Search, Shield, Key, AlertTriangle } from 'lucide-react';
+import { Upload, Download, Eye, FileText, Trash2, Lock, File, Filter, Search, Shield, Key, AlertTriangle, Brain, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import SensitiveDataManager from '../security/SensitiveDataManager';
 import SensitiveAccessGate from '../security/SensitiveAccessGate';
+import AIDocumentAnalyzer from '../documents/AIDocumentAnalyzer';
 
 export default function SecureDocuments({ patient }) {
   const queryClient = useQueryClient();
@@ -31,6 +32,8 @@ export default function SecureDocuments({ patient }) {
   });
   const [showSecurityManager, setShowSecurityManager] = useState(null);
   const [accessGateDoc, setAccessGateDoc] = useState(null);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ['secure_documents', patient.id],
@@ -57,7 +60,9 @@ export default function SecureDocuments({ patient }) {
         tags: uploadData.tags.filter(t => t.trim()),
         uploaded_by: user.email,
         is_sensitive: true,
-        access_count: 0
+        access_count: 0,
+        access_level: uploadData.access_level || 'standard',
+        sensitive_categories: uploadData.sensitive_categories || []
       });
     },
     onSuccess: () => {
@@ -65,11 +70,15 @@ export default function SecureDocuments({ patient }) {
       toast.success('Document téléchargé avec succès');
       setSelectedFile(null);
       setShowUploadDialog(false);
+      setUploadedFileUrl(null);
+      setShowAIAnalysis(false);
       setUploadData({
         document_type: 'MEDICAL_REPORT',
         document_date: format(new Date(), 'yyyy-MM-dd'),
         notes: '',
-        tags: []
+        tags: [],
+        access_level: 'standard',
+        sensitive_categories: []
       });
     },
     onError: (error) => {
@@ -113,7 +122,7 @@ export default function SecureDocuments({ patient }) {
     }
   });
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -121,7 +130,31 @@ export default function SecureDocuments({ patient }) {
         return;
       }
       setSelectedFile(file);
+      setShowAIAnalysis(false);
+      setUploadedFileUrl(null);
+      
+      // Upload file immediately for AI analysis
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setUploadedFileUrl(file_url);
+        setShowAIAnalysis(true);
+      } catch (err) {
+        console.error('Error uploading for analysis:', err);
+      }
     }
+  };
+
+  const handleAIAnalysisComplete = (analysis) => {
+    setUploadData(prev => ({
+      ...prev,
+      document_type: analysis.document_type || prev.document_type,
+      document_date: analysis.document_date || prev.document_date,
+      notes: analysis.summary || prev.notes,
+      tags: analysis.suggested_tags || prev.tags,
+      access_level: analysis.recommended_access_level || 'standard',
+      sensitive_categories: analysis.sensitive_categories || []
+    }));
+    toast.success('Suggestions appliquées');
   };
 
   const handleUpload = async () => {
@@ -399,6 +432,27 @@ export default function SecureDocuments({ patient }) {
               )}
             </div>
 
+            {/* AI Analysis Section */}
+            {showAIAnalysis && uploadedFileUrl && (
+              <AIDocumentAnalyzer
+                fileUrl={uploadedFileUrl}
+                fileName={selectedFile?.name}
+                onAnalysisComplete={handleAIAnalysisComplete}
+              />
+            )}
+
+            {!showAIAnalysis && selectedFile && (
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAIAnalysis(true)}
+                className="w-full gap-2"
+                type="button"
+              >
+                <Brain className="w-4 h-4" />
+                Analyser avec l'IA
+              </Button>
+            )}
+
             <div>
               <Label>Notes</Label>
               <Textarea
@@ -412,10 +466,26 @@ export default function SecureDocuments({ patient }) {
             <div>
               <Label>Tags (séparés par des virgules)</Label>
               <Input
+                value={uploadData.tags?.join(', ') || ''}
                 placeholder="urgent, confidentiel, suivi..."
                 onChange={(e) => setUploadData({...uploadData, tags: e.target.value.split(',').map(t => t.trim())})}
               />
             </div>
+
+            {/* Show AI-suggested security settings */}
+            {uploadData.access_level && uploadData.access_level !== 'standard' && (
+              <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <p className="text-sm font-medium text-orange-800 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Niveau de sécurité suggéré: {uploadData.access_level}
+                </p>
+                {uploadData.sensitive_categories?.length > 0 && (
+                  <p className="text-xs text-orange-600 mt-1">
+                    Catégories sensibles: {uploadData.sensitive_categories.join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="flex justify-end gap-3">
               <Button 
