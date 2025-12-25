@@ -35,6 +35,9 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import QuickAssurabilityCheck from '../components/patients/QuickAssurabilityCheck';
+import GDPRComplianceBanner from '../components/security/GDPRComplianceBanner';
+import { logPatientAccess } from '../components/security/AuditTrailService';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -284,12 +287,10 @@ export default function Patients() {
             </div>
           </div>
 
-          {patient.mutuelle && (
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
-              <p className="text-sm">{patient.mutuelle}</p>
-            </div>
-          )}
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+            <QuickAssurabilityCheck patient={patient} />
+          </div>
 
           {patient.allergies && (
             <div>
