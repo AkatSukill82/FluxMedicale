@@ -5,7 +5,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  X, 
+  CreditCard,
+  Pill,
+  FileText
+} from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
 import { createPageUrl } from '@/utils';
@@ -16,13 +22,17 @@ import { usePermissions, PERMISSIONS } from '../components/auth/RBACGuard';
 // Import tabs
 import ConsultationTab from '../components/patients/tabs/ConsultationTab';
 import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrativeTab';
+import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
+import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import InsuranceQuickCheck from '../components/patients/InsuranceQuickCheck';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
+import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
@@ -44,11 +54,12 @@ export default function Patients() {
   
   const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
   
-  const { readEID } = useEIDReader();
+  const { readEID, isReading } = useEIDReader();
 
   const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', patientId],
@@ -183,24 +194,107 @@ export default function Patients() {
   const officialName = patient.name?.find(n => n.use === 'official') || {};
   const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
   const age = patient.birthDate ? differenceInYears(new Date(), new Date(patient.birthDate)) : null;
+  const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
+  const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
   return (
-    <div className="h-full bg-slate-50 flex flex-col">
-      {/* Header patient */}
-      <div className="bg-white border-b px-6 py-3 flex items-center gap-4">
-        <Button variant="ghost" onClick={handleClose} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Retour
-        </Button>
-        <div>
-          <h2 className="text-lg font-bold">{fullName}</h2>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            {age && <span>{age} ans</span>}
-            <span>•</span>
-            <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+    <div className="flex h-full bg-slate-50">
+      {/* Sidebar gauche - Infos patient */}
+      <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
+        {/* Header patient */}
+        <div className="p-4 border-b">
+          <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
+          
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {age && <span>{age} ans</span>}
+              <span>•</span>
+              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
           </div>
         </div>
-      </div>
+
+        {/* Actions rapides */}
+        <div className="p-4 border-b space-y-2">
+          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
+            <Button
+              onClick={() => setShowQuickBilling(true)}
+              className="w-full justify-start gap-2"
+              size="sm"
+            >
+              <CreditCard className="w-4 h-4" />
+              Facturer (Alt+F)
+            </Button>
+          )}
+          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+            <>
+              <Button
+                onClick={() => setShowQuickPrescription(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                <Pill className="w-4 h-4" />
+                Prescrire (Alt+P)
+              </Button>
+              <Button
+                onClick={() => setShowQuickVaccination(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                💉 Vacciner (Alt+V)
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <div className="p-4 border-b">
+          <PatientNotifications patient={patient} />
+        </div>
+
+        {/* Infos clés */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Contact</h3>
+            <div className="space-y-1 text-sm">
+              {patient.telecom?.find(t => t.system === 'phone')?.value && (
+                <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
+              )}
+              {patient.telecom?.find(t => t.system === 'email')?.value && (
+                <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
+              )}
+            </div>
+          </div>
+
+          {patient.mutuelle && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <p className="text-sm">{patient.mutuelle}</p>
+            </div>
+          )}
+
+          {patient.allergies && (
+            <div>
+              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
+              <p className="text-sm">{patient.allergies}</p>
+            </div>
+          )}
+
+          {patient.antecedents_medicaux && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Antécédents</h3>
+              <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
+            </div>
+          )}
+        </div>
+      </aside>
 
       {/* Zone principale */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -273,6 +367,14 @@ export default function Patients() {
           patient={patient}
           isOpen={showBillingModal}
           onClose={() => setShowBillingModal(false)}
+        />
+      )}
+
+      {showPrescriptionModal && (
+        <PrescriptionModal
+          patient={patient}
+          isOpen={showPrescriptionModal}
+          onClose={() => setShowPrescriptionModal(false)}
         />
       )}
 
