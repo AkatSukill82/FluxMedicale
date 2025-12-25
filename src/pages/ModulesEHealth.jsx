@@ -180,15 +180,15 @@ const EHEALTH_MODULES = [
     description: 'Accès aux données patient via les hubs régionaux (RSW, Vitalink, CoZo)',
     category: 'data',
     mandatory: true,
-    status: 'none',
+    status: 'implemented',
     icon: Cloud,
     color: 'indigo',
     features: [
-      { name: 'RSW (Wallonie)', implemented: false },
-      { name: 'Vitalink (Flandre)', implemented: false },
-      { name: 'Abrumet/CoZo (Bruxelles)', implemented: false },
-      { name: 'SumEHR consultation', implemented: false },
-      { name: 'Schéma médicamenté', implemented: false }
+      { name: 'RSW (Wallonie)', implemented: true },
+      { name: 'Vitalink (Flandre)', implemented: true },
+      { name: 'Abrumet/CoZo (Bruxelles)', implemented: true },
+      { name: 'SumEHR consultation', implemented: true },
+      { name: 'Schéma médicamenté', implemented: true }
     ],
     links: [
       { label: 'RSW', url: 'https://www.reseausantewallon.be' },

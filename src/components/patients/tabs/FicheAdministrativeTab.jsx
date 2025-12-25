@@ -30,6 +30,7 @@ import MultEMediAttService from '../../emediatt/MultEMediAttService';
 import MyCareNetService from '../../mycarenet/MyCareNetService';
 import TherapeuticLinksService from '../../therapeutic/TherapeuticLinksService';
 import EHealthBoxService from '../../ehealthbox/EHealthBoxService';
+import RegionalVaultsService from '../../vaults/RegionalVaultsService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -40,6 +41,7 @@ export default function FicheAdministrativeTab({ patient }) {
   const [showMyCareNet, setShowMyCareNet] = useState(false);
   const [showTherapeuticLinks, setShowTherapeuticLinks] = useState(false);
   const [showEHealthBox, setShowEHealthBox] = useState(false);
+  const [showVaults, setShowVaults] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -424,6 +426,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <FileText className="w-4 h-4" />
                     eHealthBox
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowVaults(true)}
+                    className="gap-2"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Coffres-forts
+                  </Button>
                 </div>
               )}
             </div>
@@ -598,6 +609,16 @@ export default function FicheAdministrativeTab({ patient }) {
         patient={patient}
         isOpen={showEHealthBox}
         onClose={() => setShowEHealthBox(false)}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
+      />
+
+      {/* Modal Coffres-forts Régionaux */}
+      <RegionalVaultsService
+        patient={patient}
+        isOpen={showVaults}
+        onClose={() => setShowVaults(false)}
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
         }}
