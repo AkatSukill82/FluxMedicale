@@ -210,13 +210,14 @@ export default function MedicalHistory({ patient }) {
         </div>
 
         <TabsContent value="consultations" className="space-y-3 mt-4">
-          {consultations.length === 0 ? (
+          {filteredConsultations.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune consultation enregistrée</p>
+              <p>{consultations.length === 0 ? 'Aucune consultation enregistrée' : 'Aucune consultation trouvée pour cette période'}</p>
             </div>
           ) : (
-            consultations.map(consult => {
+            <>
+            {displayedConsultations.map(consult => {
               const consultDate = new Date(consult.date_consultation);
               const highlighted = isHighlighted(consult.date_consultation);
               return (
