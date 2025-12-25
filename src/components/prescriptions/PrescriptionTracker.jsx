@@ -24,12 +24,19 @@ import {
   Edit,
   MessageSquare,
   TrendingUp,
-  Loader2
+  Loader2,
+  Copy,
+  RefreshCw,
+  BookTemplate,
+  Plus
 } from 'lucide-react';
 import { format, differenceInDays, isPast, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import PrescriptionTemplates from './PrescriptionTemplates';
+import RenewalTracker from './RenewalTracker';
+import QuickPrescription from './QuickPrescription';
 
 const STATUS_CONFIG = {
   ACTIVE: { label: 'Active', color: 'bg-green-100 text-green-800', icon: CheckCircle },
@@ -49,10 +56,14 @@ const ADHERENCE_LEVELS = {
 
 export default function PrescriptionTracker({ patient }) {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [showAdherenceDialog, setShowAdherenceDialog] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showQuickPrescription, setShowQuickPrescription] = useState(false);
+  const [duplicateMedications, setDuplicateMedications] = useState(null);
   const [adherenceData, setAdherenceData] = useState({
     adherence_level: 'UNKNOWN',
     adherence_notes: '',
@@ -115,6 +126,21 @@ export default function PrescriptionTracker({ patient }) {
     });
   };
 
+  const handleDuplicate = (prescription) => {
+    setDuplicateMedications(prescription.medicaments || []);
+    setShowQuickPrescription(true);
+    toast.info('Ordonnance copiée - Modifiez si nécessaire avant de valider');
+  };
+
+  const handleTemplateSelect = (medications) => {
+    setDuplicateMedications(medications);
+    setShowQuickPrescription(true);
+  };
+
+  const handleRenew = (prescription) => {
+    handleDuplicate(prescription);
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -133,37 +159,61 @@ export default function PrescriptionTracker({ patient }) {
           Suivi des ordonnances
         </h2>
         <div className="flex gap-2">
-          <Badge variant="outline" className="gap-1">
-            <CheckCircle className="w-3 h-3 text-green-600" />
-            {stats.active} actives
-          </Badge>
-          <Badge variant="outline" className="gap-1">
-            {stats.total} total
-          </Badge>
+          <Button variant="outline" onClick={() => setShowTemplates(true)} className="gap-2">
+            <BookTemplate className="w-4 h-4" />
+            Templates
+          </Button>
+          <Button onClick={() => { setDuplicateMedications(null); setShowQuickPrescription(true); }} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Nouvelle ordonnance
+          </Button>
         </div>
       </div>
 
-      {/* Stats rapides */}
-      <div className="grid grid-cols-4 gap-3">
-        <Card className="p-3 cursor-pointer hover:bg-slate-50" onClick={() => setFilterStatus('all')}>
-          <p className="text-xs text-slate-500">Total</p>
-          <p className="text-2xl font-bold">{stats.total}</p>
-        </Card>
-        <Card className="p-3 cursor-pointer hover:bg-green-50" onClick={() => setFilterStatus('ACTIVE')}>
-          <p className="text-xs text-green-600">Actives</p>
-          <p className="text-2xl font-bold text-green-700">{stats.active}</p>
-        </Card>
-        <Card className="p-3 cursor-pointer hover:bg-blue-50" onClick={() => setFilterStatus('COMPLETED')}>
-          <p className="text-xs text-blue-600">Terminées</p>
-          <p className="text-2xl font-bold text-blue-700">{stats.completed}</p>
-        </Card>
-        <Card className="p-3 cursor-pointer hover:bg-red-50" onClick={() => setFilterStatus('DISCONTINUED')}>
-          <p className="text-xs text-red-600">Arrêtées</p>
-          <p className="text-2xl font-bold text-red-700">{stats.discontinued}</p>
-        </Card>
-      </div>
+      {/* Tabs navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <FileText className="w-4 h-4" />
+            Liste ({stats.total})
+          </TabsTrigger>
+          <TabsTrigger value="renewals" className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Renouvellements
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Filtres */}
+        <TabsContent value="renewals" className="mt-4">
+          <RenewalTracker
+            patient={patient}
+            prescriptions={prescriptions}
+            onRenew={handleRenew}
+            onDuplicate={handleDuplicate}
+          />
+        </TabsContent>
+
+        <TabsContent value="list" className="mt-4 space-y-4">
+          {/* Stats rapides */}
+          <div className="grid grid-cols-4 gap-3">
+            <Card className="p-3 cursor-pointer hover:bg-slate-50" onClick={() => setFilterStatus('all')}>
+              <p className="text-xs text-slate-500">Total</p>
+              <p className="text-2xl font-bold">{stats.total}</p>
+            </Card>
+            <Card className="p-3 cursor-pointer hover:bg-green-50" onClick={() => setFilterStatus('ACTIVE')}>
+              <p className="text-xs text-green-600">Actives</p>
+              <p className="text-2xl font-bold text-green-700">{stats.active}</p>
+            </Card>
+            <Card className="p-3 cursor-pointer hover:bg-blue-50" onClick={() => setFilterStatus('COMPLETED')}>
+              <p className="text-xs text-blue-600">Terminées</p>
+              <p className="text-2xl font-bold text-blue-700">{stats.completed}</p>
+            </Card>
+            <Card className="p-3 cursor-pointer hover:bg-red-50" onClick={() => setFilterStatus('DISCONTINUED')}>
+              <p className="text-xs text-red-600">Arrêtées</p>
+              <p className="text-2xl font-bold text-red-700">{stats.discontinued}</p>
+            </Card>
+          </div>
+
+          {/* Filtres */}
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -188,23 +238,26 @@ export default function PrescriptionTracker({ patient }) {
         </Select>
       </div>
 
-      {/* Liste des ordonnances */}
-      {filteredPrescriptions.length === 0 ? (
-        <Card className="p-8 text-center text-slate-500">
-          <Pill className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucune ordonnance trouvée</p>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filteredPrescriptions.map(prescription => (
-            <PrescriptionCard
-              key={prescription.id}
-              prescription={prescription}
-              onEdit={() => handleOpenAdherence(prescription)}
-            />
-          ))}
-        </div>
-      )}
+          {/* Liste des ordonnances */}
+          {filteredPrescriptions.length === 0 ? (
+            <Card className="p-8 text-center text-slate-500">
+              <Pill className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>Aucune ordonnance trouvée</p>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {filteredPrescriptions.map(prescription => (
+                <PrescriptionCard
+                  key={prescription.id}
+                  prescription={prescription}
+                  onEdit={() => handleOpenAdherence(prescription)}
+                  onDuplicate={() => handleDuplicate(prescription)}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog d'adhésion */}
       <Dialog open={showAdherenceDialog} onOpenChange={setShowAdherenceDialog}>
@@ -306,11 +359,31 @@ export default function PrescriptionTracker({ patient }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Templates */}
+      <PrescriptionTemplates
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
+
+      {/* Quick Prescription avec pré-remplissage */}
+      {showQuickPrescription && (
+        <QuickPrescription
+          patient={patient}
+          isOpen={showQuickPrescription}
+          onClose={() => {
+            setShowQuickPrescription(false);
+            setDuplicateMedications(null);
+          }}
+          initialMedications={duplicateMedications}
+        />
+      )}
     </div>
   );
 }
 
-function PrescriptionCard({ prescription, onEdit }) {
+function PrescriptionCard({ prescription, onEdit, onDuplicate }) {
   const status = prescription.tracking_status || 'ACTIVE';
   const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.ACTIVE;
   const StatusIcon = statusConfig.icon;
@@ -391,9 +464,14 @@ function PrescriptionCard({ prescription, onEdit }) {
           </div>
 
           {/* Actions */}
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            <Edit className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" onClick={onDuplicate} title="Dupliquer">
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onEdit} title="Modifier le suivi">
+              <Edit className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
