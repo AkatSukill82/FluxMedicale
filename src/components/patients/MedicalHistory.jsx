@@ -10,7 +10,7 @@ import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
-import ConsultationEditModal from './ConsultationEditModal';
+import ConsultationEditModal from '../patients/ConsultationEditModal';
 
 export default function MedicalHistory({ patient }) {
   const location = useLocation();
