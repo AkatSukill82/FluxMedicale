@@ -35,7 +35,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import QuickAssurabilityCheck from '../components/patients/QuickAssurabilityCheck';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -61,11 +60,18 @@ export default function Patients() {
   
   const { readEID, isReading } = useEIDReader();
 
-  const { data: patient, isLoading } = useQuery({
+  const { data: patient, isLoading, refetch: refetchPatient } = useQuery({
     queryKey: ['patient', patientId],
     queryFn: async () => {
       const patients = await base44.entities.Patient.list();
-      return patients.find(p => p.id === patientId);
+      const foundPatient = patients.find(p => p.id === patientId);
+      
+      // Logger l'accès au dossier patient (audit RGPD)
+      if (foundPatient) {
+        logPatientAccess(foundPatient.id, 'Consultation du dossier patient');
+      }
+      
+      return foundPatient;
     },
     enabled: !!patientId
   });
@@ -254,6 +260,11 @@ export default function Patients() {
           )}
         </div>
 
+        {/* RGPD Compliance */}
+        <div className="p-4 border-b">
+          <GDPRComplianceBanner patient={patient} onConsentUpdated={refetchPatient} />
+        </div>
+
         {/* Notifications */}
         <div className="p-4 border-b">
           <PatientNotifications patient={patient} />
@@ -273,10 +284,12 @@ export default function Patients() {
             </div>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
-            <QuickAssurabilityCheck patient={patient} />
-          </div>
+          {patient.mutuelle && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <p className="text-sm">{patient.mutuelle}</p>
+            </div>
+          )}
 
           {patient.allergies && (
             <div>
