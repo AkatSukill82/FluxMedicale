@@ -28,6 +28,9 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import InsuranceQuickCheck from '../components/patients/InsuranceQuickCheck';
+import GDPRStatusBadge from '../components/security/GDPRStatusBadge';
+import GDPRConsentWorkflow from '../components/security/GDPRConsentWorkflow';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -209,7 +212,11 @@ export default function Patients() {
           </Button>
           
           <div className="space-y-2">
-            <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold">{fullName}</h2>
+              <InsuranceQuickCheck patient={patient} />
+              <GDPRStatusBadge patient={patient} onClick={() => setShowGDPRConsent(true)} />
+            </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {age && <span>{age} ans</span>}
               <span>•</span>
@@ -399,6 +406,14 @@ export default function Patients() {
           patient={patient}
           isOpen={showQuickVaccination}
           onClose={() => setShowQuickVaccination(false)}
+        />
+      )}
+
+      {showGDPRConsent && (
+        <GDPRConsentWorkflow
+          patient={patient}
+          isOpen={showGDPRConsent}
+          onClose={() => setShowGDPRConsent(false)}
         />
       )}
     </div>
