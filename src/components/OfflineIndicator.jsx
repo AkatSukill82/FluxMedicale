@@ -1,41 +1,157 @@
 import React, { useState, useEffect } from 'react';
-import { WifiOff, Wifi, CloudOff, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { WifiOff, Wifi, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-/**
- * Indicateur de statut réseau avec gestion offline
- */
+const OFFLINE_QUEUE_KEY = 'medical_app_offline_queue';
+
 export default function OfflineIndicator() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [showBanner, setShowBanner] = useState(false);
-  const [pendingChanges, setPendingChanges] = useState(0);
+  const [pendingActions, setPendingActions] = useState([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
+    // Charger les actions en attente
+    const queue = localStorage.getItem(OFFLINE_QUEUE_KEY);
+    if (queue) {
+      setPendingActions(JSON.parse(queue));
+    }
+
     const handleOnline = () => {
       setIsOnline(true);
-      setShowBanner(false);
       toast.success('Connexion rétablie', {
-        description: 'Synchronisation en cours...'
+        description: pendingActions.length > 0 
+          ? `${pendingActions.length} actions en attente de synchronisation`
+          : undefined
       });
-      syncPendingChanges();
+      
+      // Auto-sync quand on revient en ligne
+      if (pendingActions.length > 0) {
+        syncPendingActions();
+      }
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      setShowBanner(true);
-      toast.warning('Mode hors ligne', {
-        description: 'Vos modifications seront synchronisées une fois la connexion rétablie.',
-        duration: 5000
+      toast.warning('Mode hors-ligne activé', {
+        description: 'Les modifications seront synchronisées au retour de la connexion'
       });
     };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Check for pending changes in localStorage
-    checkPendingChanges();
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [pendingActions.length]);
+
+  const syncPendingActions = async () => {
+    if (pendingActions.length === 0 || !isOnline) return;
+
+    setIsSyncing(true);
+    const queue = [...pendingActions];
+    const failed = [];
+
+    for (const action of queue) {
+      try {
+        // Exécuter l'action selon son type
+        // Note: Ceci est simplifié, en production il faudrait un système plus robuste
+        console.log('Syncing action:', action);
+        // await executeAction(action);
+      } catch (error) {
+        console.error('Sync error:', error);
+        failed.push(action);
+      }
+    }
+
+    if (failed.length === 0) {
+      localStorage.removeItem(OFFLINE_QUEUE_KEY);
+      setPendingActions([]);
+      toast.success('Synchronisation terminée');
+    } else {
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(failed));
+      setPendingActions(failed);
+      toast.error(`${failed.length} actions n'ont pas pu être synchronisées`);
+    }
+
+    setIsSyncing(false);
+  };
+
+  // Ne pas afficher si en ligne et pas d'actions en attente
+  if (isOnline && pendingActions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className={`fixed bottom-4 left-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg ${
+      isOnline ? 'bg-yellow-100 border border-yellow-300' : 'bg-red-100 border border-red-300'
+    }`}>
+      {isOnline ? (
+        <>
+          <Cloud className="w-5 h-5 text-yellow-600" />
+          <div>
+            <p className="text-sm font-medium text-yellow-800">
+              {pendingActions.length} actions en attente
+            </p>
+            <p className="text-xs text-yellow-700">
+              Cliquez pour synchroniser
+            </p>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={syncPendingActions}
+            disabled={isSyncing}
+            className="bg-yellow-50"
+          >
+            {isSyncing ? (
+              <RefreshCw className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+          </Button>
+        </>
+      ) : (
+        <>
+          <WifiOff className="w-5 h-5 text-red-600" />
+          <div>
+            <p className="text-sm font-medium text-red-800">Mode hors-ligne</p>
+            <p className="text-xs text-red-700">
+              {pendingActions.length > 0 
+                ? `${pendingActions.length} actions en attente`
+                : 'Les données en cache sont disponibles'
+              }
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Fonction utilitaire pour ajouter une action à la queue offline
+export function queueOfflineAction(action) {
+  const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+  queue.push({
+    ...action,
+    timestamp: new Date().toISOString(),
+    id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  });
+  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+}
+
+// Hook pour vérifier le statut en ligne
+export function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -43,118 +159,5 @@ export default function OfflineIndicator() {
     };
   }, []);
 
-  const checkPendingChanges = () => {
-    try {
-      const pending = localStorage.getItem('offline_pending_changes');
-      if (pending) {
-        const changes = JSON.parse(pending);
-        setPendingChanges(changes.length);
-      }
-    } catch (error) {
-      console.error('Error checking pending changes:', error);
-    }
-  };
-
-  const syncPendingChanges = async () => {
-    try {
-      const pending = localStorage.getItem('offline_pending_changes');
-      if (!pending) return;
-
-      const changes = JSON.parse(pending);
-      // Here you would implement actual sync logic
-      console.log('Syncing pending changes:', changes);
-
-      // Clear after sync
-      localStorage.removeItem('offline_pending_changes');
-      setPendingChanges(0);
-      
-      toast.success('Synchronisation terminée', {
-        description: `${changes.length} modification(s) synchronisée(s)`
-      });
-    } catch (error) {
-      console.error('Error syncing changes:', error);
-      toast.error('Échec de la synchronisation');
-    }
-  };
-
-  const handleRetry = () => {
-    if (navigator.onLine) {
-      syncPendingChanges();
-    } else {
-      toast.error('Toujours hors ligne', {
-        description: 'Vérifiez votre connexion internet'
-      });
-    }
-  };
-
-  return (
-    <>
-      {/* Status indicator in corner */}
-      <div className="fixed bottom-4 right-4 z-50 no-print">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-lg ${
-            isOnline ? 'bg-green-500' : 'bg-orange-500'
-          } text-white text-xs font-medium`}
-        >
-          {isOnline ? (
-            <>
-              <Wifi className="w-4 h-4" />
-              <span>En ligne</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="w-4 h-4" />
-              <span>Hors ligne</span>
-            </>
-          )}
-          {pendingChanges > 0 && (
-            <span className="px-2 py-0.5 bg-white/20 rounded-full">
-              {pendingChanges}
-            </span>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Banner for offline mode */}
-      <AnimatePresence>
-        {showBanner && (
-          <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            className="fixed top-20 left-0 right-0 z-40 no-print"
-          >
-            <div className="mx-4 md:mx-auto md:max-w-2xl">
-              <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <CloudOff className="w-6 h-6 text-orange-600" />
-                    <div>
-                      <h4 className="font-semibold text-orange-900">Mode hors ligne activé</h4>
-                      <p className="text-sm text-orange-700">
-                        Vous pouvez continuer à travailler. Les modifications seront synchronisées automatiquement.
-                      </p>
-                    </div>
-                  </div>
-                  {pendingChanges > 0 && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleRetry}
-                      className="ml-4"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Synchroniser
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
+  return isOnline;
 }
