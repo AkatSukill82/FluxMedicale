@@ -13,6 +13,8 @@ import { Upload, Download, Eye, FileText, Trash2, Lock, File, Filter, Search } f
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import SensitiveDataManager from '../security/SensitiveDataManager';
+import SensitiveAccessGate from '../security/SensitiveAccessGate';
 
 export default function SecureDocuments({ patient }) {
   const queryClient = useQueryClient();
