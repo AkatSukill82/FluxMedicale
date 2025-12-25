@@ -32,6 +32,7 @@ import {
 import { toast } from 'sonner';
 
 import { validateIBAN, validateEmail, validatePhone } from '../components/utils/validators';
+import AutoBackupService from '../components/backup/AutoBackupService';
 
 export default function ProfilMedecinPage() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -324,7 +325,7 @@ export default function ProfilMedecinPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="identite" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="identite">
             <UserIcon className="w-4 h-4 mr-2" />
             Identité
@@ -352,6 +353,10 @@ export default function ProfilMedecinPage() {
           <TabsTrigger value="notifications">
             <Bell className="w-4 h-4 mr-2" />
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="backup">
+            <Save className="w-4 h-4 mr-2" />
+            Backup
           </TabsTrigger>
         </TabsList>
 
@@ -939,6 +944,11 @@ export default function ProfilMedecinPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Tab Backup */}
+        <TabsContent value="backup" className="mt-6">
+          <AutoBackupService />
         </TabsContent>
       </Tabs>
 
