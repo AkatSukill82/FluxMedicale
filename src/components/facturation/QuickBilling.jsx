@@ -2,15 +2,11 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Euro, Clock, CreditCard, Loader2, Shield, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Euro, Clock, CreditCard, Loader2 } from 'lucide-react';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 
 // Modèles de facturation rapide pour consultations courantes
 const QUICK_BILLING_TEMPLATES = [
@@ -58,99 +54,6 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [activeTab, setActiveTab] = useState('quick');
-  
-  // États pour vérification assurabilité et tarifs
-  const [assurabilityChecked, setAssurabilityChecked] = useState(false);
-  const [assurabilityResult, setAssurabilityResult] = useState(null);
-  const [checkingAssurability, setCheckingAssurability] = useState(false);
-  const [tarifChecked, setTarifChecked] = useState(false);
-  const [tarifResult, setTarifResult] = useState(null);
-  const [checkingTarif, setCheckingTarif] = useState(false);
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [pendingBillData, setPendingBillData] = useState(null);
-
-  // Vérification assurabilité patient
-  const handleCheckAssurability = async () => {
-    setCheckingAssurability(true);
-    try {
-      // Simulation appel MyCareNet (en production: appel réel)
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      const niss = patient?.identifier?.find(id => id.system?.includes('ssin'))?.value;
-      const mutuelle = patient?.mutuelle || 'Non renseignée';
-      
-      // Simulation résultat
-      const result = {
-        success: true,
-        assurable: true,
-        niss: niss ? `***-${niss.slice(-4)}` : 'Non renseigné',
-        mutuelle: mutuelle,
-        regime: mutuelle?.toLowerCase().includes('bim') || mutuelle?.toLowerCase().includes('omnio') ? 'BIM/OMNIO' : 'Régime normal',
-        tiers_payant: true,
-        dmg: true,
-        validUntil: '31/12/2025'
-      };
-      
-      setAssurabilityResult(result);
-      setAssurabilityChecked(true);
-      toast.success('Patient assuré - Tiers-payant applicable');
-    } catch (error) {
-      setAssurabilityResult({ success: false, error: error.message });
-      toast.error('Erreur lors de la vérification');
-    } finally {
-      setCheckingAssurability(false);
-    }
-  };
-
-  // Vérification tarifs INAMI
-  const handleCheckTarif = async () => {
-    setCheckingTarif(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const codes = activeTab === 'quick' && selectedTemplate 
-        ? selectedTemplate.codes 
-        : selectedCodes.map(c => c.code);
-      
-      // Simulation vérification tarifs
-      const result = {
-        success: true,
-        codesVerified: codes.length,
-        allCorrect: true,
-        details: codes.map(code => ({
-          code,
-          status: 'correct',
-          message: 'Tarif conforme INAMI 2024'
-        }))
-      };
-      
-      setTarifResult(result);
-      setTarifChecked(true);
-      toast.success('Tarifs vérifiés - Tous conformes INAMI');
-    } catch (error) {
-      setTarifResult({ success: false, error: error.message });
-      toast.error('Erreur lors de la vérification des tarifs');
-    } finally {
-      setCheckingTarif(false);
-    }
-  };
-
-  // Fonction pour tenter la facturation
-  const attemptBill = (data) => {
-    if (!tarifChecked) {
-      setPendingBillData(data);
-      setShowConfirmDialog(true);
-    } else {
-      billMutation.mutate(data);
-    }
-  };
-
-  const confirmBillWithoutCheck = () => {
-    setShowConfirmDialog(false);
-    if (pendingBillData) {
-      billMutation.mutate(pendingBillData);
-    }
-  };
 
   const billMutation = useMutation({
     mutationFn: async (data) => {
@@ -251,44 +154,6 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
           </TabsList>
 
           <TabsContent value="quick" className="space-y-4">
-            {/* Section vérification assurabilité */}
-            <div className="p-4 bg-slate-50 rounded-lg border space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium">Vérification patient</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCheckAssurability}
-                  disabled={checkingAssurability}
-                  className="gap-2"
-                >
-                  {checkingAssurability ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Vérification...</>
-                  ) : assurabilityChecked ? (
-                    <><CheckCircle className="w-4 h-4 text-green-600" /> Vérifié</>
-                  ) : (
-                    <>Vérifier assurabilité</>
-                  )}
-                </Button>
-              </div>
-              
-              {assurabilityResult && (
-                <Alert className={assurabilityResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
-                  <AlertDescription>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div><strong>Mutuelle:</strong> {assurabilityResult.mutuelle}</div>
-                      <div><strong>Régime:</strong> {assurabilityResult.regime}</div>
-                      <div><strong>Tiers-payant:</strong> {assurabilityResult.tiers_payant ? '✅ Oui' : '❌ Non'}</div>
-                      <div><strong>DMG:</strong> {assurabilityResult.dmg ? '✅ Actif' : '❌ Non'}</div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
           {QUICK_BILLING_TEMPLATES.map(template => {
             const Icon = template.icon;
@@ -331,42 +196,6 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
 
             {selectedTemplate && (
           <div className="space-y-6 pt-6 border-t">
-            {/* Bouton vérification tarifs */}
-            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
-              <div className="flex items-center gap-2">
-                {tarifChecked ? (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-amber-600" />
-                )}
-                <span className="text-sm font-medium">
-                  {tarifChecked ? 'Tarifs vérifiés ✓' : 'Vérifiez les tarifs avant facturation'}
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCheckTarif}
-                disabled={checkingTarif}
-                className="gap-2"
-              >
-                {checkingTarif ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Vérification...</>
-                ) : (
-                  <>Vérifier tarifs INAMI</>
-                )}
-              </Button>
-            </div>
-
-            {tarifResult && (
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <AlertDescription className="text-green-800 text-sm">
-                  {tarifResult.codesVerified} code(s) vérifié(s) - Tarifs conformes INAMI 2024
-                </AlertDescription>
-              </Alert>
-            )}
-
             <div>
               <p className="text-sm font-semibold mb-3">Mode de paiement</p>
               <div className="grid grid-cols-3 gap-3">
@@ -402,7 +231,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
               size="lg"
-              onClick={() => attemptBill({ template: selectedTemplate, isCustom: false })}
+              onClick={() => billMutation.mutate({ template: selectedTemplate, isCustom: false })}
               disabled={billMutation.isPending}
             >
               {billMutation.isPending ? (
@@ -431,42 +260,6 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
 
             {selectedCodes.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
-                {/* Bouton vérification tarifs custom */}
-                <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-200">
-                  <div className="flex items-center gap-2">
-                    {tarifChecked ? (
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    ) : (
-                      <AlertTriangle className="w-5 h-5 text-amber-600" />
-                    )}
-                    <span className="text-sm font-medium">
-                      {tarifChecked ? 'Tarifs vérifiés ✓' : 'Vérifiez les tarifs avant facturation'}
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCheckTarif}
-                    disabled={checkingTarif}
-                    className="gap-2"
-                  >
-                    {checkingTarif ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Vérification...</>
-                    ) : (
-                      <>Vérifier tarifs INAMI</>
-                    )}
-                  </Button>
-                </div>
-
-                {tarifResult && (
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <AlertDescription className="text-green-800 text-sm">
-                      {tarifResult.codesVerified} code(s) vérifié(s) - Tarifs conformes INAMI 2024
-                    </AlertDescription>
-                  </Alert>
-                )}
-
                 <div>
                   <p className="text-sm font-semibold mb-3">Mode de paiement</p>
                   <div className="grid grid-cols-3 gap-3">
@@ -502,7 +295,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
-                  onClick={() => attemptBill({ codes: selectedCodes, isCustom: true })}
+                  onClick={() => billMutation.mutate({ codes: selectedCodes, isCustom: true })}
                   disabled={billMutation.isPending}
                 >
                   {billMutation.isPending ? (
@@ -522,35 +315,6 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
           </TabsContent>
         </Tabs>
       </DialogContent>
-
-      {/* Dialog de confirmation si tarifs non vérifiés */}
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-600" />
-              Tarifs non vérifiés
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Vous n'avez pas vérifié les tarifs INAMI avant facturation. 
-              Les montants pourraient être incorrects et entraîner des rejets de la mutuelle.
-              <br /><br />
-              <strong>Êtes-vous sûr de vouloir continuer sans vérification ?</strong>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>
-              Annuler et vérifier
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmBillWithoutCheck}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
-              Continuer sans vérification
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Dialog>
   );
 }

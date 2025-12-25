@@ -78,7 +78,7 @@ const EHEALTH_MODULES = [
     description: 'Services de facturation et DMG avec les mutuelles (CIN)',
     category: 'billing',
     mandatory: true,
-    status: 'implemented',
+    status: 'partial',
     icon: CreditCard,
     color: 'green',
     features: [
@@ -100,14 +100,14 @@ const EHEALTH_MODULES = [
     description: 'Envoi électronique des certificats d\'incapacité de travail',
     category: 'documents',
     mandatory: true,
-    status: 'implemented',
+    status: 'partial',
     icon: FileText,
     color: 'orange',
     features: [
       { name: 'Création certificat', implemented: true },
-      { name: 'Envoi eMediAtt', implemented: true },
-      { name: 'Confirmation réception', implemented: true },
-      { name: 'Historique envois', implemented: true }
+      { name: 'Envoi eMediAtt', implemented: false },
+      { name: 'Confirmation réception', implemented: false },
+      { name: 'Historique envois', implemented: false }
     ],
     links: [
       { label: 'eHealth Mult-eMediatt', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-mult-emediatt' }
@@ -120,14 +120,14 @@ const EHEALTH_MODULES = [
     description: 'Vérification identité patient via le registre national belge',
     category: 'identity',
     mandatory: true,
-    status: 'implemented',
+    status: 'partial',
     icon: Users,
     color: 'slate',
     features: [
       { name: 'Lecture eID', implemented: true },
       { name: 'Validation NISS', implemented: true },
-      { name: 'Consultation RN API', implemented: true },
-      { name: 'Photo identité', implemented: true }
+      { name: 'Consultation RN API', implemented: false },
+      { name: 'Photo identité', implemented: false }
     ],
     links: [
       { label: 'eHealth', url: 'https://www.ehealth.fgov.be' }
@@ -140,14 +140,14 @@ const EHEALTH_MODULES = [
     description: 'Gestion du consentement éclairé du patient pour le partage de données',
     category: 'security',
     mandatory: true,
-    status: 'implemented',
+    status: 'partial',
     icon: Shield,
     color: 'teal',
     features: [
       { name: 'Vérification consentement', implemented: true },
-      { name: 'Demande consentement', implemented: true },
-      { name: 'Révocation consentement', implemented: true },
-      { name: 'Historique consentements', implemented: true }
+      { name: 'Demande consentement', implemented: false },
+      { name: 'Révocation consentement', implemented: false },
+      { name: 'Historique consentements', implemented: false }
     ],
     links: [
       { label: 'eHealthConsent', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-ehealthconsent' }
@@ -160,14 +160,14 @@ const EHEALTH_MODULES = [
     description: 'Gestion des relations thérapeutiques pour accès aux données patient',
     category: 'security',
     mandatory: true,
-    status: 'implemented',
+    status: 'partial',
     icon: Heart,
     color: 'red',
     features: [
       { name: 'Création lien (DMG)', implemented: true },
       { name: 'Vérification lien', implemented: true },
-      { name: 'Révocation lien', implemented: true },
-      { name: 'Liens multiples (groupe)', implemented: true }
+      { name: 'Révocation lien', implemented: false },
+      { name: 'Liens multiples (groupe)', implemented: false }
     ],
     links: [
       { label: 'eHealth Therapeutic Links', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-ehealth-therapeutic-links' }
@@ -180,15 +180,15 @@ const EHEALTH_MODULES = [
     description: 'Accès aux données patient via les hubs régionaux (RSW, Vitalink, CoZo)',
     category: 'data',
     mandatory: true,
-    status: 'implemented',
+    status: 'none',
     icon: Cloud,
     color: 'indigo',
     features: [
-      { name: 'RSW (Wallonie)', implemented: true },
-      { name: 'Vitalink (Flandre)', implemented: true },
-      { name: 'Abrumet/CoZo (Bruxelles)', implemented: true },
-      { name: 'SumEHR consultation', implemented: true },
-      { name: 'Schéma médicamenté', implemented: true }
+      { name: 'RSW (Wallonie)', implemented: false },
+      { name: 'Vitalink (Flandre)', implemented: false },
+      { name: 'Abrumet/CoZo (Bruxelles)', implemented: false },
+      { name: 'SumEHR consultation', implemented: false },
+      { name: 'Schéma médicamenté', implemented: false }
     ],
     links: [
       { label: 'RSW', url: 'https://www.reseausantewallon.be' },
@@ -202,12 +202,12 @@ const EHEALTH_MODULES = [
     description: 'Boîte aux lettres électronique sécurisée pour professionnels de santé',
     category: 'communication',
     mandatory: true,
-    status: 'implemented',
+    status: 'partial',
     icon: Lock,
     color: 'cyan',
     features: [
       { name: 'Réception messages', implemented: true },
-      { name: 'Envoi messages', implemented: true },
+      { name: 'Envoi messages', implemented: false },
       { name: 'Pièces jointes', implemented: true },
       { name: 'Assignation patient', implemented: true }
     ],
@@ -218,22 +218,19 @@ const EHEALTH_MODULES = [
   {
     id: 'annexe82',
     name: 'Annexe 82 / eForms',
-    fullName: 'Notifications Soins à Domicile',
-    description: 'Formulaires électroniques pour notifications infirmières et soins à domicile',
+    fullName: 'Demandes Imagerie Médicale',
+    description: 'Formulaires électroniques pour demandes d\'imagerie (IRM, CT, etc.)',
     category: 'documents',
     mandatory: false,
-    status: 'implemented',
+    status: 'partial',
     icon: FileText,
     color: 'amber',
     features: [
       { name: 'Formulaire Annexe 82', implemented: true },
-      { name: 'Envoi MyCareNet', implemented: true },
-      { name: 'Suivi réponses', implemented: true },
-      { name: 'Historique demandes', implemented: true }
+      { name: 'Génération PDF', implemented: true },
+      { name: 'Envoi électronique', implemented: false }
     ],
-    links: [
-      { label: 'eForms', url: 'https://www.ehealth.fgov.be' }
-    ]
+    links: []
   }
 ];
 
@@ -340,17 +337,17 @@ export default function ModulesEHealthPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-green-600 font-medium">Statut homologation</p>
-                <p className="text-xl font-bold text-green-900">✓ Complet</p>
+                <p className="text-sm text-purple-600 font-medium">Prochaine priorité</p>
+                <p className="text-xl font-bold text-purple-900">SAM v2 API</p>
               </div>
-              <CheckCircle className="w-12 h-12 text-green-400" />
+              <Database className="w-12 h-12 text-purple-400" />
             </div>
-            <p className="text-sm text-green-700">
-              Tous les critères eHealth sont implémentés
+            <p className="text-sm text-purple-700">
+              Intégration temps réel avec la source authentique
             </p>
           </CardContent>
         </Card>
@@ -421,33 +418,27 @@ export default function ModulesEHealthPage() {
             {[
               { phase: 1, title: 'SAM v2 API complète', desc: 'Sync temps réel, prix INAMI, disponibilité', status: 'completed' },
               { phase: 2, title: 'Recip-e v4 intégration', desc: 'Envoi prescriptions, RID, dématérialisation', status: 'completed' },
-              { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'completed' },
-              { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'completed' },
-              { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'completed' },
-              { phase: 6, title: 'eHealthBox', desc: 'Messagerie sécurisée inter-professionnels', status: 'completed' },
-              { phase: 7, title: 'Liens Thérapeutiques', desc: 'Gestion relations patient-médecin', status: 'completed' },
-              { phase: 8, title: 'Annexe 82 / eForms', desc: 'Notifications soins à domicile', status: 'completed' }
+              { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'planned' },
+              { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'planned' },
+              { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'completed' }
             ].map(item => (
               <div key={item.phase} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                   item.status === 'in_progress' ? 'bg-blue-600 text-white' :
-                  item.status === 'completed' ? 'bg-green-600 text-white' :
                   item.status === 'planned' ? 'bg-orange-100 text-orange-700' :
                   'bg-slate-200 text-slate-500'
                 }`}>
-                  {item.status === 'completed' ? '✓' : item.phase}
+                  {item.phase}
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">{item.title}</p>
                   <p className="text-sm text-slate-600">{item.desc}</p>
                 </div>
-                <Badge className={
-                  item.status === 'completed' ? 'bg-green-600' :
-                  item.status === 'in_progress' ? 'bg-blue-600' :
-                  item.status === 'planned' ? 'bg-orange-500' : ''
+                <Badge variant={
+                  item.status === 'in_progress' ? 'default' :
+                  item.status === 'planned' ? 'secondary' : 'outline'
                 }>
-                  {item.status === 'completed' ? 'Complété' :
-                   item.status === 'in_progress' ? 'En cours' :
+                  {item.status === 'in_progress' ? 'En cours' :
                    item.status === 'planned' ? 'Planifié' : 'Futur'}
                 </Badge>
               </div>

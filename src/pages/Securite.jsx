@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MFADevice } from '@/entities/MFADevice';
@@ -23,9 +24,8 @@ import {
 import TOTPEnrollment from '../components/auth/TOTPEnrollment';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useAutoOpenEID } from '../components/eid/useAutoOpenEID';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import LoginHistory from '../components/security/LoginHistory';
+import { useAutoOpenEID } from '../components/eid/useAutoOpenEID'; // New import
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // New import
 
 export default function SecuritePage() {
   const [user, setUser] = useState(null);
@@ -305,48 +305,7 @@ export default function SecuritePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="sessions" className="space-y-6">
-          {/* Paramètres de session */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Paramètres de session
-              </CardTitle>
-              <CardDescription>
-                Configuration de la déconnexion automatique et du verrouillage
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-start gap-3">
-                  <Shield className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-blue-900">Déconnexion automatique active</h4>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Votre session sera automatiquement déconnectée après <strong>15 minutes</strong> d'inactivité.
-                      Un avertissement s'affichera 2 minutes avant la déconnexion.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-xs text-slate-500">Timeout d'inactivité</p>
-                  <p className="font-semibold">15 minutes</p>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-lg">
-                  <p className="text-xs text-slate-500">Avertissement avant déconnexion</p>
-                  <p className="font-semibold">2 minutes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Historique des connexions */}
-          <LoginHistory userEmail={user?.email} />
-
+        <TabsContent value="sessions">
           {/* Appareils de confiance */}
           <Card>
             <CardHeader>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,34 +17,16 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Shield,
-  FileText,
-  Heart
+  Shield
 } from 'lucide-react';
 import { nissValidator } from '../../eid/nissValidator';
 import { toast } from 'sonner';
 
 import IdSupportButton from '../../idsupport/IdSupportButton';
-import ConsultRNService from '../../identity/ConsultRNService';
-import EHealthConsentService from '../../consent/EHealthConsentService';
-import MultEMediAttService from '../../emediatt/MultEMediAttService';
-import MyCareNetService from '../../mycarenet/MyCareNetService';
-import TherapeuticLinksService from '../../therapeutic/TherapeuticLinksService';
-import EHealthBoxService from '../../ehealthbox/EHealthBoxService';
-import RegionalVaultsService from '../../vaults/RegionalVaultsService';
-import Annexe82Service from '../../eforms/Annexe82Service';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [showConsultRN, setShowConsultRN] = useState(false);
-  const [showEHealthConsent, setShowEHealthConsent] = useState(false);
-  const [showEMediAtt, setShowEMediAtt] = useState(false);
-  const [showMyCareNet, setShowMyCareNet] = useState(false);
-  const [showTherapeuticLinks, setShowTherapeuticLinks] = useState(false);
-  const [showEHealthBox, setShowEHealthBox] = useState(false);
-  const [showVaults, setShowVaults] = useState(false);
-  const [showAnnexe82, setShowAnnexe82] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -366,87 +349,11 @@ export default function FicheAdministrativeTab({ patient }) {
                 </p>
               </div>
 
-              {/* Boutons IdSupport et ConsultRN */}
-              {!isEditing && (
-                <div className="flex gap-2 flex-wrap">
-                  {patient.identifier?.some(id =>
-                    id.system === 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin'
-                  ) && (
-                    <IdSupportButton patient={patient} />
-                  )}
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowConsultRN(true)}
-                    className="gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    Consulter Registre National
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowEHealthConsent(true)}
-                    className="gap-2"
-                  >
-                    <Shield className="w-4 h-4" />
-                    Consentement eHealth
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowEMediAtt(true)}
-                    className="gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Certificat eMediAtt
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowMyCareNet(true)}
-                    className="gap-2"
-                  >
-                    <CreditCard className="w-4 h-4" />
-                    MyCareNet
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowTherapeuticLinks(true)}
-                    className="gap-2"
-                  >
-                    <Heart className="w-4 h-4" />
-                    Liens Thérapeutiques
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowEHealthBox(true)}
-                    className="gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    eHealthBox
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowVaults(true)}
-                    className="gap-2"
-                  >
-                    <Shield className="w-4 h-4" />
-                    Coffres-forts
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowAnnexe82(true)}
-                    className="gap-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    Annexe 82
-                  </Button>
-                </div>
+              {/* Bouton IdSupport */}
+              {!isEditing && patient.identifier?.some(id =>
+                id.system === 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin'
+              ) && (
+                <IdSupportButton patient={patient} />
               )}
             </div>
           </div>
@@ -567,83 +474,6 @@ export default function FicheAdministrativeTab({ patient }) {
           Complet uniquement dans la fiche patient (rôles autorisés). Toute consultation est auditée.
         </AlertDescription>
       </Alert>
-
-      {/* Modal Consult RN */}
-      <ConsultRNService
-        patient={patient}
-        isOpen={showConsultRN}
-        onClose={() => setShowConsultRN(false)}
-        onUpdate={(updates) => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
-
-      {/* Modal eHealth Consent */}
-      <EHealthConsentService
-        patient={patient}
-        isOpen={showEHealthConsent}
-        onClose={() => setShowEHealthConsent(false)}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
-
-      {/* Modal Mult-eMediAtt */}
-      <MultEMediAttService
-        patient={patient}
-        isOpen={showEMediAtt}
-        onClose={() => setShowEMediAtt(false)}
-      />
-
-      {/* Modal MyCareNet */}
-      <MyCareNetService
-        patient={patient}
-        isOpen={showMyCareNet}
-        onClose={() => setShowMyCareNet(false)}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
-
-      {/* Modal Liens Thérapeutiques */}
-      <TherapeuticLinksService
-        patient={patient}
-        isOpen={showTherapeuticLinks}
-        onClose={() => setShowTherapeuticLinks(false)}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
-
-      {/* Modal eHealthBox */}
-      <EHealthBoxService
-        patient={patient}
-        isOpen={showEHealthBox}
-        onClose={() => setShowEHealthBox(false)}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
-
-      {/* Modal Coffres-forts Régionaux */}
-      <RegionalVaultsService
-        patient={patient}
-        isOpen={showVaults}
-        onClose={() => setShowVaults(false)}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
-
-      {/* Modal Annexe 82 / eForms */}
-      <Annexe82Service
-        patient={patient}
-        isOpen={showAnnexe82}
-        onClose={() => setShowAnnexe82(false)}
-        onUpdate={() => {
-          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-        }}
-      />
     </div>
   );
 }

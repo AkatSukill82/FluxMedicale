@@ -3,20 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X, ChevronDown, ChevronUp, Search, Ban, Edit } from 'lucide-react';
-import { format, isSameDay, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X } from 'lucide-react';
+import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
-import ConsultationEditModal from '../patients/ConsultationEditModal';
-import InvoiceEditModal from '../../components/facturation/InvoiceEditModal';
-
-const ITEMS_LIMIT = 30;
 
 export default function MedicalHistory({ patient }) {
   const location = useLocation();
@@ -24,16 +17,7 @@ export default function MedicalHistory({ patient }) {
   const filterDate = urlParams.get('date');
   
   const [highlightDate, setHighlightDate] = useState(filterDate);
-  const [selectedConsultation, setSelectedConsultation] = useState(null);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const highlightRef = useRef(null);
-  
-  // Pagination et filtres
-  const [showAllConsultations, setShowAllConsultations] = useState(false);
-  const [showAllInvoices, setShowAllInvoices] = useState(false);
-  const [dateFilterStart, setDateFilterStart] = useState('');
-  const [dateFilterEnd, setDateFilterEnd] = useState('');
-  const [showDateFilter, setShowDateFilter] = useState(false);
   const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
     queryKey: ['consultations', patient.id],
     queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation', 100)
@@ -55,40 +39,10 @@ export default function MedicalHistory({ patient }) {
     }
   });
 
-  const { data: invoices = [], refetch: refetchInvoices } = useQuery({
+  const { data: invoices = [] } = useQuery({
     queryKey: ['patientInvoices', patient.id],
     queryFn: () => base44.entities.Invoice.filter({ patient_id: patient.id }, '-invoice_date', 100)
   });
-
-  // Filtrer par date
-  const filterByDateRange = (items, dateField) => {
-    if (!dateFilterStart && !dateFilterEnd) return items;
-    return items.filter(item => {
-      const itemDate = item[dateField] ? parseISO(item[dateField]) : null;
-      if (!itemDate) return false;
-      
-      if (dateFilterStart && dateFilterEnd) {
-        return isWithinInterval(itemDate, {
-          start: startOfDay(parseISO(dateFilterStart)),
-          end: endOfDay(parseISO(dateFilterEnd))
-        });
-      } else if (dateFilterStart) {
-        return itemDate >= startOfDay(parseISO(dateFilterStart));
-      } else if (dateFilterEnd) {
-        return itemDate <= endOfDay(parseISO(dateFilterEnd));
-      }
-      return true;
-    });
-  };
-
-  const filteredConsultations = filterByDateRange(consultations, 'date_consultation');
-  const filteredInvoices = filterByDateRange(invoices, 'invoice_date');
-  
-  const displayedConsultations = showAllConsultations ? filteredConsultations : filteredConsultations.slice(0, ITEMS_LIMIT);
-  const displayedInvoices = showAllInvoices ? filteredInvoices : filteredInvoices.slice(0, ITEMS_LIMIT);
-  
-  const hasMoreConsultations = filteredConsultations.length > ITEMS_LIMIT;
-  const hasMoreInvoices = filteredInvoices.length > ITEMS_LIMIT;
 
   // Scroll to highlighted item when date filter is set
   useEffect(() => {
@@ -143,7 +97,7 @@ export default function MedicalHistory({ patient }) {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="consultations" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            Consultations ({filteredConsultations.length})
+            Consultations ({consultations.length})
           </TabsTrigger>
           <TabsTrigger value="prescriptions" className="flex items-center gap-2">
             <Pill className="w-4 h-4" />
@@ -151,7 +105,7 @@ export default function MedicalHistory({ patient }) {
           </TabsTrigger>
           <TabsTrigger value="invoices" className="flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
-            Factures ({filteredInvoices.length})
+            Factures ({invoices.length})
           </TabsTrigger>
           <TabsTrigger value="vitals" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
@@ -159,73 +113,21 @@ export default function MedicalHistory({ patient }) {
           </TabsTrigger>
         </TabsList>
 
-        {/* Filtre par date */}
-        <div className="mt-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowDateFilter(!showDateFilter)}
-            className="gap-2"
-          >
-            <Search className="w-4 h-4" />
-            Rechercher par date
-            {showDateFilter ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </Button>
-          
-          {showDateFilter && (
-            <div className="flex items-end gap-4 mt-3 p-3 bg-slate-50 rounded-lg">
-              <div>
-                <Label className="text-xs">Date début</Label>
-                <Input 
-                  type="date" 
-                  value={dateFilterStart}
-                  onChange={(e) => setDateFilterStart(e.target.value)}
-                  className="w-40"
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Date fin</Label>
-                <Input 
-                  type="date" 
-                  value={dateFilterEnd}
-                  onChange={(e) => setDateFilterEnd(e.target.value)}
-                  className="w-40"
-                />
-              </div>
-              {(dateFilterStart || dateFilterEnd) && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => {
-                    setDateFilterStart('');
-                    setDateFilterEnd('');
-                  }}
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Effacer
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-
         <TabsContent value="consultations" className="space-y-3 mt-4">
-          {filteredConsultations.length === 0 ? (
+          {consultations.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>{consultations.length === 0 ? 'Aucune consultation enregistrée' : 'Aucune consultation trouvée pour cette période'}</p>
+              <p>Aucune consultation enregistrée</p>
             </div>
           ) : (
-            <>
-            {displayedConsultations.map(consult => {
+            consultations.map(consult => {
               const consultDate = new Date(consult.date_consultation);
               const highlighted = isHighlighted(consult.date_consultation);
               return (
                 <Card 
                   key={consult.id} 
                   ref={highlighted ? highlightRef : null}
-                  className={`transition-colors cursor-pointer ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-blue-300 hover:shadow-md'}`}
-                  onClick={() => setSelectedConsultation(consult)}
+                  className={`transition-colors ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-blue-300'}`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -266,30 +168,7 @@ export default function MedicalHistory({ patient }) {
                   </CardContent>
                 </Card>
               );
-            })}
-            
-            {hasMoreConsultations && (
-              <div className="text-center pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowAllConsultations(!showAllConsultations)}
-                  className="gap-2"
-                >
-                  {showAllConsultations ? (
-                    <>
-                      <ChevronUp className="w-4 h-4" />
-                      Masquer ({filteredConsultations.length - ITEMS_LIMIT} consultations)
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4" />
-                      Voir plus ({filteredConsultations.length - ITEMS_LIMIT} consultations masquées)
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-            </>
+            })
           )}
         </TabsContent>
 
@@ -333,14 +212,13 @@ export default function MedicalHistory({ patient }) {
         </TabsContent>
 
         <TabsContent value="invoices" className="space-y-3 mt-4">
-          {filteredInvoices.length === 0 ? (
+          {invoices.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>{invoices.length === 0 ? 'Aucune facture enregistrée' : 'Aucune facture trouvée pour cette période'}</p>
+              <p>Aucune facture enregistrée</p>
             </div>
           ) : (
-            <>
-            {displayedInvoices.map(invoice => {
+            invoices.map(invoice => {
               const highlighted = isHighlighted(invoice.invoice_date);
               const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date) : null;
               
@@ -351,8 +229,7 @@ export default function MedicalHistory({ patient }) {
                   SENT: 'bg-blue-100 text-blue-800',
                   ACCEPTED: 'bg-green-100 text-green-800',
                   REJECTED: 'bg-red-100 text-red-800',
-                  PAID: 'bg-purple-100 text-purple-800',
-                  CANCELLED: 'bg-gray-100 text-gray-800'
+                  PAID: 'bg-purple-100 text-purple-800'
                 };
                 const labels = {
                   DRAFT: 'Brouillon',
@@ -360,21 +237,16 @@ export default function MedicalHistory({ patient }) {
                   SENT: 'Envoyé',
                   ACCEPTED: 'Acceptée',
                   REJECTED: 'Refusée',
-                  PAID: 'Payée',
-                  CANCELLED: 'Annulée'
+                  PAID: 'Payée'
                 };
                 return <Badge className={styles[status] || styles.DRAFT}>{labels[status] || status}</Badge>;
               };
-
-              const canCancel = invoice.type === 'EATTEST' && invoice.status !== 'CANCELLED';
-              const canEdit = invoice.type === 'EFACT' && invoice.status !== 'CANCELLED' && invoice.status !== 'PAID';
               
               return (
                 <Card 
                   key={invoice.id}
                   ref={highlighted ? highlightRef : null}
-                  className={`transition-colors cursor-pointer ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-green-300 hover:shadow-md'}`}
-                  onClick={() => setSelectedInvoice(invoice)}
+                  className={`transition-colors ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-green-300'}`}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -400,55 +272,15 @@ export default function MedicalHistory({ patient }) {
                           )}
                         </div>
                         
-                        <div className="flex items-center gap-2 mt-2">
-                          <p className="text-xs text-slate-400 font-mono">
-                            ID: {invoice.id.substring(0, 12)}...
-                          </p>
-                          {canCancel && (
-                            <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
-                              <Ban className="w-3 h-3 mr-1" />
-                              Annulable
-                            </Badge>
-                          )}
-                          {canEdit && (
-                            <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
-                              <Edit className="w-3 h-3 mr-1" />
-                              Modifiable
-                            </Badge>
-                          )}
-                        </div>
+                        <p className="text-xs text-slate-400 mt-2 font-mono">
+                          ID: {invoice.id.substring(0, 12)}...
+                        </p>
                       </div>
-                      <Button variant="ghost" size="icon">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               );
-            })}
-            
-            {hasMoreInvoices && (
-              <div className="text-center pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowAllInvoices(!showAllInvoices)}
-                  className="gap-2"
-                >
-                  {showAllInvoices ? (
-                    <>
-                      <ChevronUp className="w-4 h-4" />
-                      Masquer ({filteredInvoices.length - ITEMS_LIMIT} factures)
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="w-4 h-4" />
-                      Voir plus ({filteredInvoices.length - ITEMS_LIMIT} factures masquées)
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
-            </>
+            })
           )}
         </TabsContent>
 
@@ -482,27 +314,6 @@ export default function MedicalHistory({ patient }) {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Modal d'édition de consultation */}
-      {selectedConsultation && (
-        <ConsultationEditModal
-          consultation={selectedConsultation}
-          patient={patient}
-          isOpen={!!selectedConsultation}
-          onClose={() => setSelectedConsultation(null)}
-        />
-      )}
-
-      {/* Modal d'édition/annulation de facture */}
-      {selectedInvoice && (
-        <InvoiceEditModal
-          invoice={selectedInvoice}
-          patient={patient}
-          isOpen={!!selectedInvoice}
-          onClose={() => setSelectedInvoice(null)}
-          onUpdate={() => refetchInvoices()}
-        />
-      )}
     </div>
   );
 }
