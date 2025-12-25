@@ -143,7 +143,7 @@ export default function MedicalHistory({ patient }) {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="consultations" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            Consultations ({consultations.length})
+            Consultations ({filteredConsultations.length})
           </TabsTrigger>
           <TabsTrigger value="prescriptions" className="flex items-center gap-2">
             <Pill className="w-4 h-4" />
@@ -151,13 +151,63 @@ export default function MedicalHistory({ patient }) {
           </TabsTrigger>
           <TabsTrigger value="invoices" className="flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
-            Factures ({invoices.length})
+            Factures ({filteredInvoices.length})
           </TabsTrigger>
           <TabsTrigger value="vitals" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
             Signes vitaux
           </TabsTrigger>
         </TabsList>
+
+        {/* Filtre par date */}
+        <div className="mt-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDateFilter(!showDateFilter)}
+            className="gap-2"
+          >
+            <Search className="w-4 h-4" />
+            Rechercher par date
+            {showDateFilter ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+          
+          {showDateFilter && (
+            <div className="flex items-end gap-4 mt-3 p-3 bg-slate-50 rounded-lg">
+              <div>
+                <Label className="text-xs">Date début</Label>
+                <Input 
+                  type="date" 
+                  value={dateFilterStart}
+                  onChange={(e) => setDateFilterStart(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Date fin</Label>
+                <Input 
+                  type="date" 
+                  value={dateFilterEnd}
+                  onChange={(e) => setDateFilterEnd(e.target.value)}
+                  className="w-40"
+                />
+              </div>
+              {(dateFilterStart || dateFilterEnd) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setDateFilterStart('');
+                    setDateFilterEnd('');
+                  }}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Effacer
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
 
         <TabsContent value="consultations" className="space-y-3 mt-4">
           {consultations.length === 0 ? (
