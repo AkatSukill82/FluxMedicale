@@ -251,6 +251,44 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
           </TabsList>
 
           <TabsContent value="quick" className="space-y-4">
+            {/* Section vérification assurabilité */}
+            <div className="p-4 bg-slate-50 rounded-lg border space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium">Vérification patient</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCheckAssurability}
+                  disabled={checkingAssurability}
+                  className="gap-2"
+                >
+                  {checkingAssurability ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Vérification...</>
+                  ) : assurabilityChecked ? (
+                    <><CheckCircle className="w-4 h-4 text-green-600" /> Vérifié</>
+                  ) : (
+                    <>Vérifier assurabilité</>
+                  )}
+                </Button>
+              </div>
+              
+              {assurabilityResult && (
+                <Alert className={assurabilityResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}>
+                  <AlertDescription>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div><strong>Mutuelle:</strong> {assurabilityResult.mutuelle}</div>
+                      <div><strong>Régime:</strong> {assurabilityResult.regime}</div>
+                      <div><strong>Tiers-payant:</strong> {assurabilityResult.tiers_payant ? '✅ Oui' : '❌ Non'}</div>
+                      <div><strong>DMG:</strong> {assurabilityResult.dmg ? '✅ Actif' : '❌ Non'}</div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
           {QUICK_BILLING_TEMPLATES.map(template => {
             const Icon = template.icon;
