@@ -10,6 +10,7 @@ import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
+import ConsultationEditModal from './ConsultationEditModal';
 
 export default function MedicalHistory({ patient }) {
   const location = useLocation();
@@ -17,6 +18,7 @@ export default function MedicalHistory({ patient }) {
   const filterDate = urlParams.get('date');
   
   const [highlightDate, setHighlightDate] = useState(filterDate);
+  const [selectedConsultation, setSelectedConsultation] = useState(null);
   const highlightRef = useRef(null);
   const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
     queryKey: ['consultations', patient.id],
