@@ -129,7 +129,8 @@ export default function MedicalHistory({ patient }) {
                 <Card 
                   key={consult.id} 
                   ref={highlighted ? highlightRef : null}
-                  className={`transition-colors ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-blue-300'}`}
+                  className={`transition-colors cursor-pointer ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-blue-300 hover:shadow-md'}`}
+                  onClick={() => setSelectedConsultation(consult)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
