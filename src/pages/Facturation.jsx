@@ -41,6 +41,8 @@ import FinancialDashboard from '../components/facturation/FinancialDashboard';
 import BatchInvoiceCreator from '../components/facturation/BatchInvoiceCreator';
 import ManualPaymentRecorder from '../components/facturation/ManualPaymentRecorder';
 import AutomaticReminders from '../components/facturation/AutomaticReminders';
+import AccountingExport from '../components/facturation/AccountingExport';
+import AttestationPrint from '../components/facturation/AttestationPrint';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -64,6 +66,7 @@ export default function FacturationPage() {
   const [showBatchCreator, setShowBatchCreator] = useState(false);
   const [selectedForBatch, setSelectedForBatch] = useState([]);
   const [showPaymentRecorder, setShowPaymentRecorder] = useState(false);
+  const [showAccountingExport, setShowAccountingExport] = useState(false);
 
   const [filters, setFilters] = useState({
     period: '30',
@@ -306,9 +309,13 @@ export default function FacturationPage() {
               <Euro className="w-4 h-4 mr-2" />
               Enregistrer paiement
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowAccountingExport(true)}
+            >
               <Download className="w-4 h-4 mr-2" />
-              Export
+              Export comptable
             </Button>
           </div>
           </div>
@@ -400,6 +407,12 @@ export default function FacturationPage() {
           onClose={() => setShowPaymentRecorder(false)}
         />
       )}
+
+      {/* Modal export comptable */}
+      <AccountingExport
+        isOpen={showAccountingExport}
+        onClose={() => setShowAccountingExport(false)}
+      />
     </div>
   );
 }
