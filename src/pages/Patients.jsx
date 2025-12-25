@@ -35,6 +35,11 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import QuickAssurabilityCheck from '../components/patients/QuickAssurabilityCheck';
+import GDPRComplianceBanner from '../components/security/GDPRComplianceBanner';
+import { logPatientAccess } from '../components/security/AuditTrailService';
+import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '../components/shortcuts/KeyboardShortcuts';
+import ConsultationTemplates from '../components/consultation/ConsultationTemplates';
 
 export default function Patients() {
   const { t } = useI18n();
