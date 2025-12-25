@@ -55,10 +55,40 @@ export default function MedicalHistory({ patient }) {
     }
   });
 
-  const { data: invoices = [] } = useQuery({
+  const { data: invoices = [], refetch: refetchInvoices } = useQuery({
     queryKey: ['patientInvoices', patient.id],
     queryFn: () => base44.entities.Invoice.filter({ patient_id: patient.id }, '-invoice_date', 100)
   });
+
+  // Filtrer par date
+  const filterByDateRange = (items, dateField) => {
+    if (!dateFilterStart && !dateFilterEnd) return items;
+    return items.filter(item => {
+      const itemDate = item[dateField] ? parseISO(item[dateField]) : null;
+      if (!itemDate) return false;
+      
+      if (dateFilterStart && dateFilterEnd) {
+        return isWithinInterval(itemDate, {
+          start: startOfDay(parseISO(dateFilterStart)),
+          end: endOfDay(parseISO(dateFilterEnd))
+        });
+      } else if (dateFilterStart) {
+        return itemDate >= startOfDay(parseISO(dateFilterStart));
+      } else if (dateFilterEnd) {
+        return itemDate <= endOfDay(parseISO(dateFilterEnd));
+      }
+      return true;
+    });
+  };
+
+  const filteredConsultations = filterByDateRange(consultations, 'date_consultation');
+  const filteredInvoices = filterByDateRange(invoices, 'invoice_date');
+  
+  const displayedConsultations = showAllConsultations ? filteredConsultations : filteredConsultations.slice(0, ITEMS_LIMIT);
+  const displayedInvoices = showAllInvoices ? filteredInvoices : filteredInvoices.slice(0, ITEMS_LIMIT);
+  
+  const hasMoreConsultations = filteredConsultations.length > ITEMS_LIMIT;
+  const hasMoreInvoices = filteredInvoices.length > ITEMS_LIMIT;
 
   // Scroll to highlighted item when date filter is set
   useEffect(() => {
