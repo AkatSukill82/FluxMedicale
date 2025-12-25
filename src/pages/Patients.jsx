@@ -35,9 +35,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import QuickAssurabilityCheck from '../components/patients/QuickAssurabilityCheck';
-import GDPRComplianceBanner from '../components/security/GDPRComplianceBanner';
-import { logPatientAccess } from '../components/security/AuditTrailService';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -60,54 +57,31 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
-  const { data: patient, isLoading, refetch: refetchPatient } = useQuery({
+  // Raccourcis clavier globaux
+  useKeyboardShortcuts({
+    BILLING: () => patient && setShowQuickBilling(true),
+    PRESCRIPTION: () => patient && setShowQuickPrescription(true),
+    VACCINATION: () => patient && setShowQuickVaccination(true),
+    READ_EID: () => handleReadEID(),
+    NEW_CONSULTATION: () => patient && setShowTemplates(true),
+    HELP: () => setShowShortcutsHelp(true),
+  });
+
+  const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', patientId],
     queryFn: async () => {
       const patients = await base44.entities.Patient.list();
-      const foundPatient = patients.find(p => p.id === patientId);
-      
-      // Logger l'accès au dossier patient (audit RGPD)
-      if (foundPatient) {
-        logPatientAccess(foundPatient.id, 'Consultation du dossier patient');
-      }
-      
-      return foundPatient;
+      return patients.find(p => p.id === patientId);
     },
     enabled: !!patientId
   });
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.altKey) {
-        switch(e.key.toLowerCase()) {
-          case 'e':
-            e.preventDefault();
-            handleReadEID();
-            break;
-          case 'f':
-            e.preventDefault();
-            setShowQuickBilling(true);
-            break;
-          case 'p':
-            e.preventDefault();
-            setShowQuickPrescription(true);
-            break;
-          case 'v':
-            e.preventDefault();
-            setShowQuickVaccination(true);
-            break;
-          default:
-            break;
-        }
-      }
-    };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [patientId]);
 
   const handleReadEID = async () => {
     const result = await readEID();
@@ -263,11 +237,6 @@ export default function Patients() {
           )}
         </div>
 
-        {/* RGPD Compliance */}
-        <div className="p-4 border-b">
-          <GDPRComplianceBanner patient={patient} onConsentUpdated={refetchPatient} />
-        </div>
-
         {/* Notifications */}
         <div className="p-4 border-b">
           <PatientNotifications patient={patient} />
@@ -287,10 +256,12 @@ export default function Patients() {
             </div>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
-            <QuickAssurabilityCheck patient={patient} />
-          </div>
+          {patient.mutuelle && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <p className="text-sm">{patient.mutuelle}</p>
+            </div>
+          )}
 
           {patient.allergies && (
             <div>
@@ -413,6 +384,23 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
+
+      {/* Aide raccourcis clavier */}
+      <KeyboardShortcutsHelp
+        isOpen={showShortcutsHelp}
+        onClose={() => setShowShortcutsHelp(false)}
+      />
+
+      {/* Templates de consultation */}
+      <ConsultationTemplates
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelectTemplate={(template) => {
+          // Ouvrir consultation avec template pré-rempli
+          setActiveTab('consultation');
+          toast.info(`Template "${template.name}" chargé`);
+        }}
+      />
     </div>
   );
 }
