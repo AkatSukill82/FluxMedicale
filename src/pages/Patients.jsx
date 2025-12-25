@@ -28,9 +28,6 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import InsuranceQuickCheck from '../components/patients/InsuranceQuickCheck';
-import GDPRStatusBadge from '../components/security/GDPRStatusBadge';
-import GDPRConsentWorkflow from '../components/security/GDPRConsentWorkflow';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -38,6 +35,7 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import AIPatientSummary from '../components/patients/AIPatientSummary';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -60,7 +58,6 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-    const [showGDPRConsent, setShowGDPRConsent] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -212,11 +209,7 @@ export default function Patients() {
           </Button>
           
           <div className="space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold">{fullName}</h2>
-              <InsuranceQuickCheck patient={patient} />
-              <GDPRStatusBadge patient={patient} onClick={() => setShowGDPRConsent(true)} />
-            </div>
+            <h2 className="text-xl font-bold">{fullName}</h2>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {age && <span>{age} ans</span>}
               <span>•</span>
@@ -261,10 +254,15 @@ export default function Patients() {
           )}
         </div>
 
-        {/* Notifications */}
-        <div className="p-4 border-b">
-          <PatientNotifications patient={patient} />
-        </div>
+        {/* AI Summary */}
+                      <div className="p-4 border-b">
+                        <AIPatientSummary patient={patient} />
+                      </div>
+
+                      {/* Notifications */}
+                      <div className="p-4 border-b">
+                        <PatientNotifications patient={patient} />
+                      </div>
 
         {/* Infos clés */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -406,14 +404,6 @@ export default function Patients() {
           patient={patient}
           isOpen={showQuickVaccination}
           onClose={() => setShowQuickVaccination(false)}
-        />
-      )}
-
-      {showGDPRConsent && (
-        <GDPRConsentWorkflow
-          patient={patient}
-          isOpen={showGDPRConsent}
-          onClose={() => setShowGDPRConsent(false)}
         />
       )}
     </div>
