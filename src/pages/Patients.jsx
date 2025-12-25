@@ -322,6 +322,7 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
+        </div>
       </div>
     </div>
   );
