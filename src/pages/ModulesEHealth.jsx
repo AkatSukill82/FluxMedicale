@@ -340,17 +340,17 @@ export default function ModulesEHealthPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-purple-600 font-medium">Prochaine priorité</p>
-                <p className="text-xl font-bold text-purple-900">SAM v2 API</p>
+                <p className="text-sm text-green-600 font-medium">Statut homologation</p>
+                <p className="text-xl font-bold text-green-900">✓ Complet</p>
               </div>
-              <Database className="w-12 h-12 text-purple-400" />
+              <CheckCircle className="w-12 h-12 text-green-400" />
             </div>
-            <p className="text-sm text-purple-700">
-              Intégration temps réel avec la source authentique
+            <p className="text-sm text-green-700">
+              Tous les critères eHealth sont implémentés
             </p>
           </CardContent>
         </Card>
@@ -421,27 +421,33 @@ export default function ModulesEHealthPage() {
             {[
               { phase: 1, title: 'SAM v2 API complète', desc: 'Sync temps réel, prix INAMI, disponibilité', status: 'completed' },
               { phase: 2, title: 'Recip-e v4 intégration', desc: 'Envoi prescriptions, RID, dématérialisation', status: 'completed' },
-              { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'planned' },
-              { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'planned' },
-              { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'completed' }
+              { phase: 3, title: 'Coffres-forts régionaux', desc: 'RSW, Vitalink, CoZo - SumEHR et schéma médicamenté', status: 'completed' },
+              { phase: 4, title: 'Mult-eMediatt complet', desc: 'Envoi électronique certificats incapacité', status: 'completed' },
+              { phase: 5, title: 'Chapitre IV MyCareNet', desc: 'Demandes autorisation remboursement', status: 'completed' },
+              { phase: 6, title: 'eHealthBox', desc: 'Messagerie sécurisée inter-professionnels', status: 'completed' },
+              { phase: 7, title: 'Liens Thérapeutiques', desc: 'Gestion relations patient-médecin', status: 'completed' },
+              { phase: 8, title: 'Annexe 82 / eForms', desc: 'Notifications soins à domicile', status: 'completed' }
             ].map(item => (
               <div key={item.phase} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                   item.status === 'in_progress' ? 'bg-blue-600 text-white' :
+                  item.status === 'completed' ? 'bg-green-600 text-white' :
                   item.status === 'planned' ? 'bg-orange-100 text-orange-700' :
                   'bg-slate-200 text-slate-500'
                 }`}>
-                  {item.phase}
+                  {item.status === 'completed' ? '✓' : item.phase}
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">{item.title}</p>
                   <p className="text-sm text-slate-600">{item.desc}</p>
                 </div>
-                <Badge variant={
-                  item.status === 'in_progress' ? 'default' :
-                  item.status === 'planned' ? 'secondary' : 'outline'
+                <Badge className={
+                  item.status === 'completed' ? 'bg-green-600' :
+                  item.status === 'in_progress' ? 'bg-blue-600' :
+                  item.status === 'planned' ? 'bg-orange-500' : ''
                 }>
-                  {item.status === 'in_progress' ? 'En cours' :
+                  {item.status === 'completed' ? 'Complété' :
+                   item.status === 'in_progress' ? 'En cours' :
                    item.status === 'planned' ? 'Planifié' : 'Futur'}
                 </Badge>
               </div>
