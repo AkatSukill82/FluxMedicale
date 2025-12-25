@@ -31,6 +31,7 @@ import MyCareNetService from '../../mycarenet/MyCareNetService';
 import TherapeuticLinksService from '../../therapeutic/TherapeuticLinksService';
 import EHealthBoxService from '../../ehealthbox/EHealthBoxService';
 import RegionalVaultsService from '../../vaults/RegionalVaultsService';
+import Annexe82Service from '../../eforms/Annexe82Service';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -42,6 +43,7 @@ export default function FicheAdministrativeTab({ patient }) {
   const [showTherapeuticLinks, setShowTherapeuticLinks] = useState(false);
   const [showEHealthBox, setShowEHealthBox] = useState(false);
   const [showVaults, setShowVaults] = useState(false);
+  const [showAnnexe82, setShowAnnexe82] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -435,6 +437,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <Shield className="w-4 h-4" />
                     Coffres-forts
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowAnnexe82(true)}
+                    className="gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Annexe 82
+                  </Button>
                 </div>
               )}
             </div>
@@ -619,6 +630,16 @@ export default function FicheAdministrativeTab({ patient }) {
         patient={patient}
         isOpen={showVaults}
         onClose={() => setShowVaults(false)}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
+      />
+
+      {/* Modal Annexe 82 / eForms */}
+      <Annexe82Service
+        patient={patient}
+        isOpen={showAnnexe82}
+        onClose={() => setShowAnnexe82(false)}
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
         }}
