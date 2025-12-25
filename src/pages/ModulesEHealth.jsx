@@ -120,14 +120,14 @@ const EHEALTH_MODULES = [
     description: 'Vérification identité patient via le registre national belge',
     category: 'identity',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: Users,
     color: 'slate',
     features: [
       { name: 'Lecture eID', implemented: true },
       { name: 'Validation NISS', implemented: true },
-      { name: 'Consultation RN API', implemented: false },
-      { name: 'Photo identité', implemented: false }
+      { name: 'Consultation RN API', implemented: true },
+      { name: 'Photo identité', implemented: true }
     ],
     links: [
       { label: 'eHealth', url: 'https://www.ehealth.fgov.be' }
