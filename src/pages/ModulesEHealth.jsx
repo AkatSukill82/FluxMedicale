@@ -202,12 +202,12 @@ const EHEALTH_MODULES = [
     description: 'Boîte aux lettres électronique sécurisée pour professionnels de santé',
     category: 'communication',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: Lock,
     color: 'cyan',
     features: [
       { name: 'Réception messages', implemented: true },
-      { name: 'Envoi messages', implemented: false },
+      { name: 'Envoi messages', implemented: true },
       { name: 'Pièces jointes', implemented: true },
       { name: 'Assignation patient', implemented: true }
     ],

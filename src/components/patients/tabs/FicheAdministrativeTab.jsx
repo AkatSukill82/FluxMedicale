@@ -29,6 +29,7 @@ import EHealthConsentService from '../../consent/EHealthConsentService';
 import MultEMediAttService from '../../emediatt/MultEMediAttService';
 import MyCareNetService from '../../mycarenet/MyCareNetService';
 import TherapeuticLinksService from '../../therapeutic/TherapeuticLinksService';
+import EHealthBoxService from '../../ehealthbox/EHealthBoxService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -38,6 +39,7 @@ export default function FicheAdministrativeTab({ patient }) {
   const [showEMediAtt, setShowEMediAtt] = useState(false);
   const [showMyCareNet, setShowMyCareNet] = useState(false);
   const [showTherapeuticLinks, setShowTherapeuticLinks] = useState(false);
+  const [showEHealthBox, setShowEHealthBox] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -413,6 +415,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <Heart className="w-4 h-4" />
                     Liens Thérapeutiques
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowEHealthBox(true)}
+                    className="gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    eHealthBox
+                  </Button>
                 </div>
               )}
             </div>
@@ -577,6 +588,16 @@ export default function FicheAdministrativeTab({ patient }) {
         patient={patient}
         isOpen={showTherapeuticLinks}
         onClose={() => setShowTherapeuticLinks(false)}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
+      />
+
+      {/* Modal eHealthBox */}
+      <EHealthBoxService
+        patient={patient}
+        isOpen={showEHealthBox}
+        onClose={() => setShowEHealthBox(false)}
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
         }}
