@@ -492,6 +492,17 @@ export default function MedicalHistory({ patient }) {
           onClose={() => setSelectedConsultation(null)}
         />
       )}
+
+      {/* Modal d'édition/annulation de facture */}
+      {selectedInvoice && (
+        <InvoiceEditModal
+          invoice={selectedInvoice}
+          patient={patient}
+          isOpen={!!selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+          onUpdate={() => refetchInvoices()}
+        />
+      )}
     </div>
   );
 }
