@@ -28,9 +28,6 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import LabResultsPanel from '../components/labs/LabResultsPanel';
-import PrescriptionTracker from '../components/prescriptions/PrescriptionTracker';
-import ChapterIVPanel from '../components/chapterIV/ChapterIVPanel';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -54,7 +51,7 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('consultation');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
@@ -200,36 +197,114 @@ export default function Patients() {
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
   return (
-    <div className="h-full bg-slate-50">
-
-
-      {/* Zone principale */}
-      <div className="flex flex-col overflow-hidden h-full">
-        {/* Header patient simplifié */}
-        <div className="bg-white border-b px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={handleClose} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Retour
-            </Button>
-            <div>
-              <h2 className="text-lg font-bold">{fullName}</h2>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {age && <span>{age} ans</span>}
-                <span>•</span>
-                <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
-                <span>•</span>
-                <span className="font-mono text-xs">{maskedNISS}</span>
-              </div>
+    <div className="flex h-full bg-slate-50">
+      {/* Sidebar gauche - Infos patient */}
+      <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
+        {/* Header patient */}
+        <div className="p-4 border-b">
+          <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
+            <ArrowLeft className="w-4 h-4" />
+            Retour
+          </Button>
+          
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {age && <span>{age} ans</span>}
+              <span>•</span>
+              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
             </div>
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
           </div>
         </div>
 
+        {/* Actions rapides */}
+        <div className="p-4 border-b space-y-2">
+          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
+            <Button
+              onClick={() => setShowQuickBilling(true)}
+              className="w-full justify-start gap-2"
+              size="sm"
+            >
+              <CreditCard className="w-4 h-4" />
+              Facturer (Alt+F)
+            </Button>
+          )}
+          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+            <>
+              <Button
+                onClick={() => setShowQuickPrescription(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                <Pill className="w-4 h-4" />
+                Prescrire (Alt+P)
+              </Button>
+              <Button
+                onClick={() => setShowQuickVaccination(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                💉 Vacciner (Alt+V)
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <div className="p-4 border-b">
+          <PatientNotifications patient={patient} />
+        </div>
+
+        {/* Infos clés */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Contact</h3>
+            <div className="space-y-1 text-sm">
+              {patient.telecom?.find(t => t.system === 'phone')?.value && (
+                <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
+              )}
+              {patient.telecom?.find(t => t.system === 'email')?.value && (
+                <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
+              )}
+            </div>
+          </div>
+
+          {patient.mutuelle && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <p className="text-sm">{patient.mutuelle}</p>
+            </div>
+          )}
+
+          {patient.allergies && (
+            <div>
+              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
+              <p className="text-sm">{patient.allergies}</p>
+            </div>
+          )}
+
+          {patient.antecedents_medicaux && (
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Antécédents</h3>
+              <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Zone principale */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Barre de navigation tabs */}
         <div className="bg-white border-b">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6">
               <TabsList className="h-12 bg-transparent">
+                <TabsTrigger value="dashboard" className="gap-2">
+                  🏠 Tableau de bord
+                </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
@@ -244,21 +319,6 @@ export default function Patients() {
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="secure-files" className="gap-2">
                     🔒 Fichiers sécurisés
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="lab-results" className="gap-2">
-                    🧪 Laboratoire
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="prescriptions" className="gap-2">
-                    💊 Ordonnances
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="chapter4" className="gap-2">
-                    🛡️ Chapitre IV
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="billing" className="gap-2">
@@ -276,6 +336,9 @@ export default function Patients() {
         <div className="flex-1 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="p-6">
+              <TabsContent value="dashboard" className="m-0">
+                <PatientDashboard patient={patient} />
+              </TabsContent>
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="consultation" className="m-0">
                   <ConsultationTab patient={patient} />
@@ -290,21 +353,6 @@ export default function Patients() {
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="secure-files" className="m-0">
                   <SecureDocuments patient={patient} />
-                </TabsContent>
-              )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="lab-results" className="m-0">
-                  <LabResultsPanel patient={patient} />
-                </TabsContent>
-              )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="prescriptions" className="m-0">
-                  <PrescriptionTracker patient={patient} />
-                </TabsContent>
-              )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="chapter4" className="m-0">
-                  <ChapterIVPanel patient={patient} />
                 </TabsContent>
               )}
               <TabsContent value="billing" className="m-0">
