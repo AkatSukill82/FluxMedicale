@@ -3,14 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useQuery } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X } from 'lucide-react';
-import { format, isSameDay, parseISO } from 'date-fns';
+import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X, ChevronDown, ChevronUp, Search, Ban, Edit } from 'lucide-react';
+import { format, isSameDay, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import ConsultationEditModal from '../patients/ConsultationEditModal';
+import InvoiceEditModal from '../facturation/InvoiceEditModal';
+
+const ITEMS_LIMIT = 30;
 
 export default function MedicalHistory({ patient }) {
   const location = useLocation();
@@ -19,7 +25,15 @@ export default function MedicalHistory({ patient }) {
   
   const [highlightDate, setHighlightDate] = useState(filterDate);
   const [selectedConsultation, setSelectedConsultation] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const highlightRef = useRef(null);
+  
+  // Pagination et filtres
+  const [showAllConsultations, setShowAllConsultations] = useState(false);
+  const [showAllInvoices, setShowAllInvoices] = useState(false);
+  const [dateFilterStart, setDateFilterStart] = useState('');
+  const [dateFilterEnd, setDateFilterEnd] = useState('');
+  const [showDateFilter, setShowDateFilter] = useState(false);
   const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
     queryKey: ['consultations', patient.id],
     queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation', 100)
