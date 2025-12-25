@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,10 +22,12 @@ import { nissValidator } from '../../eid/nissValidator';
 import { toast } from 'sonner';
 
 import IdSupportButton from '../../idsupport/IdSupportButton';
+import ConsultRNService from '../../identity/ConsultRNService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [showConsultRN, setShowConsultRN] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -349,11 +350,24 @@ export default function FicheAdministrativeTab({ patient }) {
                 </p>
               </div>
 
-              {/* Bouton IdSupport */}
-              {!isEditing && patient.identifier?.some(id =>
-                id.system === 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin'
-              ) && (
-                <IdSupportButton patient={patient} />
+              {/* Boutons IdSupport et ConsultRN */}
+              {!isEditing && (
+                <div className="flex gap-2 flex-wrap">
+                  {patient.identifier?.some(id =>
+                    id.system === 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin'
+                  ) && (
+                    <IdSupportButton patient={patient} />
+                  )}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowConsultRN(true)}
+                    className="gap-2"
+                  >
+                    <User className="w-4 h-4" />
+                    Consulter Registre National
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -474,6 +488,16 @@ export default function FicheAdministrativeTab({ patient }) {
           Complet uniquement dans la fiche patient (rôles autorisés). Toute consultation est auditée.
         </AlertDescription>
       </Alert>
+
+      {/* Modal Consult RN */}
+      <ConsultRNService
+        patient={patient}
+        isOpen={showConsultRN}
+        onClose={() => setShowConsultRN(false)}
+        onUpdate={(updates) => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
+      />
     </div>
   );
 }
