@@ -160,14 +160,14 @@ const EHEALTH_MODULES = [
     description: 'Gestion des relations thérapeutiques pour accès aux données patient',
     category: 'security',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: Heart,
     color: 'red',
     features: [
       { name: 'Création lien (DMG)', implemented: true },
       { name: 'Vérification lien', implemented: true },
-      { name: 'Révocation lien', implemented: false },
-      { name: 'Liens multiples (groupe)', implemented: false }
+      { name: 'Révocation lien', implemented: true },
+      { name: 'Liens multiples (groupe)', implemented: true }
     ],
     links: [
       { label: 'eHealth Therapeutic Links', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-ehealth-therapeutic-links' }

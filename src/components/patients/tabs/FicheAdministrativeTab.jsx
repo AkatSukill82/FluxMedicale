@@ -28,6 +28,7 @@ import ConsultRNService from '../../identity/ConsultRNService';
 import EHealthConsentService from '../../consent/EHealthConsentService';
 import MultEMediAttService from '../../emediatt/MultEMediAttService';
 import MyCareNetService from '../../mycarenet/MyCareNetService';
+import TherapeuticLinksService from '../../therapeutic/TherapeuticLinksService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -36,6 +37,7 @@ export default function FicheAdministrativeTab({ patient }) {
   const [showEHealthConsent, setShowEHealthConsent] = useState(false);
   const [showEMediAtt, setShowEMediAtt] = useState(false);
   const [showMyCareNet, setShowMyCareNet] = useState(false);
+  const [showTherapeuticLinks, setShowTherapeuticLinks] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -402,6 +404,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <CreditCard className="w-4 h-4" />
                     MyCareNet
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowTherapeuticLinks(true)}
+                    className="gap-2"
+                  >
+                    <Heart className="w-4 h-4" />
+                    Liens Thérapeutiques
+                  </Button>
                 </div>
               )}
             </div>
@@ -556,6 +567,16 @@ export default function FicheAdministrativeTab({ patient }) {
         patient={patient}
         isOpen={showMyCareNet}
         onClose={() => setShowMyCareNet(false)}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
+      />
+
+      {/* Modal Liens Thérapeutiques */}
+      <TherapeuticLinksService
+        patient={patient}
+        isOpen={showTherapeuticLinks}
+        onClose={() => setShowTherapeuticLinks(false)}
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
         }}
