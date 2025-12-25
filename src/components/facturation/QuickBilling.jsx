@@ -522,6 +522,35 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
           </TabsContent>
         </Tabs>
       </DialogContent>
+
+      {/* Dialog de confirmation si tarifs non vérifiés */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              Tarifs non vérifiés
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous n'avez pas vérifié les tarifs INAMI avant facturation. 
+              Les montants pourraient être incorrects et entraîner des rejets de la mutuelle.
+              <br /><br />
+              <strong>Êtes-vous sûr de vouloir continuer sans vérification ?</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirmDialog(false)}>
+              Annuler et vérifier
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmBillWithoutCheck}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Continuer sans vérification
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
