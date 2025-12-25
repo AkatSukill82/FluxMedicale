@@ -23,11 +23,13 @@ import { toast } from 'sonner';
 
 import IdSupportButton from '../../idsupport/IdSupportButton';
 import ConsultRNService from '../../identity/ConsultRNService';
+import EHealthConsentService from '../../consent/EHealthConsentService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [showConsultRN, setShowConsultRN] = useState(false);
+  const [showEHealthConsent, setShowEHealthConsent] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -367,6 +369,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <User className="w-4 h-4" />
                     Consulter Registre National
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowEHealthConsent(true)}
+                    className="gap-2"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Consentement eHealth
+                  </Button>
                 </div>
               )}
             </div>
@@ -495,6 +506,16 @@ export default function FicheAdministrativeTab({ patient }) {
         isOpen={showConsultRN}
         onClose={() => setShowConsultRN(false)}
         onUpdate={(updates) => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
+      />
+
+      {/* Modal eHealth Consent */}
+      <EHealthConsentService
+        patient={patient}
+        isOpen={showEHealthConsent}
+        onClose={() => setShowEHealthConsent(false)}
+        onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
         }}
       />
