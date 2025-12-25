@@ -266,7 +266,30 @@ export default function MedicalHistory({ patient }) {
                   </CardContent>
                 </Card>
               );
-            })
+            })}
+            
+            {hasMoreConsultations && (
+              <div className="text-center pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAllConsultations(!showAllConsultations)}
+                  className="gap-2"
+                >
+                  {showAllConsultations ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Masquer ({filteredConsultations.length - ITEMS_LIMIT} consultations)
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Voir plus ({filteredConsultations.length - ITEMS_LIMIT} consultations masquées)
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            </>
           )}
         </TabsContent>
 
@@ -310,13 +333,14 @@ export default function MedicalHistory({ patient }) {
         </TabsContent>
 
         <TabsContent value="invoices" className="space-y-3 mt-4">
-          {invoices.length === 0 ? (
+          {filteredInvoices.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune facture enregistrée</p>
+              <p>{invoices.length === 0 ? 'Aucune facture enregistrée' : 'Aucune facture trouvée pour cette période'}</p>
             </div>
           ) : (
-            invoices.map(invoice => {
+            <>
+            {displayedInvoices.map(invoice => {
               const highlighted = isHighlighted(invoice.invoice_date);
               const invoiceDate = invoice.invoice_date ? new Date(invoice.invoice_date) : null;
               
@@ -327,7 +351,8 @@ export default function MedicalHistory({ patient }) {
                   SENT: 'bg-blue-100 text-blue-800',
                   ACCEPTED: 'bg-green-100 text-green-800',
                   REJECTED: 'bg-red-100 text-red-800',
-                  PAID: 'bg-purple-100 text-purple-800'
+                  PAID: 'bg-purple-100 text-purple-800',
+                  CANCELLED: 'bg-gray-100 text-gray-800'
                 };
                 const labels = {
                   DRAFT: 'Brouillon',
@@ -335,16 +360,21 @@ export default function MedicalHistory({ patient }) {
                   SENT: 'Envoyé',
                   ACCEPTED: 'Acceptée',
                   REJECTED: 'Refusée',
-                  PAID: 'Payée'
+                  PAID: 'Payée',
+                  CANCELLED: 'Annulée'
                 };
                 return <Badge className={styles[status] || styles.DRAFT}>{labels[status] || status}</Badge>;
               };
+
+              const canCancel = invoice.type === 'EATTEST' && invoice.status !== 'CANCELLED';
+              const canEdit = invoice.type === 'EFACT' && invoice.status !== 'CANCELLED' && invoice.status !== 'PAID';
               
               return (
                 <Card 
                   key={invoice.id}
                   ref={highlighted ? highlightRef : null}
-                  className={`transition-colors ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-green-300'}`}
+                  className={`transition-colors cursor-pointer ${highlighted ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'hover:border-green-300 hover:shadow-md'}`}
+                  onClick={() => setSelectedInvoice(invoice)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -370,15 +400,55 @@ export default function MedicalHistory({ patient }) {
                           )}
                         </div>
                         
-                        <p className="text-xs text-slate-400 mt-2 font-mono">
-                          ID: {invoice.id.substring(0, 12)}...
-                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <p className="text-xs text-slate-400 font-mono">
+                            ID: {invoice.id.substring(0, 12)}...
+                          </p>
+                          {canCancel && (
+                            <Badge variant="outline" className="text-xs text-orange-600 border-orange-300">
+                              <Ban className="w-3 h-3 mr-1" />
+                              Annulable
+                            </Badge>
+                          )}
+                          {canEdit && (
+                            <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
+                              <Edit className="w-3 h-3 mr-1" />
+                              Modifiable
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                      <Button variant="ghost" size="icon">
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
               );
-            })
+            })}
+            
+            {hasMoreInvoices && (
+              <div className="text-center pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAllInvoices(!showAllInvoices)}
+                  className="gap-2"
+                >
+                  {showAllInvoices ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Masquer ({filteredInvoices.length - ITEMS_LIMIT} factures)
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Voir plus ({filteredInvoices.length - ITEMS_LIMIT} factures masquées)
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+            </>
           )}
         </TabsContent>
 
