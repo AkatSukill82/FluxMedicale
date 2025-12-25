@@ -16,16 +16,13 @@ import { usePermissions, PERMISSIONS } from '../components/auth/RBACGuard';
 // Import tabs
 import ConsultationTab from '../components/patients/tabs/ConsultationTab';
 import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrativeTab';
-import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
-
 import SecureDocuments from '../components/patients/SecureDocuments';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
-import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
@@ -47,12 +44,11 @@ export default function Patients() {
   
   const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
-  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
   
-  const { readEID, isReading } = useEIDReader();
+  const { readEID } = useEIDReader();
 
   const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', patientId],
@@ -187,8 +183,6 @@ export default function Patients() {
   const officialName = patient.name?.find(n => n.use === 'official') || {};
   const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
   const age = patient.birthDate ? differenceInYears(new Date(), new Date(patient.birthDate)) : null;
-  const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
-  const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
   return (
     <div className="h-full bg-slate-50 flex flex-col">
@@ -279,14 +273,6 @@ export default function Patients() {
           patient={patient}
           isOpen={showBillingModal}
           onClose={() => setShowBillingModal(false)}
-        />
-      )}
-
-      {showPrescriptionModal && (
-        <PrescriptionModal
-          patient={patient}
-          isOpen={showPrescriptionModal}
-          onClose={() => setShowPrescriptionModal(false)}
         />
       )}
 
