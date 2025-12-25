@@ -209,57 +209,17 @@ export default function Patients() {
           </Button>
           
           <div className="space-y-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h2 className="text-xl font-bold">{fullName}</h2>
-                <QuickAssurabilityCheck patient={patient} />
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {age && <span>{age} ans</span>}
-                <span>•</span>
-                <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
-              </div>
-              <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-xl font-bold">{fullName}</h2>
+              <QuickAssurabilityCheck patient={patient} />
             </div>
-        </div>
-
-        {/* Actions rapides */}
-        <div className="p-4 border-b space-y-2">
-          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
-            <Button
-              onClick={() => setShowQuickBilling(true)}
-              className="w-full justify-start gap-2"
-              size="sm"
-            >
-              <CreditCard className="w-4 h-4" />
-              Facturer (Alt+F)
-            </Button>
-          )}
-          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-            <>
-              <Button
-                onClick={() => setShowQuickPrescription(true)}
-                className="w-full justify-start gap-2"
-                size="sm"
-                variant="outline"
-              >
-                <Pill className="w-4 h-4" />
-                Prescrire (Alt+P)
-              </Button>
-              <Button
-                onClick={() => setShowQuickVaccination(true)}
-                className="w-full justify-start gap-2"
-                size="sm"
-                variant="outline"
-              >
-                💉 Vacciner (Alt+V)
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Notifications */}
-        <div className="p-4 border-b">
-          <PatientNotifications patient={patient} />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {age && <span>{age} ans</span>}
+              <span>•</span>
+              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
+          </div>
         </div>
 
         {/* Infos clés */}
