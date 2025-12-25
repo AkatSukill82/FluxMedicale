@@ -28,7 +28,6 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import InsuranceQuickCheck from '../components/patients/InsuranceQuickCheck';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -58,6 +57,7 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
+    const [showGDPRConsent, setShowGDPRConsent] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -209,17 +209,14 @@ export default function Patients() {
           </Button>
           
           <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <h2 className="text-xl font-bold">{fullName}</h2>
-                              <InsuranceQuickCheck patient={patient} />
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              {age && <span>{age} ans</span>}
-                              <span>•</span>
-                              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
-                            </div>
-                            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
-                          </div>
+            <h2 className="text-xl font-bold">{fullName}</h2>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {age && <span>{age} ans</span>}
+              <span>•</span>
+              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+            </div>
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
+          </div>
         </div>
 
         {/* Actions rapides */}
