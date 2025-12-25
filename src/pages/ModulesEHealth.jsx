@@ -100,14 +100,14 @@ const EHEALTH_MODULES = [
     description: 'Envoi électronique des certificats d\'incapacité de travail',
     category: 'documents',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: FileText,
     color: 'orange',
     features: [
       { name: 'Création certificat', implemented: true },
-      { name: 'Envoi eMediAtt', implemented: false },
-      { name: 'Confirmation réception', implemented: false },
-      { name: 'Historique envois', implemented: false }
+      { name: 'Envoi eMediAtt', implemented: true },
+      { name: 'Confirmation réception', implemented: true },
+      { name: 'Historique envois', implemented: true }
     ],
     links: [
       { label: 'eHealth Mult-eMediatt', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-mult-emediatt' }

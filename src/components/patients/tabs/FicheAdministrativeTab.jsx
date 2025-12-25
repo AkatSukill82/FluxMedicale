@@ -16,7 +16,8 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Shield
+  Shield,
+  FileText
 } from 'lucide-react';
 import { nissValidator } from '../../eid/nissValidator';
 import { toast } from 'sonner';
@@ -24,12 +25,14 @@ import { toast } from 'sonner';
 import IdSupportButton from '../../idsupport/IdSupportButton';
 import ConsultRNService from '../../identity/ConsultRNService';
 import EHealthConsentService from '../../consent/EHealthConsentService';
+import MultEMediAttService from '../../emediatt/MultEMediAttService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [showConsultRN, setShowConsultRN] = useState(false);
   const [showEHealthConsent, setShowEHealthConsent] = useState(false);
+  const [showEMediAtt, setShowEMediAtt] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -378,6 +381,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <Shield className="w-4 h-4" />
                     Consentement eHealth
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowEMediAtt(true)}
+                    className="gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Certificat eMediAtt
+                  </Button>
                 </div>
               )}
             </div>
@@ -518,6 +530,13 @@ export default function FicheAdministrativeTab({ patient }) {
         onUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
         }}
+      />
+
+      {/* Modal Mult-eMediAtt */}
+      <MultEMediAttService
+        patient={patient}
+        isOpen={showEMediAtt}
+        onClose={() => setShowEMediAtt(false)}
       />
     </div>
   );
