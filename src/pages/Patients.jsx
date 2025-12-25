@@ -5,13 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ArrowLeft, 
-  X, 
-  CreditCard,
-  Pill,
-  FileText
-} from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
 import { createPageUrl } from '@/utils';
@@ -26,7 +20,7 @@ import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
-import PatientNotifications from '../components/patients/PatientNotifications';
+
 import SecureDocuments from '../components/patients/SecureDocuments';
 
 // Import modals
