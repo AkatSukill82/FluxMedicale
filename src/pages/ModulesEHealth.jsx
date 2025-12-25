@@ -218,19 +218,22 @@ const EHEALTH_MODULES = [
   {
     id: 'annexe82',
     name: 'Annexe 82 / eForms',
-    fullName: 'Demandes Imagerie Médicale',
-    description: 'Formulaires électroniques pour demandes d\'imagerie (IRM, CT, etc.)',
+    fullName: 'Notifications Soins à Domicile',
+    description: 'Formulaires électroniques pour notifications infirmières et soins à domicile',
     category: 'documents',
     mandatory: false,
-    status: 'partial',
+    status: 'implemented',
     icon: FileText,
     color: 'amber',
     features: [
       { name: 'Formulaire Annexe 82', implemented: true },
-      { name: 'Génération PDF', implemented: true },
-      { name: 'Envoi électronique', implemented: false }
+      { name: 'Envoi MyCareNet', implemented: true },
+      { name: 'Suivi réponses', implemented: true },
+      { name: 'Historique demandes', implemented: true }
     ],
-    links: []
+    links: [
+      { label: 'eForms', url: 'https://www.ehealth.fgov.be' }
+    ]
   }
 ];
 
