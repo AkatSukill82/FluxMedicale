@@ -30,6 +30,7 @@ import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
 import LabResultsPanel from '../components/labs/LabResultsPanel';
 import PrescriptionTracker from '../components/prescriptions/PrescriptionTracker';
+import ChapterIVPanel from '../components/chapterIV/ChapterIVPanel';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -255,6 +256,11 @@ export default function Patients() {
                     💊 Ordonnances
                   </TabsTrigger>
                 )}
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="chapter4" className="gap-2">
+                    🛡️ Chapitre IV
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
@@ -294,6 +300,11 @@ export default function Patients() {
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="prescriptions" className="m-0">
                   <PrescriptionTracker patient={patient} />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="chapter4" className="m-0">
+                  <ChapterIVPanel patient={patient} />
                 </TabsContent>
               )}
               <TabsContent value="billing" className="m-0">
