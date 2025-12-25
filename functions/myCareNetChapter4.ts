@@ -157,27 +157,7 @@ Deno.serve(async (req) => {
     }
   } catch (error) {
     console.error('MyCareNet Chapter IV Error:', error);
-    
-    // Classification de l'erreur pour le frontend
-    const errorMessage = error.message || 'Erreur inconnue';
-    const isExternalError = 
-      errorMessage.includes('timeout') ||
-      errorMessage.includes('ECONNREFUSED') ||
-      errorMessage.includes('network') ||
-      errorMessage.includes('SOAP') ||
-      errorMessage.includes('MyCareNet');
-    
-    const errorResponse = {
-      error: errorMessage,
-      error_type: isExternalError ? 'EXTERNAL' : 'INTERNAL',
-      error_source: isExternalError ? 'MyCareNet' : 'Application',
-      timestamp: new Date().toISOString(),
-      suggestion: isExternalError 
-        ? 'Le service MyCareNet est temporairement indisponible. Veuillez réessayer dans quelques minutes.'
-        : 'Une erreur interne s\'est produite. Veuillez contacter le support technique.'
-    };
-    
-    return Response.json(errorResponse, { status: isExternalError ? 503 : 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
 

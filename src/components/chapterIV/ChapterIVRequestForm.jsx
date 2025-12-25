@@ -29,23 +29,6 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { myCareNetChapter4 } from '@/functions/myCareNetChapter4';
 
-// Classification des erreurs
-function classifyError(error) {
-  const message = error?.message?.toLowerCase() || '';
-  const status = error?.status || error?.response?.status;
-
-  if (status === 400 || message.includes('manquant') || message.includes('invalide')) {
-    return { type: 'VALIDATION', title: 'Données invalides', icon: '⚠️' };
-  }
-  if (status === 401 || status === 403) {
-    return { type: 'AUTH', title: 'Non autorisé', icon: '🔒' };
-  }
-  if (message.includes('mycarenet') || message.includes('timeout') || message.includes('connexion') || status >= 502) {
-    return { type: 'EXTERNAL', title: 'Erreur MyCareNet (service externe)', icon: '🌐' };
-  }
-  return { type: 'INTERNAL', title: 'Erreur interne', icon: '⚙️' };
-}
-
 // Codes diagnostics courants pour Chapitre IV
 const COMMON_DIAGNOSES = {
   '5.8.1': [
@@ -135,30 +118,12 @@ export default function ChapterIVRequestForm({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['chapter4-requests'] });
-      toast.success(`Demande Chapitre IV soumise avec succès`, {
-        description: `Référence MyCareNet: ${data.mycarenet_reference}`
-      });
+      toast.success(`Demande Chapitre IV soumise (Réf: ${data.mycarenet_reference})`);
       if (onSuccess) onSuccess(data);
       onClose();
     },
     onError: (error) => {
-      const classified = classifyError(error);
-      if (classified.type === 'EXTERNAL') {
-        toast.error(`${classified.icon} ${classified.title}`, {
-          description: `Le service MyCareNet a retourné une erreur: ${error.message}. Réessayez plus tard.`,
-          duration: 8000
-        });
-      } else if (classified.type === 'VALIDATION') {
-        toast.error(`${classified.icon} ${classified.title}`, {
-          description: error.message,
-          duration: 6000
-        });
-      } else {
-        toast.error(`${classified.icon} ${classified.title}`, {
-          description: `Une erreur s'est produite dans notre système: ${error.message}. Contactez le support si le problème persiste.`,
-          duration: 8000
-        });
-      }
+      toast.error(`Erreur: ${error.message}`);
     }
   });
 

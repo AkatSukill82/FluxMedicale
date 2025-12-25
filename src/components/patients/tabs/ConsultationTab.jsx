@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Clock, Plus } from 'lucide-react';
+import { Loader2, Plus, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import VitalSignsChart from '../../clinical/VitalSignsChart';
 import CareGoalsPanel from '../../clinical/CareGoalsPanel';
+import ContextualInspector from '../../clinical/ContextualInspector';
 import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
 
 export default function ConsultationTab({ patient }) {
-  const [selectedConsultation, setSelectedConsultation] = useState(null);
+  const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedConsultation, setSelectedConsultation] = useState(null);
 
   const { data: consultations = [], isLoading } = useQuery({
     queryKey: ['consultations', patient.id],
     queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation'),
+    enabled: !!patient?.id
+  });
+
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me()
+  });
+
+  const { data: vitalSigns = [] } = useQuery({
+    queryKey: ['vital-signs', patient.id],
+    queryFn: () => base44.entities.VitalSigns.filter({ patient_id: patient.id }, '-measured_at'),
     enabled: !!patient?.id
   });
 
@@ -66,7 +80,19 @@ export default function ConsultationTab({ patient }) {
 
   return (
     <div className="space-y-6">
-      {/* Bouton Nouvelle Consultation en haut */}
+      {/* Contextual Inspector */}
+      <ContextualInspector 
+        patient={patient}
+        consultations={consultations}
+        vitalSigns={vitalSigns}
+      />
+
+      {/* Vital Signs Chart */}
+      <VitalSignsChart patientId={patient.id} />
+
+      {/* Care Goals */}
+      <CareGoalsPanel patientId={patient.id} />
+
       <div className="flex justify-end">
         <Button onClick={() => setIsFormOpen(true)} size="lg" className="gap-2">
           <Plus className="w-5 h-5" />
@@ -74,21 +100,16 @@ export default function ConsultationTab({ patient }) {
         </Button>
       </div>
 
-      {/* Objectifs de soins */}
-      <CareGoalsPanel patientId={patient.id} />
-
       {/* Modal de consultation */}
       <ConsultationWorkflow
         patient={patient}
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
       />
-
-      {/* Liste des consultations */}
       {consultations.length === 0 ? (
         <p className="text-center text-muted-foreground py-8">Aucune consultation enregistrée pour ce patient.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {consultations.map(consult => {
             const consultDate = consult.date_consultation ? new Date(consult.date_consultation) : null;
             const isValidDate = consultDate && !isNaN(consultDate.getTime());

@@ -29,9 +29,6 @@ import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
 import LabResultsPanel from '../components/labs/LabResultsPanel';
-import PrescriptionTracker from '../components/prescriptions/PrescriptionTracker';
-import ChapterIVPanel from '../components/chapterIV/ChapterIVPanel';
-import PatientDashboard from '../components/patients/PatientDashboard';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -55,7 +52,7 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
@@ -306,9 +303,6 @@ export default function Patients() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6">
               <TabsList className="h-12 bg-transparent">
-                <TabsTrigger value="dashboard" className="gap-2">
-                  🏠 Tableau de bord
-                </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
@@ -321,28 +315,18 @@ export default function Patients() {
                   📁 Documents
                 </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="secure-files" className="gap-2">
-                    🔒 Fichiers sécurisés
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="billing" className="gap-2">
+                    <TabsTrigger value="secure-files" className="gap-2">
+                      🔒 Fichiers sécurisés
+                    </TabsTrigger>
+                  )}
+                  {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                    <TabsTrigger value="lab-results" className="gap-2">
+                      🧪 Laboratoire
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="lab-results" className="gap-2">
-                    🧪 Laboratoire
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="prescriptions" className="gap-2">
-                    💊 Ordonnances
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="chapter4" className="gap-2">
-                    🛡️ Chapitre IV
-                  </TabsTrigger>
-                )}
                 <TabsTrigger value="admin" className="gap-2">
                   👤 Admin
                 </TabsTrigger>
@@ -355,9 +339,6 @@ export default function Patients() {
         <div className="flex-1 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="p-6">
-              <TabsContent value="dashboard" className="m-0">
-                <PatientDashboard patient={patient} />
-              </TabsContent>
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="consultation" className="m-0">
                   <ConsultationTab patient={patient} />
@@ -374,24 +355,14 @@ export default function Patients() {
                   <SecureDocuments patient={patient} />
                 </TabsContent>
               )}
-              <TabsContent value="billing" className="m-0">
-                <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
-              </TabsContent>
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="lab-results" className="m-0">
                   <LabResultsPanel patient={patient} />
                 </TabsContent>
               )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="prescriptions" className="m-0">
-                  <PrescriptionTracker patient={patient} />
-                </TabsContent>
-              )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="chapter4" className="m-0">
-                  <ChapterIVPanel patient={patient} />
-                </TabsContent>
-              )}
+              <TabsContent value="billing" className="m-0">
+                <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
+              </TabsContent>
               <TabsContent value="admin" className="m-0">
                 <FicheAdministrativeTab patient={patient} />
               </TabsContent>

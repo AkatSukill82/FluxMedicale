@@ -52,27 +52,11 @@ const PRESCRIPTION_TEMPLATES = [
   }
 ];
 
-export default function QuickPrescription({ patient, isOpen, onClose, initialMedications = null }) {
+export default function QuickPrescription({ patient, isOpen, onClose }) {
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [customMedications, setCustomMedications] = useState([]);
-  const [activeTab, setActiveTab] = useState(initialMedications ? 'custom' : 'templates');
-
-  // Pré-remplir avec les médicaments initiaux (duplication)
-  React.useEffect(() => {
-    if (initialMedications && initialMedications.length > 0) {
-      setCustomMedications(initialMedications.map(med => ({
-        product_name: med.nom_produit || med.product_name,
-        cnk: med.cnk,
-        substance_name: med.substance_name,
-        posology: med.posologie || med.posology || '',
-        duration: med.duree_traitement || med.duration || '',
-        quantity: med.quantite || med.quantity || 1,
-        instructions: med.instructions || ''
-      })));
-      setActiveTab('custom');
-    }
-  }, [initialMedications]);
+  const [activeTab, setActiveTab] = useState('templates');
 
   // Récupérer NISS du patient
   const getNISS = (patient) => {
