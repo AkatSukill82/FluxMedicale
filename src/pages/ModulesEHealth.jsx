@@ -78,7 +78,7 @@ const EHEALTH_MODULES = [
     description: 'Services de facturation et DMG avec les mutuelles (CIN)',
     category: 'billing',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: CreditCard,
     color: 'green',
     features: [

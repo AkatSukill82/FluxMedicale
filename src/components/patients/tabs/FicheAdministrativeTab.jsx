@@ -17,7 +17,8 @@ import {
   XCircle,
   AlertTriangle,
   Shield,
-  FileText
+  FileText,
+  Heart
 } from 'lucide-react';
 import { nissValidator } from '../../eid/nissValidator';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ import IdSupportButton from '../../idsupport/IdSupportButton';
 import ConsultRNService from '../../identity/ConsultRNService';
 import EHealthConsentService from '../../consent/EHealthConsentService';
 import MultEMediAttService from '../../emediatt/MultEMediAttService';
+import MyCareNetService from '../../mycarenet/MyCareNetService';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -33,6 +35,7 @@ export default function FicheAdministrativeTab({ patient }) {
   const [showConsultRN, setShowConsultRN] = useState(false);
   const [showEHealthConsent, setShowEHealthConsent] = useState(false);
   const [showEMediAtt, setShowEMediAtt] = useState(false);
+  const [showMyCareNet, setShowMyCareNet] = useState(false);
 
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
@@ -390,6 +393,15 @@ export default function FicheAdministrativeTab({ patient }) {
                     <FileText className="w-4 h-4" />
                     Certificat eMediAtt
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowMyCareNet(true)}
+                    className="gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    MyCareNet
+                  </Button>
                 </div>
               )}
             </div>
@@ -537,6 +549,16 @@ export default function FicheAdministrativeTab({ patient }) {
         patient={patient}
         isOpen={showEMediAtt}
         onClose={() => setShowEMediAtt(false)}
+      />
+
+      {/* Modal MyCareNet */}
+      <MyCareNetService
+        patient={patient}
+        isOpen={showMyCareNet}
+        onClose={() => setShowMyCareNet(false)}
+        onUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+        }}
       />
     </div>
   );
