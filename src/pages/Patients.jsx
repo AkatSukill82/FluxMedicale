@@ -28,6 +28,8 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import LabResultsPanel from '../components/labs/LabResultsPanel';
+import PrescriptionTracker from '../components/prescriptions/PrescriptionTracker';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -243,6 +245,16 @@ export default function Patients() {
                     🔒 Fichiers sécurisés
                   </TabsTrigger>
                 )}
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="lab-results" className="gap-2">
+                    🧪 Laboratoire
+                  </TabsTrigger>
+                )}
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="prescriptions" className="gap-2">
+                    💊 Ordonnances
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
@@ -272,6 +284,16 @@ export default function Patients() {
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="secure-files" className="m-0">
                   <SecureDocuments patient={patient} />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="lab-results" className="m-0">
+                  <LabResultsPanel patient={patient} />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="prescriptions" className="m-0">
+                  <PrescriptionTracker patient={patient} />
                 </TabsContent>
               )}
               <TabsContent value="billing" className="m-0">
