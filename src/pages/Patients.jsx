@@ -209,14 +209,17 @@ export default function Patients() {
           </Button>
           
           <div className="space-y-2">
-            <h2 className="text-xl font-bold">{fullName}</h2>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {age && <span>{age} ans</span>}
-              <span>•</span>
-              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-xl font-bold">{fullName}</h2>
+                <QuickAssurabilityCheck patient={patient} />
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                {age && <span>{age} ans</span>}
+                <span>•</span>
+                <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+              </div>
+              <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
             </div>
-            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
-          </div>
         </div>
 
         {/* Actions rapides */}
