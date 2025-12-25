@@ -5,24 +5,24 @@ import Dashboard from './pages/Dashboard';
 import EIDTest from './pages/EIDTest';
 import Facturation from './pages/Facturation';
 import FollowUpTasks from './pages/FollowUpTasks';
+import GDPRRegistry from './pages/GDPRRegistry';
 import Health from './pages/Health';
 import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
+import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import ProfilMedecin from './pages/ProfilMedecin';
 import ReferentialImport from './pages/ReferentialImport';
+import SecureMessages from './pages/SecureMessages';
+import Securite from './pages/Securite';
 import Statistics from './pages/Statistics';
 import TeleconsultationRoom from './pages/TeleconsultationRoom';
 import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
-import ModulesEHealth from './pages/ModulesEHealth';
-import Securite from './pages/Securite';
-import GDPRRegistry from './pages/GDPRRegistry';
-import SecureMessages from './pages/SecureMessages';
 import __Layout from './Layout.jsx';
 
 
@@ -34,24 +34,24 @@ export const PAGES = {
     "EIDTest": EIDTest,
     "Facturation": Facturation,
     "FollowUpTasks": FollowUpTasks,
+    "GDPRRegistry": GDPRRegistry,
     "Health": Health,
     "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
+    "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "ProfilMedecin": ProfilMedecin,
     "ReferentialImport": ReferentialImport,
+    "SecureMessages": SecureMessages,
+    "Securite": Securite,
     "Statistics": Statistics,
     "TeleconsultationRoom": TeleconsultationRoom,
     "Telemedicine": Telemedicine,
     "Templates": Templates,
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
-    "ModulesEHealth": ModulesEHealth,
-    "Securite": Securite,
-    "GDPRRegistry": GDPRRegistry,
-    "SecureMessages": SecureMessages,
 }
 
 export const pagesConfig = {
