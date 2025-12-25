@@ -66,16 +66,16 @@ export default function ConsultationTab({ patient }) {
 
   return (
     <div className="space-y-6">
-      {/* Objectifs de soins */}
-      <CareGoalsPanel patientId={patient.id} />
-
-      {/* Bouton Nouvelle Consultation */}
+      {/* Bouton Nouvelle Consultation en haut */}
       <div className="flex justify-end">
         <Button onClick={() => setIsFormOpen(true)} size="lg" className="gap-2">
           <Plus className="w-5 h-5" />
           Nouvelle Consultation
         </Button>
       </div>
+
+      {/* Objectifs de soins */}
+      <CareGoalsPanel patientId={patient.id} />
 
       {/* Modal de consultation */}
       <ConsultationWorkflow
