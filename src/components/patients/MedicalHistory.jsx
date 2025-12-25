@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConsultationEditModal from '../patients/ConsultationEditModal';
-import InvoiceEditModal from '../facturation/InvoiceEditModal';
+import InvoiceEditModal from '../../components/facturation/InvoiceEditModal';
 
 const ITEMS_LIMIT = 30;
 
