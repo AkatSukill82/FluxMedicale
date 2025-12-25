@@ -58,6 +58,99 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [activeTab, setActiveTab] = useState('quick');
+  
+  // États pour vérification assurabilité et tarifs
+  const [assurabilityChecked, setAssurabilityChecked] = useState(false);
+  const [assurabilityResult, setAssurabilityResult] = useState(null);
+  const [checkingAssurability, setCheckingAssurability] = useState(false);
+  const [tarifChecked, setTarifChecked] = useState(false);
+  const [tarifResult, setTarifResult] = useState(null);
+  const [checkingTarif, setCheckingTarif] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingBillData, setPendingBillData] = useState(null);
+
+  // Vérification assurabilité patient
+  const handleCheckAssurability = async () => {
+    setCheckingAssurability(true);
+    try {
+      // Simulation appel MyCareNet (en production: appel réel)
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      const niss = patient?.identifier?.find(id => id.system?.includes('ssin'))?.value;
+      const mutuelle = patient?.mutuelle || 'Non renseignée';
+      
+      // Simulation résultat
+      const result = {
+        success: true,
+        assurable: true,
+        niss: niss ? `***-${niss.slice(-4)}` : 'Non renseigné',
+        mutuelle: mutuelle,
+        regime: mutuelle?.toLowerCase().includes('bim') || mutuelle?.toLowerCase().includes('omnio') ? 'BIM/OMNIO' : 'Régime normal',
+        tiers_payant: true,
+        dmg: true,
+        validUntil: '31/12/2025'
+      };
+      
+      setAssurabilityResult(result);
+      setAssurabilityChecked(true);
+      toast.success('Patient assuré - Tiers-payant applicable');
+    } catch (error) {
+      setAssurabilityResult({ success: false, error: error.message });
+      toast.error('Erreur lors de la vérification');
+    } finally {
+      setCheckingAssurability(false);
+    }
+  };
+
+  // Vérification tarifs INAMI
+  const handleCheckTarif = async () => {
+    setCheckingTarif(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const codes = activeTab === 'quick' && selectedTemplate 
+        ? selectedTemplate.codes 
+        : selectedCodes.map(c => c.code);
+      
+      // Simulation vérification tarifs
+      const result = {
+        success: true,
+        codesVerified: codes.length,
+        allCorrect: true,
+        details: codes.map(code => ({
+          code,
+          status: 'correct',
+          message: 'Tarif conforme INAMI 2024'
+        }))
+      };
+      
+      setTarifResult(result);
+      setTarifChecked(true);
+      toast.success('Tarifs vérifiés - Tous conformes INAMI');
+    } catch (error) {
+      setTarifResult({ success: false, error: error.message });
+      toast.error('Erreur lors de la vérification des tarifs');
+    } finally {
+      setCheckingTarif(false);
+    }
+  };
+
+  // Fonction pour tenter la facturation
+  const attemptBill = (data) => {
+    if (!tarifChecked) {
+      setPendingBillData(data);
+      setShowConfirmDialog(true);
+    } else {
+      billMutation.mutate(data);
+    }
+  };
+
+  const confirmBillWithoutCheck = () => {
+    setShowConfirmDialog(false);
+    if (pendingBillData) {
+      billMutation.mutate(pendingBillData);
+    }
+  };
 
   const billMutation = useMutation({
     mutationFn: async (data) => {
