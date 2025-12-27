@@ -126,6 +126,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
     mutationFn: async () => {
       setIsSaving(true);
       const currentUser = await base44.auth.me();
+      let invoice = null;
       
       // 1. Créer la consultation
       const consultation = await base44.entities.Consultation.create({
@@ -153,7 +154,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         }));
 
         // Créer la prescription localement (Recip-e sera appelé si NISS disponible)
-        const prescription = await base44.entities.Prescription.create({
+        await base44.entities.Prescription.create({
           patient_id: patient.id,
           medecin_email: currentUser.email,
           date_prescription: new Date().toISOString(),
@@ -198,7 +199,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         const totalReimbursed = selectedCodes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
         const totalPatientShare = totalHonorarium - totalReimbursed;
 
-        const invoice = await base44.entities.Invoice.create({
+        invoice = await base44.entities.Invoice.create({
           patient_id: patient.id,
           provider_id: currentUser.email,
           type: 'EATTEST',
