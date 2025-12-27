@@ -33,6 +33,7 @@ import {
   ChevronsRight,
   Dot,
   Database,
+  Building2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Statistiques', path: 'Statistics', icon: Activity },
     { title: 'Modules eHealth', path: 'ModulesEHealth', icon: Database },
+    { title: 'Mes Cabinets', path: 'Cabinets', icon: Building2 },
   ];
   
   const adminNavItems = [
