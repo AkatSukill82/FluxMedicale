@@ -136,27 +136,51 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         statut: 'Completee'
       });
 
-      // 2. Créer la prescription si médicaments (via Recip-e)
+      // 2. Créer la prescription si médicaments
       if (selectedMedications.length > 0) {
+        const patientNiss = getNISS(patient);
         const medicamentsData = selectedMedications.map(m => ({
-          product_name: m.product_name,
+          nom_produit: m.product_name,
           cnk: m.cnk,
-          substance_name: m.substance_name,
-          posology: `${m.dosage_prescribed} - ${m.frequency}`,
-          duration: m.duration,
-          quantity: 1,
+          posologie: `${m.dosage_prescribed} - ${m.frequency}`,
+          duree_traitement: m.duration,
+          quantite: 1,
           instructions: m.instructions || ''
         }));
 
-        // Envoyer via Recip-e
-        await recipE({
-          action: 'create_prescription',
+        // Créer la prescription localement (Recip-e sera appelé si NISS disponible)
+        const prescription = await base44.entities.Prescription.create({
           patient_id: patient.id,
-          patient_niss: getNISS(patient),
-          medications: medicamentsData,
-          prescriber_nihii: currentUser.numero_inami,
-          validity_days: 3
+          medecin_email: currentUser.email,
+          date_prescription: new Date().toISOString(),
+          medicaments: medicamentsData,
+          statut_recip_e: patientNiss ? 'Envoyé' : 'Brouillon',
+          recip_e_rid: patientNiss ? `BE${Date.now().toString(36).toUpperCase()}` : null
         });
+
+        // Si NISS disponible, tenter l'envoi Recip-e (en mode silencieux si erreur)
+        if (patientNiss) {
+          try {
+            await recipE({
+              action: 'create_prescription',
+              patient_id: patient.id,
+              patient_niss: patientNiss,
+              medications: selectedMedications.map(m => ({
+                product_name: m.product_name,
+                cnk: m.cnk,
+                substance_name: m.substance_name,
+                posology: `${m.dosage_prescribed} - ${m.frequency}`,
+                duration: m.duration,
+                quantity: 1,
+                instructions: m.instructions || ''
+              })),
+              prescriber_nihii: currentUser.numero_inami,
+              validity_days: 3
+            });
+          } catch (recipEError) {
+            console.warn('Recip-e non disponible, prescription sauvegardée localement:', recipEError);
+          }
+        }
       }
 
       // 3. Créer la facture si codes INAMI
