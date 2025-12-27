@@ -631,11 +631,18 @@ export default function GrowthChart({ patient }) {
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
-              {isChild && (
-                <p className="text-xs text-slate-500 mt-2 text-center">
-                  Zones grises : percentiles OMS (P3-P50-P97) pour {patientGender === 'female' ? 'filles' : 'garçons'}
+              <div className="mt-2 p-2 bg-slate-50 rounded text-xs text-center">
+                <p className="text-slate-600 mb-1">
+                  <span className="inline-block w-3 h-3 bg-slate-200 mr-1"></span>
+                  Zone grise = Normes OMS (P3 à P97) • 
+                  <span className="text-blue-600 font-semibold ml-1">━ Ligne bleue = Patient</span>
                 </p>
-              )}
+                {isChild && (
+                  <p className="text-slate-500">
+                    Référence: {patientGender === 'female' ? 'filles' : 'garçons'} 0-18 ans
+                  </p>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="height">
