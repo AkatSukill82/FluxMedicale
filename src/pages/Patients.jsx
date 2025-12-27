@@ -36,6 +36,7 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import PatientExportModal from '../components/patients/PatientExportModal';
 
 export default function Patients() {
   const { t } = useI18n();
