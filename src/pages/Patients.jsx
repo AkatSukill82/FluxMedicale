@@ -224,8 +224,17 @@ export default function Patients() {
               >
                 💉 Vacciner (Alt+V)
               </Button>
-            </>
-          )}
+              </>
+              )}
+              <Button
+              onClick={() => setShowExportModal(true)}
+              className="w-full justify-start gap-2"
+              size="sm"
+              variant="outline"
+              >
+              <Download className="w-4 h-4" />
+              Exporter dossier
+              </Button>
         </div>
 
         {/* Notifications */}
