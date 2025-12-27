@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import CareGoalsPanel from '../../clinical/CareGoalsPanel';
 import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
+import GrowthChart from '../GrowthChart';
 
 export default function ConsultationTab({ patient }) {
   const [selectedConsultation, setSelectedConsultation] = useState(null);
