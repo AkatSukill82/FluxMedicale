@@ -208,6 +208,9 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast.success('Consultation enregistrée avec succès');
+      if (printInvoice && selectedCodes.length > 0) {
+        window.print();
+      }
       onClose();
     },
     onError: (error) => {
