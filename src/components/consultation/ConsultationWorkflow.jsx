@@ -231,13 +231,14 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
 
       return consultation;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['consultations'] });
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast.success('Consultation enregistrée avec succès');
-      if (printInvoice && selectedCodes.length > 0) {
-        window.print();
+      if (printInvoice && selectedCodes.length > 0 && result?.invoice) {
+        // Imprimer uniquement le reçu
+        printReceipt(result.invoice, result.invoiceLines);
       }
       onClose();
     },
