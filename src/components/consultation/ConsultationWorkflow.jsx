@@ -271,6 +271,150 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
     }
   };
 
+  // Fonction pour imprimer uniquement le reçu
+  const printReceipt = (invoice, lines) => {
+    const printWindow = window.open('', '_blank', 'width=600,height=800');
+    if (!printWindow) {
+      toast.error('Impossible d\'ouvrir la fenêtre d\'impression');
+      return;
+    }
+
+    const patientName = patient?.name?.[0] 
+      ? `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` 
+      : 'Patient';
+    const patientNiss = patient?.identifier?.find(id => id.system?.includes('ssin'))?.value || '';
+    const maskedNiss = patientNiss ? `***.**.***.${patientNiss.slice(-2)}` : 'N/A';
+
+    const formatAmount = (cents) => {
+      if (!cents && cents !== 0) return '0,00 €';
+      return `${(cents / 100).toFixed(2).replace('.', ',')} €`;
+    };
+
+    const invoiceDate = invoice?.invoice_date 
+      ? new Date(invoice.invoice_date).toLocaleDateString('fr-BE')
+      : new Date().toLocaleDateString('fr-BE');
+
+    const linesHtml = lines.map(line => `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; font-family: monospace;">${line.code || ''}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd;">${line.title_fr || ''}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">${formatAmount(line.is_custom_price ? line.custom_honorarium : line.honorarium)}</td>
+      </tr>
+    `).join('');
+
+    const totalAmount = lines.reduce((sum, code) => {
+      const amount = isConventionne 
+        ? (code.original_honorarium || code.honorarium || 0) 
+        : (code.is_custom_price ? (code.custom_honorarium || 0) : (code.honorarium || 0));
+      return sum + amount;
+    }, 0);
+    const totalReimbursed = lines.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
+    const patientShare = totalAmount - totalReimbursed;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Reçu</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: Arial, sans-serif; 
+            padding: 20mm;
+            font-size: 11pt;
+            color: #000;
+          }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
+          .header h1 { font-size: 16pt; text-transform: uppercase; margin-bottom: 5px; }
+          .header p { font-size: 10pt; margin: 2px 0; }
+          .title { text-align: center; margin-bottom: 20px; }
+          .title h2 { font-size: 14pt; text-transform: uppercase; letter-spacing: 2px; }
+          .info-box { border: 1px solid #000; padding: 10px; margin-bottom: 15px; }
+          .info-box p { margin: 3px 0; }
+          table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+          th { text-align: left; padding: 8px; border-bottom: 2px solid #000; font-size: 10pt; }
+          th:last-child { text-align: right; }
+          .totals { border-top: 2px solid #000; padding-top: 15px; margin-top: 15px; }
+          .totals .row { display: flex; justify-content: space-between; margin: 5px 0; }
+          .totals .total { font-size: 14pt; font-weight: bold; border-top: 1px solid #000; padding-top: 10px; margin-top: 10px; }
+          .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #999; text-align: center; font-size: 9pt; color: #666; }
+          @media print {
+            body { padding: 10mm; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${currentUser?.full_name || 'Dr.'}</h1>
+          <p>Médecin généraliste</p>
+          ${currentUser?.numero_inami ? `<p style="font-family: monospace;">N° INAMI: ${currentUser.numero_inami}</p>` : ''}
+        </div>
+
+        <div class="title">
+          <h2>Reçu de paiement</h2>
+          <p>Date: ${invoiceDate}</p>
+          <p style="font-family: monospace;">N° ${invoice?.id?.slice(0, 8).toUpperCase() || '---'}</p>
+        </div>
+
+        <div class="info-box">
+          <p><strong>Patient:</strong> ${patientName}</p>
+          <p><strong>NISS:</strong> ${maskedNiss}</p>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <p><strong>Type:</strong> ${invoice?.type === 'EATTEST' ? 'eAttest' : invoice?.type === 'EFACT' ? 'eFact' : 'Papier'}</p>
+          <p><strong>Paiement:</strong> ${
+            invoice?.payment_method === 'CARD' ? 'Carte bancaire' :
+            invoice?.payment_method === 'CASH' ? 'Espèces' :
+            invoice?.payment_method === 'BANK' ? 'Virement' : 'N/A'
+          }</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Code INAMI</th>
+              <th>Description</th>
+              <th style="text-align: right;">Montant</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${linesHtml}
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="row">
+            <span>Honoraires totaux:</span>
+            <span>${formatAmount(totalAmount)}</span>
+          </div>
+          <div class="row">
+            <span>Part mutuelle:</span>
+            <span>${formatAmount(totalReimbursed)}</span>
+          </div>
+          <div class="row total">
+            <span>Montant payé par le patient:</span>
+            <span>${formatAmount(patientShare)}</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Merci de votre confiance</p>
+          <p>Conservez ce reçu pour vos remboursements</p>
+        </div>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   const formatAmount = (cents) => {
     if (!cents) return '0,00 €';
     return `${(cents / 100).toFixed(2).replace('.', ',')} €`;
