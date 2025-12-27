@@ -59,6 +59,7 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
