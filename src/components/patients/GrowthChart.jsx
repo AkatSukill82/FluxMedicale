@@ -393,66 +393,187 @@ export default function GrowthChart({ patient }) {
         </div>
       </CardHeader>
       <CardContent>
-        {/* Résumé des dernières mesures */}
+        {/* Résumé des dernières mesures avec comparaison */}
         {latestMeasurement && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {latestMeasurement.poids_kg && (
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <div className="flex items-center gap-2 text-blue-700 mb-1">
-                  <Scale className="w-4 h-4" />
-                  <span className="text-xs font-medium">Poids</span>
+          <div className="space-y-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {latestMeasurement.poids_kg && (
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-700 mb-1">
+                    <Scale className="w-4 h-4" />
+                    <span className="text-xs font-medium">Poids</span>
+                  </div>
+                  <p className="text-xl font-bold text-blue-900">{latestMeasurement.poids_kg} kg</p>
+                  {latestDeviations?.weight && (
+                    <div className="mt-1 text-xs">
+                      <span className="text-slate-500">Norme: {latestDeviations.weight.expected.toFixed(1)} kg</span>
+                      <span className={`ml-1 font-medium ${
+                        Math.abs(parseFloat(latestDeviations.weight.percent)) <= 10 ? 'text-green-600' :
+                        Math.abs(parseFloat(latestDeviations.weight.percent)) <= 20 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        ({latestDeviations.weight.percent > 0 ? '+' : ''}{latestDeviations.weight.percent}%)
+                      </span>
+                    </div>
+                  )}
+                  {weightEvolution !== null && (
+                    <p className={`text-xs ${weightEvolution > 0 ? 'text-green-600' : weightEvolution < 0 ? 'text-red-600' : 'text-slate-500'}`}>
+                      Évol: {weightEvolution > 0 ? '+' : ''}{weightEvolution.toFixed(1)} kg
+                    </p>
+                  )}
                 </div>
-                <p className="text-xl font-bold text-blue-900">{latestMeasurement.poids_kg} kg</p>
-                {weightEvolution !== null && (
-                  <p className={`text-xs ${weightEvolution > 0 ? 'text-green-600' : weightEvolution < 0 ? 'text-red-600' : 'text-slate-500'}`}>
-                    {weightEvolution > 0 ? '+' : ''}{weightEvolution.toFixed(1)} kg
+              )}
+              {latestMeasurement.taille_cm && (
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-700 mb-1">
+                    <Ruler className="w-4 h-4" />
+                    <span className="text-xs font-medium">Taille</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-900">{latestMeasurement.taille_cm} cm</p>
+                  {latestDeviations?.height && (
+                    <div className="mt-1 text-xs">
+                      <span className="text-slate-500">Norme: {latestDeviations.height.expected.toFixed(1)} cm</span>
+                      <span className={`ml-1 font-medium ${
+                        Math.abs(parseFloat(latestDeviations.height.percent)) <= 5 ? 'text-green-600' :
+                        Math.abs(parseFloat(latestDeviations.height.percent)) <= 10 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        ({latestDeviations.height.percent > 0 ? '+' : ''}{latestDeviations.height.percent}%)
+                      </span>
+                    </div>
+                  )}
+                  {heightEvolution !== null && (
+                    <p className="text-xs text-green-600">
+                      Évol: +{heightEvolution.toFixed(1)} cm
+                    </p>
+                  )}
+                </div>
+              )}
+              {latestMeasurement.imc && (
+                <div className={`p-3 rounded-lg ${
+                  latestMeasurement.imc < 18.5 ? 'bg-yellow-50' :
+                  latestMeasurement.imc < 25 ? 'bg-emerald-50' :
+                  latestMeasurement.imc < 30 ? 'bg-orange-50' : 'bg-red-50'
+                }`}>
+                  <div className="flex items-center gap-2 text-slate-700 mb-1">
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="text-xs font-medium">IMC</span>
+                  </div>
+                  <p className="text-xl font-bold">{latestMeasurement.imc}</p>
+                  <div className="mt-1 text-xs">
+                    <span className="text-slate-500">Idéal: 18.5-25</span>
+                    {latestDeviations?.imc && (
+                      <span className={`ml-1 font-medium ${
+                        latestDeviations.imc.status === 'normal' ? 'text-green-600' :
+                        latestDeviations.imc.status === 'surpoids' ? 'text-orange-600' : 'text-red-600'
+                      }`}>
+                        • {latestDeviations.imc.status}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              {(latestMeasurement.tension_systolique && latestMeasurement.tension_diastolique) && (
+                <div className={`p-3 rounded-lg ${
+                  latestDeviations?.bp?.status === 'normale' ? 'bg-green-50' :
+                  latestDeviations?.bp?.status === 'limite' ? 'bg-yellow-50' : 'bg-rose-50'
+                }`}>
+                  <div className="flex items-center gap-2 text-rose-700 mb-1">
+                    <Heart className="w-4 h-4" />
+                    <span className="text-xs font-medium">Tension</span>
+                  </div>
+                  <p className="text-xl font-bold text-rose-900">
+                    {latestMeasurement.tension_systolique}/{latestMeasurement.tension_diastolique}
                   </p>
-                )}
-              </div>
-            )}
-            {latestMeasurement.taille_cm && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-2 text-green-700 mb-1">
-                  <Ruler className="w-4 h-4" />
-                  <span className="text-xs font-medium">Taille</span>
+                  <div className="mt-1 text-xs">
+                    <span className="text-slate-500">Norme: 120/80</span>
+                    {latestDeviations?.bp && (
+                      <span className={`ml-1 font-medium ${
+                        latestDeviations.bp.status === 'normale' ? 'text-green-600' :
+                        latestDeviations.bp.status === 'limite' ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                        • {latestDeviations.bp.status}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <p className="text-xl font-bold text-green-900">{latestMeasurement.taille_cm} cm</p>
-                {heightEvolution !== null && (
-                  <p className="text-xs text-green-600">
-                    +{heightEvolution.toFixed(1)} cm
-                  </p>
-                )}
-              </div>
-            )}
-            {latestMeasurement.imc && (
-              <div className={`p-3 rounded-lg ${
-                latestMeasurement.imc < 18.5 ? 'bg-yellow-50' :
-                latestMeasurement.imc < 25 ? 'bg-emerald-50' :
-                latestMeasurement.imc < 30 ? 'bg-orange-50' : 'bg-red-50'
-              }`}>
-                <div className="flex items-center gap-2 text-slate-700 mb-1">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="text-xs font-medium">IMC</span>
-                </div>
-                <p className="text-xl font-bold">{latestMeasurement.imc}</p>
-                <p className="text-xs text-slate-600">
-                  {latestMeasurement.imc < 18.5 ? 'Insuffisance' :
-                   latestMeasurement.imc < 25 ? 'Normal' :
-                   latestMeasurement.imc < 30 ? 'Surpoids' : 'Obésité'}
-                </p>
-              </div>
-            )}
-            {(latestMeasurement.tension_systolique && latestMeasurement.tension_diastolique) && (
-              <div className="p-3 bg-rose-50 rounded-lg">
-                <div className="flex items-center gap-2 text-rose-700 mb-1">
-                  <Heart className="w-4 h-4" />
-                  <span className="text-xs font-medium">Tension</span>
-                </div>
-                <p className="text-xl font-bold text-rose-900">
-                  {latestMeasurement.tension_systolique}/{latestMeasurement.tension_diastolique}
-                </p>
-                <p className="text-xs text-slate-600">mmHg</p>
-              </div>
+              )}
+            </div>
+
+            {/* Bilan comparatif */}
+            {latestDeviations && Object.keys(latestDeviations).length > 0 && (
+              <Card className="bg-slate-50 border-slate-200">
+                <CardContent className="p-3">
+                  <h4 className="text-xs font-semibold text-slate-600 uppercase mb-2 flex items-center gap-2">
+                    <Activity className="w-3 h-3" />
+                    Comparaison avec les normes de référence
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    {latestDeviations.weight && (
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-slate-600">Poids</span>
+                        <div className="text-right">
+                          <span className="font-medium">{latestDeviations.weight.actual} kg</span>
+                          <span className="text-slate-400 mx-1">vs</span>
+                          <span className="text-slate-500">{latestDeviations.weight.expected.toFixed(1)} kg</span>
+                          <Badge className={`ml-2 text-xs ${
+                            Math.abs(parseFloat(latestDeviations.weight.percent)) <= 10 ? 'bg-green-100 text-green-700' :
+                            Math.abs(parseFloat(latestDeviations.weight.percent)) <= 20 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {latestDeviations.weight.percent > 0 ? '+' : ''}{latestDeviations.weight.percent}%
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                    {latestDeviations.height && (
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-slate-600">Taille</span>
+                        <div className="text-right">
+                          <span className="font-medium">{latestDeviations.height.actual} cm</span>
+                          <span className="text-slate-400 mx-1">vs</span>
+                          <span className="text-slate-500">{latestDeviations.height.expected.toFixed(1)} cm</span>
+                          <Badge className={`ml-2 text-xs ${
+                            Math.abs(parseFloat(latestDeviations.height.percent)) <= 5 ? 'bg-green-100 text-green-700' :
+                            Math.abs(parseFloat(latestDeviations.height.percent)) <= 10 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {latestDeviations.height.percent > 0 ? '+' : ''}{latestDeviations.height.percent}%
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                    {latestDeviations.imc && (
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-slate-600">IMC</span>
+                        <div className="text-right">
+                          <span className="font-medium">{latestDeviations.imc.actual}</span>
+                          <span className="text-slate-400 mx-1">vs</span>
+                          <span className="text-slate-500">18.5-25 (idéal)</span>
+                          <Badge className={`ml-2 text-xs ${
+                            latestDeviations.imc.status === 'normal' ? 'bg-green-100 text-green-700' :
+                            latestDeviations.imc.status === 'surpoids' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {latestDeviations.imc.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                    {latestDeviations.bp && (
+                      <div className="flex items-center justify-between p-2 bg-white rounded">
+                        <span className="text-slate-600">Tension</span>
+                        <div className="text-right">
+                          <span className="font-medium">{latestDeviations.bp.actual}</span>
+                          <span className="text-slate-400 mx-1">vs</span>
+                          <span className="text-slate-500">{latestDeviations.bp.expected}</span>
+                          <Badge className={`ml-2 text-xs ${
+                            latestDeviations.bp.status === 'normale' ? 'bg-green-100 text-green-700' :
+                            latestDeviations.bp.status === 'limite' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {latestDeviations.bp.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
         )}
