@@ -190,6 +190,72 @@ export default function GrowthChart({ patient }) {
   const weightEvolution = getEvolution(latestMeasurement, previousMeasurement, 'poids_kg');
   const heightEvolution = getEvolution(latestMeasurement, previousMeasurement, 'taille_cm');
 
+  // Calculer l'écart par rapport aux normes
+  const calculateDeviation = (measurement) => {
+    if (!measurement || !patientBirthDate) return null;
+    const genderKey = patientGender === 'female' ? 'girls' : 'boys';
+    const ageMois = measurement.age_mois;
+    
+    const deviations = {};
+    
+    // Poids
+    if (measurement.poids_kg && ageMois !== null) {
+      const p50Weight = interpolatePercentile(WHO_PERCENTILES[`weight_${genderKey}`].p50, ageMois);
+      if (p50Weight) {
+        deviations.weight = {
+          actual: measurement.poids_kg,
+          expected: p50Weight,
+          diff: measurement.poids_kg - p50Weight,
+          percent: ((measurement.poids_kg - p50Weight) / p50Weight * 100).toFixed(1)
+        };
+      }
+    }
+    
+    // Taille
+    if (measurement.taille_cm && ageMois !== null) {
+      const p50Height = interpolatePercentile(WHO_PERCENTILES[`height_${genderKey}`].p50, ageMois);
+      if (p50Height) {
+        deviations.height = {
+          actual: measurement.taille_cm,
+          expected: p50Height,
+          diff: measurement.taille_cm - p50Height,
+          percent: ((measurement.taille_cm - p50Height) / p50Height * 100).toFixed(1)
+        };
+      }
+    }
+    
+    // IMC (pour adultes)
+    if (measurement.imc) {
+      const idealIMC = 22; // Centre de la zone normale
+      deviations.imc = {
+        actual: measurement.imc,
+        expected: idealIMC,
+        diff: (measurement.imc - idealIMC).toFixed(1),
+        status: measurement.imc < 18.5 ? 'insuffisant' : 
+                measurement.imc < 25 ? 'normal' : 
+                measurement.imc < 30 ? 'surpoids' : 'obèse'
+      };
+    }
+    
+    // Tension
+    if (measurement.tension_systolique && measurement.tension_diastolique) {
+      const normalSys = WHO_PERCENTILES.bp_adults.systolic_normal;
+      const normalDia = WHO_PERCENTILES.bp_adults.diastolic_normal;
+      deviations.bp = {
+        actual: `${measurement.tension_systolique}/${measurement.tension_diastolique}`,
+        expected: `${normalSys}/${normalDia}`,
+        sysDiff: measurement.tension_systolique - normalSys,
+        diaDiff: measurement.tension_diastolique - normalDia,
+        status: measurement.tension_systolique >= 140 || measurement.tension_diastolique >= 90 ? 'élevée' :
+                measurement.tension_systolique >= 130 || measurement.tension_diastolique >= 85 ? 'limite' : 'normale'
+      };
+    }
+    
+    return deviations;
+  };
+
+  const latestDeviations = calculateDeviation(latestMeasurement);
+
   return (
     <Card>
       <CardHeader className="pb-3">
