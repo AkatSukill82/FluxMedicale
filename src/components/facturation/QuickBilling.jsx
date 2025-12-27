@@ -3,7 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Euro, Clock, CreditCard, Loader2 } from 'lucide-react';
+import { Euro, Clock, CreditCard, Loader2, FileText, Printer } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -54,6 +56,8 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [activeTab, setActiveTab] = useState('quick');
+  const [invoiceType, setInvoiceType] = useState('EATTEST'); // EATTEST, EFACT, PAPER
+  const [printOnClose, setPrintOnClose] = useState(true);
 
   const billMutation = useMutation({
     mutationFn: async (data) => {
@@ -81,9 +85,9 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
       const invoice = await base44.entities.Invoice.create({
         patient_id: patient.id,
         provider_id: currentUser.email,
-        type: 'EATTEST',
+        type: data.invoiceType,
         payment_method: paymentMethod,
-        status: 'SENT',
+        status: data.invoiceType === 'PAPER' ? 'NOT_SENT' : 'SENT',
         total_amount: totalAmount,
         patient_contribution: patientShare,
         insurance_contribution: insuranceShare,
@@ -118,11 +122,17 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
         }
       }
 
-      return invoice;
+      return { invoice, shouldPrint: data.printOnClose };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       handleSuccess('Facturation enregistrée avec succès');
+      
+      // Imprimer si demandé
+      if (result.shouldPrint) {
+        window.print();
+      }
+      
       onClose();
     },
     onError: (error) => {
@@ -197,6 +207,36 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
             {selectedTemplate && (
           <div className="space-y-6 pt-6 border-t">
             <div>
+              <p className="text-sm font-semibold mb-3">Type de facturation</p>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  variant={invoiceType === 'EATTEST' ? 'default' : 'outline'}
+                  onClick={() => setInvoiceType('EATTEST')}
+                  className="h-16 flex flex-col gap-1"
+                >
+                  <FileText className="w-5 h-5" />
+                  <span className="text-xs">eAttest</span>
+                </Button>
+                <Button
+                  variant={invoiceType === 'EFACT' ? 'default' : 'outline'}
+                  onClick={() => setInvoiceType('EFACT')}
+                  className="h-16 flex flex-col gap-1"
+                >
+                  <FileText className="w-5 h-5" />
+                  <span className="text-xs">eFact</span>
+                </Button>
+                <Button
+                  variant={invoiceType === 'PAPER' ? 'default' : 'outline'}
+                  onClick={() => setInvoiceType('PAPER')}
+                  className="h-16 flex flex-col gap-1"
+                >
+                  <Printer className="w-5 h-5" />
+                  <span className="text-xs">Papier</span>
+                </Button>
+              </div>
+            </div>
+
+            <div>
               <p className="text-sm font-semibold mb-3">Mode de paiement</p>
               <div className="grid grid-cols-3 gap-3">
                 <Button
@@ -228,10 +268,21 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
               </div>
             </div>
 
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="printOnClose" 
+                checked={printOnClose} 
+                onCheckedChange={setPrintOnClose}
+              />
+              <Label htmlFor="printOnClose" className="text-sm cursor-pointer">
+                Imprimer la facture à la fermeture
+              </Label>
+            </div>
+
             <Button
               className="w-full bg-blue-600 hover:bg-blue-700"
               size="lg"
-              onClick={() => billMutation.mutate({ template: selectedTemplate, isCustom: false })}
+              onClick={() => billMutation.mutate({ template: selectedTemplate, isCustom: false, invoiceType, printOnClose })}
               disabled={billMutation.isPending}
             >
               {billMutation.isPending ? (
@@ -260,6 +311,36 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
 
             {selectedCodes.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
+                <div>
+                  <p className="text-sm font-semibold mb-3">Type de facturation</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      variant={invoiceType === 'EATTEST' ? 'default' : 'outline'}
+                      onClick={() => setInvoiceType('EATTEST')}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <FileText className="w-5 h-5" />
+                      <span className="text-xs">eAttest</span>
+                    </Button>
+                    <Button
+                      variant={invoiceType === 'EFACT' ? 'default' : 'outline'}
+                      onClick={() => setInvoiceType('EFACT')}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <FileText className="w-5 h-5" />
+                      <span className="text-xs">eFact</span>
+                    </Button>
+                    <Button
+                      variant={invoiceType === 'PAPER' ? 'default' : 'outline'}
+                      onClick={() => setInvoiceType('PAPER')}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <Printer className="w-5 h-5" />
+                      <span className="text-xs">Papier</span>
+                    </Button>
+                  </div>
+                </div>
+
                 <div>
                   <p className="text-sm font-semibold mb-3">Mode de paiement</p>
                   <div className="grid grid-cols-3 gap-3">
@@ -292,10 +373,21 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                   </div>
                 </div>
 
+                <div className="flex items-center space-x-2 pt-2">
+                  <Checkbox 
+                    id="printOnCloseCustom" 
+                    checked={printOnClose} 
+                    onCheckedChange={setPrintOnClose}
+                  />
+                  <Label htmlFor="printOnCloseCustom" className="text-sm cursor-pointer">
+                    Imprimer la facture à la fermeture
+                  </Label>
+                </div>
+
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
-                  onClick={() => billMutation.mutate({ codes: selectedCodes, isCustom: true })}
+                  onClick={() => billMutation.mutate({ codes: selectedCodes, isCustom: true, invoiceType, printOnClose })}
                   disabled={billMutation.isPending}
                 >
                   {billMutation.isPending ? (
