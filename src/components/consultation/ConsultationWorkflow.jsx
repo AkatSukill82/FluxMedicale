@@ -70,6 +70,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [isConventionne, setIsConventionne] = useState(true);
   const [editingCodeId, setEditingCodeId] = useState(null);
+  const [printInvoice, setPrintInvoice] = useState(true);
 
   // Charger les infos du médecin pour savoir s'il est conventionné
   const { data: currentUser } = useQuery({
