@@ -33,6 +33,9 @@ import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
 import SAMv2Search from '../medications/SAMv2Search';
 import { recipE } from '@/functions/recipE';
+import InvoiceReceipt from '../facturation/InvoiceReceipt';
+import { useRef } from 'react';
+import ReactDOM from 'react-dom';
 
 // Motifs de consultation fréquents
 const COMMON_REASONS = [
