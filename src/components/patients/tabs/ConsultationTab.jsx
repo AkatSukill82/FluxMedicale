@@ -75,6 +75,9 @@ export default function ConsultationTab({ patient }) {
         </Button>
       </div>
 
+      {/* Courbes de croissance et constantes */}
+      <GrowthChart patient={patient} />
+
       {/* Objectifs de soins */}
       <CareGoalsPanel patientId={patient.id} />
 
