@@ -10,7 +10,8 @@ import {
   X, 
   CreditCard,
   Pill,
-  FileText
+  FileText,
+  Download
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
