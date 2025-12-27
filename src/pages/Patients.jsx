@@ -385,6 +385,14 @@ export default function Patients() {
         />
       )}
 
-    </div>
-  );
-}
+      {showExportModal && (
+        <PatientExportModal
+          patient={patient}
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+        />
+      )}
+
+      </div>
+      );
+      }
