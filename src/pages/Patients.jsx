@@ -35,11 +35,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import QuickAssurabilityCheck from '../components/patients/QuickAssurabilityCheck';
-import GDPRComplianceBanner from '../components/security/GDPRComplianceBanner';
-import { logPatientAccess } from '../components/security/AuditTrailService';
-import { useKeyboardShortcuts, KeyboardShortcutsHelp } from '../components/shortcuts/KeyboardShortcuts';
-import ConsultationTemplates from '../components/consultation/ConsultationTemplates';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -62,20 +57,8 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
-
-  // Raccourcis clavier globaux
-  useKeyboardShortcuts({
-    BILLING: () => patient && setShowQuickBilling(true),
-    PRESCRIPTION: () => patient && setShowQuickPrescription(true),
-    VACCINATION: () => patient && setShowQuickVaccination(true),
-    READ_EID: () => handleReadEID(),
-    NEW_CONSULTATION: () => patient && setShowTemplates(true),
-    HELP: () => setShowShortcutsHelp(true),
-  });
 
   const { data: patient, isLoading } = useQuery({
     queryKey: ['patient', patientId],
@@ -390,22 +373,6 @@ export default function Patients() {
         />
       )}
 
-      {/* Aide raccourcis clavier */}
-      <KeyboardShortcutsHelp
-        isOpen={showShortcutsHelp}
-        onClose={() => setShowShortcutsHelp(false)}
-      />
-
-      {/* Templates de consultation */}
-      <ConsultationTemplates
-        isOpen={showTemplates}
-        onClose={() => setShowTemplates(false)}
-        onSelectTemplate={(template) => {
-          // Ouvrir consultation avec template pré-rempli
-          setActiveTab('consultation');
-          toast.info(`Template "${template.name}" chargé`);
-        }}
-      />
     </div>
   );
 }
