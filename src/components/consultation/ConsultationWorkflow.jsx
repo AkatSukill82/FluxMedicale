@@ -829,8 +829,23 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
             Précédent
           </Button>
 
-          <div className="text-sm text-slate-500">
-            Étape {currentStep + 1} sur {STEPS.length}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="print-invoice"
+                checked={printInvoice}
+                onCheckedChange={(checked) => setPrintInvoice(checked)}
+              />
+              <label
+                htmlFor="print-invoice"
+                className="text-sm text-slate-600 cursor-pointer"
+              >
+                Imprimer la facture
+              </label>
+            </div>
+            <div className="text-sm text-slate-500">
+              Étape {currentStep + 1} sur {STEPS.length}
+            </div>
           </div>
 
           {currentStep < STEPS.length - 1 ? (
