@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText, Loader2, Printer, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 /**
  * Générateur d'attestations de soins (eAttest)
- * Génère un document PDF avec les informations de facturation
+ * Affiche l'attestation dans un popup
  */
 export default function AttestationGenerator({ invoice, patient }) {
+  const [showAttestation, setShowAttestation] = useState(false);
+  const [attestationData, setAttestationData] = useState(null);
+
   const generateMutation = useMutation({
     mutationFn: async () => {
       // Récupérer les lignes de facturation
@@ -21,13 +25,13 @@ export default function AttestationGenerator({ invoice, patient }) {
       // Récupérer les infos du praticien
       const currentUser = await base44.auth.me();
       
-      // Simuler la génération d'une attestation de soins
-      const attestationData = {
+      // Préparer les données d'attestation
+      const data = {
         invoice_id: invoice.id,
-        patient_id: patient.id,
-        patient_name: patient.name?.[0] ? 
-          `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` : '',
-        patient_niss: patient.identifier?.find(id => id.system.includes('ssin'))?.value || '',
+        patient_id: patient?.id,
+        patient_name: patient?.name?.[0] ? 
+          `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` : 'Patient inconnu',
+        patient_niss: patient?.identifier?.find(id => id.system?.includes('ssin'))?.value || '',
         provider_name: currentUser.full_name || currentUser.email,
         invoice_date: invoice.invoice_date,
         invoice_number: `INV-${invoice.id.slice(0, 8).toUpperCase()}`,
@@ -35,39 +39,22 @@ export default function AttestationGenerator({ invoice, patient }) {
           code: line.nomenclature_code,
           label: line.nomenclature_label,
           quantity: line.quantity,
-          unit_price: line.unit_price,
-          amount: line.amount
+          unit_price: line.unit_price || 0,
+          amount: line.amount || 0
         })),
-        total_amount: invoice.total_amount / 100,
-        patient_contribution: invoice.patient_contribution / 100,
-        insurance_contribution: invoice.insurance_contribution / 100,
+        total_amount: (invoice.total_amount || 0) / 100,
+        patient_contribution: (invoice.patient_contribution || 0) / 100,
+        insurance_contribution: (invoice.insurance_contribution || 0) / 100,
         oa_code: invoice.oa_code,
-        transaction_id: invoice.transaction_id
+        transaction_id: invoice.transaction_id,
+        type: invoice.type
       };
 
-      // Créer un document d'attestation
-      const document = await base44.entities.Document.create({
-        patient_id: patient.id,
-        type: 'ATTESTATION',
-        subtype: 'SOINS',
-        title: `Attestation de soins - ${format(new Date(invoice.invoice_date), 'dd/MM/yyyy')}`,
-        status: 'SIGNED',
-        content_html: generateAttestationHTML(attestationData),
-        signature: {
-          signed: true,
-          method: 'MANUAL',
-          timestamp: new Date().toISOString()
-        },
-        linked_consultation_id: invoice.id,
-        created_by: currentUser.email
-      });
-
-      return { document, attestationData };
+      return data;
     },
-    onSuccess: ({ document }) => {
-      toast.success('Attestation générée avec succès');
-      // Simuler le téléchargement
-      window.open(`#/documents/${document.id}`, '_blank');
+    onSuccess: (data) => {
+      setAttestationData(data);
+      setShowAttestation(true);
     },
     onError: (error) => {
       console.error('Erreur génération attestation:', error);
@@ -75,20 +62,173 @@ export default function AttestationGenerator({ invoice, patient }) {
     }
   });
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <Button
-      onClick={() => generateMutation.mutate()}
-      disabled={generateMutation.isPending}
-      variant="outline"
-      size="sm"
-    >
-      {generateMutation.isPending ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      ) : (
-        <FileText className="w-4 h-4 mr-2" />
-      )}
-      Générer attestation
-    </Button>
+    <>
+      <Button
+        onClick={() => generateMutation.mutate()}
+        disabled={generateMutation.isPending}
+        variant="outline"
+        size="sm"
+      >
+        {generateMutation.isPending ? (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        ) : (
+          <FileText className="w-4 h-4 mr-2" />
+        )}
+        Générer attestation
+      </Button>
+
+      <Dialog open={showAttestation} onOpenChange={setShowAttestation}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto print:max-w-none print:max-h-none print:overflow-visible">
+          <DialogHeader className="print:hidden">
+            <DialogTitle className="flex items-center justify-between">
+              <span>Attestation de soins</span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handlePrint}>
+                  <Printer className="w-4 h-4 mr-2" />
+                  Imprimer
+                </Button>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {attestationData && (
+            <div className="p-6 bg-white print:p-0" id="attestation-content">
+              {/* En-tête */}
+              <div className="text-center mb-8 border-b pb-6">
+                <h1 className="text-2xl font-bold text-blue-800 mb-2">🏥 ATTESTATION DE SOINS</h1>
+                <p className="text-slate-600">
+                  <strong>Numéro:</strong> {attestationData.invoice_number}
+                </p>
+                <p className="text-slate-600">
+                  <strong>Date:</strong> {format(new Date(attestationData.invoice_date), 'dd/MM/yyyy')}
+                </p>
+                <p className="text-slate-600">
+                  <strong>Type:</strong> {attestationData.type === 'EATTEST' ? 'eAttest' : attestationData.type === 'EFACT' ? 'eFact' : 'Papier'}
+                </p>
+              </div>
+
+              {/* Informations Patient */}
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-slate-700 border-b-2 border-slate-200 pb-2 mb-4">
+                  👤 Informations Patient
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-slate-500 text-sm">Nom complet:</span>
+                    <p className="font-medium">{attestationData.patient_name}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-sm">NISS:</span>
+                    <p className="font-medium font-mono">{attestationData.patient_niss || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 text-sm">Mutuelle:</span>
+                    <p className="font-medium">{attestationData.oa_code || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Prestataire */}
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-slate-700 border-b-2 border-slate-200 pb-2 mb-4">
+                  👨‍⚕️ Prestataire
+                </h2>
+                <div>
+                  <span className="text-slate-500 text-sm">Médecin:</span>
+                  <p className="font-medium">{attestationData.provider_name}</p>
+                </div>
+              </div>
+
+              {/* Prestations */}
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-slate-700 border-b-2 border-slate-200 pb-2 mb-4">
+                  💊 Prestations
+                </h2>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-slate-100">
+                      <th className="text-left p-3 border-b">Code</th>
+                      <th className="text-left p-3 border-b">Description</th>
+                      <th className="text-center p-3 border-b">Qté</th>
+                      <th className="text-right p-3 border-b">Prix unit.</th>
+                      <th className="text-right p-3 border-b">Montant</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attestationData.lines.length > 0 ? (
+                      attestationData.lines.map((line, idx) => (
+                        <tr key={idx} className="border-b">
+                          <td className="p-3 font-mono text-sm">{line.code}</td>
+                          <td className="p-3">{line.label}</td>
+                          <td className="p-3 text-center">{line.quantity}</td>
+                          <td className="p-3 text-right">{(line.unit_price || 0).toFixed(2)}€</td>
+                          <td className="p-3 text-right font-medium">{(line.amount || 0).toFixed(2)}€</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="p-3 text-center text-slate-500">
+                          Aucune prestation
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+
+                {/* Totaux */}
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-600">Part mutuelle:</span>
+                    <span className="font-medium">{attestationData.insurance_contribution.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-slate-600">Part patient:</span>
+                    <span className="font-medium">{attestationData.patient_contribution.toFixed(2)}€</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                    <span className="text-lg font-semibold text-blue-800">Montant total:</span>
+                    <span className="text-2xl font-bold text-blue-800">{attestationData.total_amount.toFixed(2)}€</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Transaction eHealth */}
+              {attestationData.transaction_id && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-semibold text-slate-700 border-b-2 border-slate-200 pb-2 mb-4">
+                    ✅ Transmission eHealth
+                  </h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-slate-500 text-sm">ID Transaction:</span>
+                      <p className="font-mono text-sm">{attestationData.transaction_id}</p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-sm">Statut:</span>
+                      <p className="text-green-600 font-medium">✓ Transmis à l'organisme assureur</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="mt-8 pt-4 border-t-2 border-slate-200 text-slate-500 text-sm">
+                <p className="font-semibold">Document généré électroniquement</p>
+                <p className="mt-1">
+                  Cette attestation a été générée conformément aux réglementations INAMI et peut être utilisée pour le remboursement des soins.
+                </p>
+                <p className="mt-1">Conservez ce document pour vos archives.</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
