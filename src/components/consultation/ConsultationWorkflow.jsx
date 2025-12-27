@@ -229,7 +229,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         }
       }
 
-      return consultation;
+      return { consultation, invoice, invoiceLines: selectedCodes };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['consultations'] });
