@@ -34,6 +34,7 @@ import {
   Dot,
   Database,
   Building2,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -79,6 +80,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
     { title: t('nav.templates'), path: 'Templates', icon: FileText },
     { title: t('nav.inbox'), path: 'Inbox', icon: Inbox },
+    { title: 'Messagerie', path: 'SecureMessages', icon: MessageSquare },
     { title: t('nav.import'), path: 'Import', icon: Upload },
     { title: 'Médicaments SAM', path: 'ReferentialImport', icon: Upload },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
