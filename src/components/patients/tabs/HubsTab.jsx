@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
+import HubAccessPanel from '../../hub/HubAccessPanel';
 
 export default function HubsTab({ patient }) {
   const { t } = useI18n();
@@ -32,6 +33,9 @@ export default function HubsTab({ patient }) {
 
   return (
     <div className="space-y-6">
+      {/* Nouveau panneau d'accès HUB avec gestion délégation */}
+      <HubAccessPanel patient={patient} />
+
       <Card>
         <CardHeader>
           <CardTitle>Accès aux Réseaux de Santé</CardTitle>
@@ -63,16 +67,6 @@ export default function HubsTab({ patient }) {
             </Button>
             <Button variant="outline" disabled={isLoading}>Demander le Consentement</Button>
           </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Documents des Hubs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-muted-foreground py-8">
-            La fonctionnalité de visualisation des documents des hubs de santé sera bientôt disponible.
-          </p>
         </CardContent>
       </Card>
     </div>
