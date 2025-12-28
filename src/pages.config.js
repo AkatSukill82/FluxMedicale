@@ -1,6 +1,7 @@
 import Agenda from './pages/Agenda';
 import Audit from './pages/Audit';
 import AuditSecurity from './pages/AuditSecurity';
+import Cabinets from './pages/Cabinets';
 import Dashboard from './pages/Dashboard';
 import EIDTest from './pages/EIDTest';
 import Facturation from './pages/Facturation';
@@ -23,7 +24,6 @@ import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
-import Cabinets from './pages/Cabinets';
 import __Layout from './Layout.jsx';
 
 
@@ -31,6 +31,7 @@ export const PAGES = {
     "Agenda": Agenda,
     "Audit": Audit,
     "AuditSecurity": AuditSecurity,
+    "Cabinets": Cabinets,
     "Dashboard": Dashboard,
     "EIDTest": EIDTest,
     "Facturation": Facturation,
@@ -53,7 +54,6 @@ export const PAGES = {
     "Templates": Templates,
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
-    "Cabinets": Cabinets,
 }
 
 export const pagesConfig = {
