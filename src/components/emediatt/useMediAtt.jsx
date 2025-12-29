@@ -68,24 +68,26 @@ export const useMediAtt = () => {
   // Envoyer vers Medex via eHealthBox
   const sendToMedex = useCallback(async (documentId) => {
     setIsSending(true);
+    setLastError(null);
 
     console.log('[eMediAtt] Envoi vers Medex...', documentId);
 
     try {
       const currentUser = await base44.auth.me();
-      const document = await Document.filter({ id: documentId });
+      const documents = await base44.entities.Document.filter({ id: documentId });
 
-      if (!document || document.length === 0) {
+      if (!documents || documents.length === 0) {
         throw new Error('Document non trouvé');
       }
 
-      const doc = document[0];
+      const doc = documents[0];
 
       // Simulation envoi eHealthBox-Publication vers Medex
+      // En production: intégration réelle avec eHealthBox API
       const sendResult = await simulateMedexSend(doc);
 
       // Mettre à jour le document
-      await Document.update(documentId, {
+      await base44.entities.Document.update(documentId, {
         status: 'SENT',
         sent_via: 'EHEALTHBOX',
         sent_at: new Date().toISOString(),
@@ -96,7 +98,7 @@ export const useMediAtt = () => {
       });
 
       // Audit
-      await AuditLog.create({
+      await base44.entities.AuditLog.create({
         user_email: currentUser.email,
         action: 'EMEDIATT_SENT',
         target_entity: 'Document',
@@ -109,17 +111,40 @@ export const useMediAtt = () => {
 
     } catch (error) {
       console.error('[eMediAtt] Erreur envoi:', error);
+      setLastError(error.message);
       throw error;
     } finally {
       setIsSending(false);
     }
   }, []);
 
+  // Vérifier le statut d'une attestation envoyée
+  const checkStatus = useCallback(async (documentId) => {
+    try {
+      const documents = await base44.entities.Document.filter({ id: documentId });
+      if (!documents || documents.length === 0) {
+        return null;
+      }
+      
+      // En production: appeler l'API Medex pour vérifier le statut
+      return {
+        status: documents[0].status,
+        lastUpdate: documents[0].updated_date,
+        medexStatus: 'RECEIVED' // Simulé
+      };
+    } catch (error) {
+      console.error('[eMediAtt] Erreur vérification statut:', error);
+      return null;
+    }
+  }, []);
+
   return {
     isGenerating,
     isSending,
+    lastError,
     generateAttestation,
-    sendToMedex
+    sendToMedex,
+    checkStatus
   };
 };
 
