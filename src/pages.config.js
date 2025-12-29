@@ -11,6 +11,7 @@ import Health from './pages/Health';
 import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
+import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
@@ -24,7 +25,6 @@ import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
-import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import __Layout from './Layout.jsx';
 
 
@@ -42,6 +42,7 @@ export const PAGES = {
     "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
+    "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
     "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
@@ -55,7 +56,6 @@ export const PAGES = {
     "Templates": Templates,
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
-    "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
 }
 
 export const pagesConfig = {

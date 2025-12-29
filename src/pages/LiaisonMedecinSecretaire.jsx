@@ -195,6 +195,24 @@ export default function LiaisonMedecinSecretaire() {
     );
   }
 
+  // Seules les admins peuvent accéder à cette page
+  if (!isDoctor) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Card className="max-w-md">
+          <CardContent className="py-12 text-center">
+            <Shield className="w-16 h-16 mx-auto text-red-300 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Accès restreint</h2>
+            <p className="text-gray-500">
+              Cette page est réservée aux médecins (administrateurs). 
+              Les secrétaires peuvent consulter leurs délégations dans leur profil.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
