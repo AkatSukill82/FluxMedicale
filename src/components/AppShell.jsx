@@ -35,6 +35,7 @@ import {
   Database,
   Building2,
   MessageSquare,
+  ClipboardList,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -89,6 +90,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Modules eHealth', path: 'ModulesEHealth', icon: Database },
     { title: 'Mes Cabinets', path: 'Cabinets', icon: Building2 },
     { title: 'Liaisons Médecin/Secrétaire', path: 'LiaisonMedecinSecretaire', icon: Users },
+      { title: 'Rapports Médicaux', path: 'RapportsMedicaux', icon: ClipboardList },
   ];
   
   const adminNavItems = [
