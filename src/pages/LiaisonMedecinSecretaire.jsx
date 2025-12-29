@@ -240,7 +240,7 @@ export default function LiaisonMedecinSecretaire() {
             </DialogHeader>
             <form onSubmit={handleCreateLiaison} className="space-y-4 mt-4">
               <div>
-                <Label>{isDoctor ? "Secrétaire" : "Médecin"}</Label>
+                <Label>Secrétaire</Label>
                 <Select 
                   value={formData.target_email} 
                   onValueChange={(v) => setFormData({...formData, target_email: v})}
