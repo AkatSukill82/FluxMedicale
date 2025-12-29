@@ -260,10 +260,8 @@ export default function LiaisonMedecinSecretaire() {
                 </Select>
               </div>
 
-              {isDoctor && (
-                <>
-                  <div>
-                    <Label className="mb-3 block">Permissions</Label>
+              <div>
+                <Label className="mb-3 block">Permissions</Label>
                     <div className="space-y-3">
                       {PERMISSIONS.map(perm => (
                         <div key={perm.id} className="flex items-start gap-3">
