@@ -85,14 +85,10 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.inbox'), path: 'Inbox', icon: Inbox },
     { title: 'Messagerie', path: 'SecureMessages', icon: MessageSquare },
     { title: t('nav.import'), path: 'Import', icon: Upload },
-    { title: 'Médicaments SAM', path: 'ReferentialImport', icon: Upload },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Statistiques', path: 'Statistics', icon: Activity },
     { title: 'Modules eHealth', path: 'ModulesEHealth', icon: Database },
-    { title: 'Mes Cabinets', path: 'Cabinets', icon: Building2 },
-    { title: 'Liaisons Médecin/Secrétaire', path: 'LiaisonMedecinSecretaire', icon: Users },
-      { title: 'Rapports Médicaux', path: 'RapportsMedicaux', icon: ClipboardList },
-      { title: 'e-Prescriptions', path: 'EPrescriptions', icon: Pill },
+    { title: 'Rapports Médicaux', path: 'RapportsMedicaux', icon: ClipboardList },
   ];
   
   const adminNavItems = [
@@ -100,6 +96,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.audit'), path: 'Audit', icon: Activity, adminOnly: true },
     { title: t('nav.health'), path: 'Health', icon: Activity, adminOnly: true },
     { title: t('nav.security'), path: 'Securite', icon: Shield },
+    { title: 'Médicaments SAM', path: 'ReferentialImport', icon: Upload, adminOnly: true },
   ];
 
   const profileNavItem = { title: t('nav.profile'), path: 'ProfilMedecin', icon: UserIcon };
