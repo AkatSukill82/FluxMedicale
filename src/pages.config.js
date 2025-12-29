@@ -2,7 +2,6 @@ import Agenda from './pages/Agenda';
 import Audit from './pages/Audit';
 import AuditSecurity from './pages/AuditSecurity';
 import Cabinets from './pages/Cabinets';
-import Dashboard from './pages/Dashboard';
 import EIDTest from './pages/EIDTest';
 import Facturation from './pages/Facturation';
 import FollowUpTasks from './pages/FollowUpTasks';
@@ -33,7 +32,6 @@ export const PAGES = {
     "Audit": Audit,
     "AuditSecurity": AuditSecurity,
     "Cabinets": Cabinets,
-    "Dashboard": Dashboard,
     "EIDTest": EIDTest,
     "Facturation": Facturation,
     "FollowUpTasks": FollowUpTasks,
