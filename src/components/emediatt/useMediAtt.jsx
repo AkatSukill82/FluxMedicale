@@ -1,16 +1,17 @@
 import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Document } from '@/entities/Document';
-import { AuditLog } from '@/entities/AuditLog';
+import { jsPDF } from 'jspdf';
 
 // Hook pour génération et envoi d'attestations eMediAtt
 export const useMediAtt = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [lastError, setLastError] = useState(null);
 
   // Générer l'attestation (KMEHR + PDF)
   const generateAttestation = useCallback(async (patientId, attestationData) => {
     setIsGenerating(true);
+    setLastError(null);
 
     console.log('[eMediAtt] Génération attestation...', attestationData);
 
@@ -20,7 +21,7 @@ export const useMediAtt = () => {
       // Génération KMEHR incapacity-notification 2.2
       const kmehrXml = generateKMEHRIncapacity(attestationData, currentUser);
       
-      // Génération PDF
+      // Génération PDF avec jsPDF
       const pdfBlob = await generateAttestationPDF(attestationData, currentUser);
       
       // Upload PDF
@@ -31,7 +32,7 @@ export const useMediAtt = () => {
       const { file_url: xmlUrl } = await base44.integrations.Core.UploadFile({ file: xmlBlob });
 
       // Créer le document
-      const document = await Document.create({
+      const document = await base44.entities.Document.create({
         patient_id: patientId,
         type: 'CERTIFICATE',
         subtype: 'eMediAtt',
@@ -44,7 +45,7 @@ export const useMediAtt = () => {
       });
 
       // Audit
-      await AuditLog.create({
+      await base44.entities.AuditLog.create({
         user_email: currentUser.email,
         action: 'EMEDIATT_GENERATED',
         target_entity: 'Document',
@@ -57,6 +58,7 @@ export const useMediAtt = () => {
 
     } catch (error) {
       console.error('[eMediAtt] Erreur génération:', error);
+      setLastError(error.message);
       throw error;
     } finally {
       setIsGenerating(false);
