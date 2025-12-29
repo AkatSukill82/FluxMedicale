@@ -347,11 +347,8 @@ export default function LiaisonMedecinSecretaire() {
                         )}
                       </div>
                       <p className="text-sm text-gray-500">
-                        {isDoctor ? liaison.secretaire_email : liaison.medecin_email}
+                        {liaison.secretaire_email}
                       </p>
-                      {liaison.medecin_nihii && !isDoctor && (
-                        <p className="text-xs text-gray-400">NIHII: {liaison.medecin_nihii}</p>
-                      )}
                       <p className="text-xs text-gray-400 mt-1">
                         Depuis le {format(new Date(liaison.date_debut), "dd/MM/yyyy", { locale: fr })}
                       </p>
