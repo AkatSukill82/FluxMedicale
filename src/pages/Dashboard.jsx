@@ -14,7 +14,9 @@ import {
   AlertTriangle,
   CheckCircle,
   Settings,
-  Layout
+  Layout,
+  Shield as ShieldIcon,
+  LayoutDashboard as LayoutDashboardIcon
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -32,7 +34,9 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import DashboardWidget from '../components/dashboard/DashboardWidget';
 import WidgetSelector from '../components/dashboard/WidgetSelector';
 import { AVAILABLE_WIDGETS, DEFAULT_WIDGET_ORDER } from '../components/dashboard/widgetConfig';
-
+import AdminCockpit from '../components/admin/AdminCockpit';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Shield, LayoutDashboard } from 'lucide-react';
 
 export default function Dashboard() {
   const { t, locale } = useI18n();
@@ -171,6 +175,8 @@ export default function Dashboard() {
 
 
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -194,6 +200,26 @@ export default function Dashboard() {
           <QuickActions />
         </div>
       </div>
+
+      {/* Admin Tabs */}
+      {isAdmin && (
+        <Tabs defaultValue="dashboard" className="w-full">
+          <TabsList>
+            <TabsTrigger value="dashboard" className="gap-2">
+              <LayoutDashboardIcon className="w-4 h-4" />
+              Tableau de bord
+            </TabsTrigger>
+            <TabsTrigger value="admin" className="gap-2">
+              <ShieldIcon className="w-4 h-4" />
+              Gestion utilisateurs
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="admin" className="mt-6">
+            <AdminCockpit />
+          </TabsContent>
+          
+          <TabsContent value="dashboard" className="mt-6">
 
       {/* Search */}
       <div className="relative">
@@ -377,6 +403,9 @@ export default function Dashboard() {
           }}
         />
       )}
+
+          {isAdmin && </TabsContent>}
+        {isAdmin && </Tabs>}
     </div>
   );
 }
