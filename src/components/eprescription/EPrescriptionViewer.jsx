@@ -25,7 +25,12 @@ import {
   Loader2,
   CheckCircle,
   Clock,
+  RefreshCw,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import * as RecipEService from "./RecipEService";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -49,22 +54,83 @@ export default function EPrescriptionViewer({
 }) {
   const queryClient = useQueryClient();
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
+  const [statusError, setStatusError] = useState(null);
+  const [recipEStatus, setRecipEStatus] = useState(null);
+
+  const isSimulation = RecipEService.isSimulationMode();
+
+  // Rafraîchir le statut depuis Recip-e
+  const handleRefreshStatus = async () => {
+    if (!prescription.rid) {
+      toast.error("Pas de RID pour cette prescription");
+      return;
+    }
+
+    setIsRefreshingStatus(true);
+    setStatusError(null);
+
+    try {
+      const result = await RecipEService.getPrescriptionStatus(prescription.rid);
+      
+      if (result.success) {
+        setRecipEStatus(result.data);
+        
+        // Mettre à jour le statut local si différent
+        const statusMap = {
+          "CREATED": "envoye",
+          "DELIVERED": "delivre",
+          "PARTIALLY_DELIVERED": "delivre",
+          "EXPIRED": "expire",
+          "REVOKED": "annule"
+        };
+        
+        const newStatus = statusMap[result.data.status];
+        if (newStatus && newStatus !== prescription.statut) {
+          await base44.entities.EPrescription.update(prescription.id, {
+            statut: newStatus
+          });
+          queryClient.invalidateQueries({ queryKey: ["eprescriptions"] });
+          toast.success(`Statut mis à jour: ${STATUS_CONFIG[newStatus]?.label}`);
+          onRefresh?.();
+        } else {
+          toast.info(isSimulation ? "[Simulation] Statut vérifié" : "Statut à jour");
+        }
+      } else {
+        setStatusError(RecipEService.getErrorMessage(result.error?.code));
+        toast.error(RecipEService.getErrorMessage(result.error?.code));
+      }
+    } catch (error) {
+      setStatusError("Erreur de communication avec Recip-e");
+      toast.error("Erreur de communication avec Recip-e");
+    } finally {
+      setIsRefreshingStatus(false);
+    }
+  };
 
   const signMutation = useMutation({
     mutationFn: async () => {
-      const rid = `BE${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const result = await RecipEService.createPrescription(prescription, prescription.medecin_inami);
+      
+      if (!result.success) {
+        throw new Error(RecipEService.getErrorMessage(result.error?.code));
+      }
+
       return base44.entities.EPrescription.update(prescription.id, {
         statut: "signe",
-        rid,
-        barcode: `01${rid}`,
+        rid: result.data.rid,
+        barcode: result.data.barcode,
         signature_date: new Date().toISOString(),
         signature_hash: btoa(JSON.stringify(prescription)).substr(0, 32),
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eprescriptions"] });
-      toast.success("Prescription signée");
+      toast.success(isSimulation ? "Prescription signée (simulation)" : "Prescription signée");
       onRefresh?.();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erreur lors de la signature");
     },
   });
 
@@ -84,14 +150,25 @@ export default function EPrescriptionViewer({
 
   const cancelMutation = useMutation({
     mutationFn: async () => {
+      // Annuler dans Recip-e si un RID existe
+      if (prescription.rid) {
+        const result = await RecipEService.cancelPrescription(prescription.rid, "Annulation par le médecin");
+        if (!result.success) {
+          throw new Error(RecipEService.getErrorMessage(result.error?.code));
+        }
+      }
+      
       return base44.entities.EPrescription.update(prescription.id, {
         statut: "annule",
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eprescriptions"] });
-      toast.success("Prescription annulée");
+      toast.success(isSimulation ? "Prescription annulée (simulation)" : "Prescription annulée dans Recip-e");
       onRefresh?.();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erreur lors de l'annulation");
     },
   });
 
@@ -234,6 +311,41 @@ export default function EPrescriptionViewer({
 
         <ScrollArea className="flex-1 pr-4">
           <div className="py-4 space-y-6">
+            {/* Mode simulation */}
+            {isSimulation && (
+              <Alert className="bg-amber-50 border-amber-200">
+                <Info className="w-4 h-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 text-sm">
+                  Mode simulation - Les données Recip-e sont simulées
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Erreur statut */}
+            {statusError && (
+              <Alert className="bg-red-50 border-red-200">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <AlertDescription className="text-red-800 text-sm">
+                  {statusError}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Statut Recip-e */}
+            {recipEStatus && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <Info className="w-4 h-4 text-blue-600" />
+                <AlertDescription className="text-blue-800 text-sm">
+                  <strong>Statut Recip-e:</strong> {recipEStatus.status}
+                  {recipEStatus.deliveryInfo && (
+                    <span className="block mt-1">
+                      Délivré par: {recipEStatus.deliveryInfo.pharmacyName}
+                    </span>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Meta info */}
             <Card className="bg-gray-50">
               <CardContent className="p-4">
@@ -406,6 +518,20 @@ export default function EPrescriptionViewer({
             <Button variant="outline" onClick={onClose}>
               Fermer
             </Button>
+            {prescription.rid && (
+              <Button
+                variant="outline"
+                onClick={handleRefreshStatus}
+                disabled={isRefreshingStatus}
+              >
+                {isRefreshingStatus ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Vérifier statut
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={handlePrint}
