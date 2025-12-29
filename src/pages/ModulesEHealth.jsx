@@ -105,9 +105,10 @@ const EHEALTH_MODULES = [
     color: 'orange',
     features: [
       { name: 'Création certificat', implemented: true },
-      { name: 'Envoi eMediAtt', implemented: false },
-      { name: 'Confirmation réception', implemented: false },
-      { name: 'Historique envois', implemented: false }
+      { name: 'Génération PDF KMEHR', implemented: true },
+      { name: 'Envoi eMediAtt (simulé)', implemented: true },
+      { name: 'Confirmation réception', implemented: true },
+      { name: 'Historique envois', implemented: true }
     ],
     links: [
       { label: 'eHealth Mult-eMediatt', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-mult-emediatt' }
