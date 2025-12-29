@@ -36,7 +36,6 @@ import WidgetSelector from '../components/dashboard/WidgetSelector';
 import { AVAILABLE_WIDGETS, DEFAULT_WIDGET_ORDER } from '../components/dashboard/widgetConfig';
 import AdminCockpit from '../components/admin/AdminCockpit';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, LayoutDashboard } from 'lucide-react';
 
 export default function Dashboard() {
   const { t, locale } = useI18n();
