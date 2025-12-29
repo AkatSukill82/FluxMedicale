@@ -366,8 +366,8 @@ export default function LiaisonMedecinSecretaire() {
                     </div>
                   </div>
 
-                  {/* Actions pour médecin */}
-                  {isDoctor && liaison.statut !== "revoked" && (
+                  {/* Actions */}
+                  {liaison.statut !== "revoked" && (
                     <div className="flex items-center gap-2">
                       {liaison.statut === "pending" && (
                         <Button 
@@ -398,14 +398,6 @@ export default function LiaisonMedecinSecretaire() {
                         <Unlink className="w-4 h-4" />
                       </Button>
                     </div>
-                  )}
-
-                  {/* Status pour secrétaire */}
-                  {!isDoctor && liaison.statut === "pending" && (
-                    <Badge className="bg-yellow-100 text-yellow-700">
-                      <Clock className="w-3 h-3 mr-1" />
-                      En attente d'approbation
-                    </Badge>
                   )}
                 </div>
               </CardContent>
