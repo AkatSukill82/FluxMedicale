@@ -288,24 +288,22 @@ export default function LiaisonMedecinSecretaire() {
                     </div>
                   </div>
 
-                  {formData.permissions.includes("hub_access") && (
-                    <Alert className="bg-amber-50 border-amber-200">
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
-                      <AlertTitle className="text-amber-800">Délégation eHealth</AlertTitle>
-                      <AlertDescription className="text-amber-700 text-sm">
-                        L'accès HUB nécessite une délégation eHealth. Votre certificat sera utilisé 
-                        en arrière-plan pour permettre à la secrétaire de consulter les données du HUB.
-                      </AlertDescription>
-                      <div className="mt-3 flex items-center gap-2">
-                        <Switch
-                          checked={formData.ehealth_delegation_active}
-                          onCheckedChange={(v) => setFormData({...formData, ehealth_delegation_active: v})}
-                        />
-                        <span className="text-sm">Activer la délégation eHealth</span>
-                      </div>
-                    </Alert>
-                  )}
-                </>
+              {formData.permissions.includes("hub_access") && (
+                <Alert className="bg-amber-50 border-amber-200">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800">Délégation eHealth</AlertTitle>
+                  <AlertDescription className="text-amber-700 text-sm">
+                    L'accès HUB nécessite une délégation eHealth. Votre certificat sera utilisé 
+                    en arrière-plan pour permettre à la secrétaire de consulter les données du HUB.
+                  </AlertDescription>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Switch
+                      checked={formData.ehealth_delegation_active}
+                      onCheckedChange={(v) => setFormData({...formData, ehealth_delegation_active: v})}
+                    />
+                    <span className="text-sm">Activer la délégation eHealth</span>
+                  </div>
+                </Alert>
               )}
 
               <div className="flex justify-end gap-3 pt-4">
