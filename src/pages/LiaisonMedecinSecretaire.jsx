@@ -309,7 +309,7 @@ export default function LiaisonMedecinSecretaire() {
                   Annuler
                 </Button>
                 <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  {isDoctor ? "Créer la liaison" : "Envoyer la demande"}
+                  Créer la liaison
                 </Button>
               </div>
             </form>
