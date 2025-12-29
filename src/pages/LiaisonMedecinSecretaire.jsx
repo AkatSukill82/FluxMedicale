@@ -112,6 +112,22 @@ export default function LiaisonMedecinSecretaire() {
     }
   };
 
+  const sendNotification = async (recipientEmail, type, title, message, link = "", relatedId = "") => {
+    try {
+      await base44.entities.Notification.create({
+        recipient_email: recipientEmail,
+        type,
+        title,
+        message,
+        link,
+        read: false,
+        related_id: relatedId
+      });
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  };
+
   const handleCreateLiaison = async (e) => {
     e.preventDefault();
     try {
@@ -142,6 +158,16 @@ export default function LiaisonMedecinSecretaire() {
         "", 
         "active",
         `Liaison créée avec ${targetUser.full_name}. Permissions: ${formData.permissions.join(", ")}`
+      );
+
+      // Notifier la secrétaire qu'elle a été liée
+      await sendNotification(
+        formData.target_email,
+        "liaison_accepted",
+        "Nouvelle liaison créée",
+        `Dr. ${user.full_name} vous a ajoutée comme secrétaire avec les permissions: ${formData.permissions.map(p => PERMISSIONS.find(perm => perm.id === p)?.label || p).join(", ")}`,
+        "LiaisonMedecinSecretaire",
+        created.id
       );
 
       toast.success("Secrétaire liée avec succès");

@@ -43,6 +43,7 @@ import LanguageSelector from './i18n/LanguageSelector';
 import { useI18n } from './i18n/i18nContext';
 import MedicalAssistant from './agent/MedicalAssistant';
 import CommandPalette from './CommandPalette';
+import NotificationBell from './notifications/NotificationBell';
 
 export default function AppShell({ children, currentPageName }) {
   const { t } = useI18n();
@@ -215,8 +216,9 @@ export default function AppShell({ children, currentPageName }) {
               
               {user && (
               <div className="flex items-center gap-3">
-                <CommandPalette />
-                <LanguageSelector />
+                  <CommandPalette />
+                  <NotificationBell />
+                  <LanguageSelector />
 
                 <Link 
                   to={createPageUrl('ProfilMedecin')}
