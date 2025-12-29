@@ -231,14 +231,12 @@ export default function LiaisonMedecinSecretaire() {
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
               <UserPlus className="w-4 h-4 mr-2" />
-              {isDoctor ? "Ajouter une secrétaire" : "Demander une liaison"}
+              Ajouter une secrétaire
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>
-                {isDoctor ? "Lier une secrétaire" : "Demander une liaison médecin"}
-              </DialogTitle>
+              <DialogTitle>Lier une secrétaire</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreateLiaison} className="space-y-4 mt-4">
               <div>
