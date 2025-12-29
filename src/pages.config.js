@@ -3,6 +3,7 @@ import Audit from './pages/Audit';
 import AuditSecurity from './pages/AuditSecurity';
 import Cabinets from './pages/Cabinets';
 import EIDTest from './pages/EIDTest';
+import EPrescriptions from './pages/EPrescriptions';
 import Facturation from './pages/Facturation';
 import FollowUpTasks from './pages/FollowUpTasks';
 import GDPRRegistry from './pages/GDPRRegistry';
@@ -15,6 +16,7 @@ import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import ProfilMedecin from './pages/ProfilMedecin';
+import RapportsMedicaux from './pages/RapportsMedicaux';
 import ReferentialImport from './pages/ReferentialImport';
 import SecureMessages from './pages/SecureMessages';
 import Securite from './pages/Securite';
@@ -24,8 +26,6 @@ import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
-import RapportsMedicaux from './pages/RapportsMedicaux';
-import EPrescriptions from './pages/EPrescriptions';
 import __Layout from './Layout.jsx';
 
 
@@ -35,6 +35,7 @@ export const PAGES = {
     "AuditSecurity": AuditSecurity,
     "Cabinets": Cabinets,
     "EIDTest": EIDTest,
+    "EPrescriptions": EPrescriptions,
     "Facturation": Facturation,
     "FollowUpTasks": FollowUpTasks,
     "GDPRRegistry": GDPRRegistry,
@@ -47,6 +48,7 @@ export const PAGES = {
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "ProfilMedecin": ProfilMedecin,
+    "RapportsMedicaux": RapportsMedicaux,
     "ReferentialImport": ReferentialImport,
     "SecureMessages": SecureMessages,
     "Securite": Securite,
@@ -56,8 +58,6 @@ export const PAGES = {
     "Templates": Templates,
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
-    "RapportsMedicaux": RapportsMedicaux,
-    "EPrescriptions": EPrescriptions,
 }
 
 export const pagesConfig = {

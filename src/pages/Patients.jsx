@@ -10,8 +10,7 @@ import {
   X, 
   CreditCard,
   Pill,
-  FileText,
-  Download
+  FileText
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -26,6 +25,7 @@ import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrat
 import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
+import EPrescriptionsTab from '../components/patients/tabs/EPrescriptionsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
@@ -36,7 +36,6 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
-import PatientExportModal from '../components/patients/PatientExportModal';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -59,7 +58,6 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -72,7 +70,35 @@ export default function Patients() {
     enabled: !!patientId
   });
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.altKey) {
+        switch(e.key.toLowerCase()) {
+          case 'e':
+            e.preventDefault();
+            handleReadEID();
+            break;
+          case 'f':
+            e.preventDefault();
+            setShowQuickBilling(true);
+            break;
+          case 'p':
+            e.preventDefault();
+            setShowQuickPrescription(true);
+            break;
+          case 'v':
+            e.preventDefault();
+            setShowQuickVaccination(true);
+            break;
+          default:
+            break;
+        }
+      }
+    };
 
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [patientId]);
 
   const handleReadEID = async () => {
     const result = await readEID();
@@ -224,17 +250,8 @@ export default function Patients() {
               >
                 💉 Vacciner (Alt+V)
               </Button>
-              </>
-              )}
-              <Button
-              onClick={() => setShowExportModal(true)}
-              className="w-full justify-start gap-2"
-              size="sm"
-              variant="outline"
-              >
-              <Download className="w-4 h-4" />
-              Exporter dossier
-              </Button>
+            </>
+          )}
         </div>
 
         {/* Notifications */}
@@ -294,6 +311,11 @@ export default function Patients() {
                 <TabsTrigger value="history" className="gap-2">
                   📋 Historique
                 </TabsTrigger>
+                {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+                  <TabsTrigger value="eprescriptions" className="gap-2">
+                    💊 e-Prescriptions
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="documents" className="gap-2">
                   📁 Documents
                 </TabsTrigger>
@@ -325,6 +347,11 @@ export default function Patients() {
               <TabsContent value="history" className="m-0">
                 <MedicalHistory patient={patient} />
               </TabsContent>
+              {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+                <TabsContent value="eprescriptions" className="m-0">
+                  <EPrescriptionsTab patient={patient} />
+                </TabsContent>
+              )}
               <TabsContent value="documents" className="m-0">
                 <DocumentsTab patient={patient} />
               </TabsContent>
@@ -384,15 +411,6 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
-
-      {showExportModal && (
-        <PatientExportModal
-          patient={patient}
-          isOpen={showExportModal}
-          onClose={() => setShowExportModal(false)}
-        />
-      )}
-
-      </div>
-      );
-      }
+    </div>
+  );
+}

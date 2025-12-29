@@ -27,12 +27,16 @@ import {
   Upload,
   CheckCircle,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Building2,
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { validateIBAN, validateEmail, validatePhone } from '../components/utils/validators';
 import AutoBackupService from '../components/backup/AutoBackupService';
+import CabinetManager from '../components/cabinet/CabinetManager';
+import LiaisonMedecinSecretaireTab from '../components/profile/LiaisonMedecinSecretaireTab';
 
 export default function ProfilMedecinPage() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -325,37 +329,47 @@ export default function ProfilMedecinPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="identite" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
-          <TabsTrigger value="identite">
-            <UserIcon className="w-4 h-4 mr-2" />
+        <TabsList className="flex flex-wrap gap-1 h-auto p-1">
+          <TabsTrigger value="identite" className="text-xs">
+            <UserIcon className="w-4 h-4 mr-1" />
             Identité
           </TabsTrigger>
-          <TabsTrigger value="coordonnees">
-            <MapPin className="w-4 h-4 mr-2" />
+          <TabsTrigger value="coordonnees" className="text-xs">
+            <MapPin className="w-4 h-4 mr-1" />
             Coordonnées
           </TabsTrigger>
-          <TabsTrigger value="ehealth">
-            <FileKey className="w-4 h-4 mr-2" />
+          <TabsTrigger value="cabinets" className="text-xs">
+            <Building2 className="w-4 h-4 mr-1" />
+            Cabinets
+          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="liaisons" className="text-xs">
+              <Users className="w-4 h-4 mr-1" />
+              Secrétaires
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="ehealth" className="text-xs">
+            <FileKey className="w-4 h-4 mr-1" />
             eHealth
           </TabsTrigger>
-          <TabsTrigger value="dmg">
-            <Heart className="w-4 h-4 mr-2" />
+          <TabsTrigger value="dmg" className="text-xs">
+            <Heart className="w-4 h-4 mr-1" />
             DMG
           </TabsTrigger>
-          <TabsTrigger value="facturation">
-            <CreditCard className="w-4 h-4 mr-2" />
+          <TabsTrigger value="facturation" className="text-xs">
+            <CreditCard className="w-4 h-4 mr-1" />
             Facturation
           </TabsTrigger>
-          <TabsTrigger value="securite">
-            <Shield className="w-4 h-4 mr-2" />
+          <TabsTrigger value="securite" className="text-xs">
+            <Shield className="w-4 h-4 mr-1" />
             Sécurité
           </TabsTrigger>
-          <TabsTrigger value="notifications">
-            <Bell className="w-4 h-4 mr-2" />
+          <TabsTrigger value="notifications" className="text-xs">
+            <Bell className="w-4 h-4 mr-1" />
             Notifications
           </TabsTrigger>
-          <TabsTrigger value="backup">
-            <Save className="w-4 h-4 mr-2" />
+          <TabsTrigger value="backup" className="text-xs">
+            <Save className="w-4 h-4 mr-1" />
             Backup
           </TabsTrigger>
         </TabsList>
@@ -483,6 +497,18 @@ export default function ProfilMedecinPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Tab Cabinets */}
+        <TabsContent value="cabinets" className="mt-6">
+          <CabinetManager />
+        </TabsContent>
+
+        {/* Tab Liaisons Médecin/Secrétaire */}
+        {isAdmin && (
+          <TabsContent value="liaisons" className="mt-6">
+            <LiaisonMedecinSecretaireTab user={currentUser} />
+          </TabsContent>
+        )}
 
         {/* Tab eHealth */}
         <TabsContent value="ehealth" className="mt-6">
