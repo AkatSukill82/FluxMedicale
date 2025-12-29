@@ -321,9 +321,7 @@ export default function LiaisonMedecinSecretaire() {
           <Card>
             <CardContent className="py-12 text-center">
               <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">
-                {isDoctor ? "Aucune secrétaire liée" : "Aucune liaison avec un médecin"}
-              </p>
+              <p className="text-gray-500">Aucune secrétaire liée</p>
             </CardContent>
           </Card>
         ) : (
