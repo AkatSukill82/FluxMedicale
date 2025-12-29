@@ -225,34 +225,147 @@ function generateKMEHRIncapacity(data, user) {
 </kmehrmessage>`;
 }
 
-// Génération PDF attestation
+// Génération PDF attestation avec jsPDF
 async function generateAttestationPDF(data, user) {
-  console.log('[eMediAtt] Génération PDF...');
+  console.log('[eMediAtt] Génération PDF avec jsPDF...');
   
-  // En production : utiliser une bibliothèque PDF (pdfmake, jsPDF, etc.)
-  // Pour la démo : créer un blob texte
-  const pdfContent = `
-ATTESTATION D'INCAPACITÉ DE TRAVAIL
-
-Patient: ${data.patientFirstName} ${data.patientLastName}
-NISS: ${data.patientNiss}
-Date de naissance: ${data.patientBirthDate}
-
-Période d'incapacité:
-Du ${data.dateDebut} au ${data.dateFin}
-
-Motif: ${data.motif || 'Maladie'}
-${data.hospitalisation ? 'Hospitalisation requise' : 'Traitement ambulatoire'}
-${data.dateReprise ? `Date de reprise prévue: ${data.dateReprise}` : ''}
-
-Médecin prescripteur:
-${user.full_name}
-INAMI: ${user.numero_inami}
-
-Date: ${new Date().toLocaleDateString('fr-BE')}
-`;
-
-  return new Blob([pdfContent], { type: 'application/pdf' });
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Titre
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text("ATTESTATION D'INCAPACITÉ DE TRAVAIL", pageWidth / 2, 25, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text("Mult-eMediatt - Certificat Médical Électronique", pageWidth / 2, 33, { align: 'center' });
+  
+  // Ligne séparatrice
+  doc.setLineWidth(0.5);
+  doc.line(20, 40, pageWidth - 20, 40);
+  
+  let y = 55;
+  
+  // Section Patient
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text("PATIENT", 20, y);
+  y += 10;
+  
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Nom: ${data.patientLastName || ''}`, 20, y);
+  y += 7;
+  doc.text(`Prénom: ${data.patientFirstName || ''}`, 20, y);
+  y += 7;
+  doc.text(`NISS: ${data.patientNiss || 'Non renseigné'}`, 20, y);
+  y += 7;
+  doc.text(`Date de naissance: ${data.patientBirthDate || 'Non renseignée'}`, 20, y);
+  y += 15;
+  
+  // Section Période
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text("PÉRIODE D'INCAPACITÉ", 20, y);
+  y += 10;
+  
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Du: ${data.dateDebut || ''}`, 20, y);
+  doc.text(`Au: ${data.dateFin || ''}`, 100, y);
+  y += 7;
+  
+  const typeLabels = {
+    sickness: 'Maladie',
+    accident: 'Accident',
+    pregnancy: 'Maternité',
+    prophylaxis: 'Prophylaxie'
+  };
+  doc.text(`Type: ${typeLabels[data.type] || data.type || 'Maladie'}`, 20, y);
+  y += 15;
+  
+  // Section Motif
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text("MOTIF / DIAGNOSTIC", 20, y);
+  y += 10;
+  
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  const motifLines = doc.splitTextToSize(data.motif || 'Non précisé', pageWidth - 40);
+  doc.text(motifLines, 20, y);
+  y += motifLines.length * 7 + 8;
+  
+  // Options
+  doc.setFontSize(11);
+  if (data.hospitalisation) {
+    doc.text("☑ Hospitalisation requise", 20, y);
+  } else {
+    doc.text("☐ Hospitalisation requise", 20, y);
+  }
+  y += 7;
+  
+  if (data.sortieAutorisee && !data.hospitalisation) {
+    doc.text("☑ Sorties autorisées", 20, y);
+  } else {
+    doc.text("☐ Sorties autorisées", 20, y);
+  }
+  y += 7;
+  
+  if (data.dateReprise) {
+    doc.text(`Date de reprise prévue: ${data.dateReprise}`, 20, y);
+    y += 10;
+  }
+  y += 8;
+  
+  // Observations
+  if (data.observations) {
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text("OBSERVATIONS", 20, y);
+    y += 10;
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    const obsLines = doc.splitTextToSize(data.observations, pageWidth - 40);
+    doc.text(obsLines, 20, y);
+    y += obsLines.length * 7 + 10;
+  }
+  
+  // Ligne séparatrice
+  doc.setLineWidth(0.3);
+  doc.line(20, y, pageWidth - 20, y);
+  y += 15;
+  
+  // Médecin prescripteur
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text("MÉDECIN PRESCRIPTEUR", 20, y);
+  y += 10;
+  
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Dr. ${user.full_name || ''}`, 20, y);
+  y += 7;
+  doc.text(`N° INAMI: ${user.numero_inami || 'Non renseigné'}`, 20, y);
+  y += 7;
+  doc.text(`Date: ${new Date().toLocaleDateString('fr-BE')}`, 20, y);
+  y += 20;
+  
+  // Signature
+  doc.text("Signature:", 20, y);
+  doc.setLineWidth(0.3);
+  doc.line(60, y, 120, y);
+  
+  // Footer
+  doc.setFontSize(9);
+  doc.setTextColor(128);
+  doc.text("Document généré électroniquement via Mult-eMediatt - FluxMed", pageWidth / 2, 285, { align: 'center' });
+  
+  // Retourner le blob PDF
+  const pdfOutput = doc.output('blob');
+  return pdfOutput;
 }
 
 // Simulation envoi Medex
