@@ -30,9 +30,15 @@ import {
   Loader2,
   Pill,
   Search,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import * as RecipEService from "./RecipEService";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
+
+const isSimulation = RecipEService.isSimulationMode();
 
 const FORMES = [
   "Comprimé",
@@ -61,6 +67,9 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
   const queryClient = useQueryClient();
   const [patientSearch, setPatientSearch] = useState("");
   const [drugSearch, setDrugSearch] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [recipEError, setRecipEError] = useState(null);
 
   const [formData, setFormData] = useState({
     patient_id: "",
@@ -83,10 +92,29 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
     queryFn: () => base44.entities.Patient.list("-created_date", 200),
   });
 
-  const { data: drugs = [] } = useQuery({
-    queryKey: ["drugs"],
-    queryFn: () => base44.entities.Drug.list("-created_date", 500),
-  });
+  // Recherche de médicaments via Recip-e/SAM
+  const handleDrugSearch = async (query) => {
+    setDrugSearch(query);
+    if (query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    
+    setIsSearching(true);
+    try {
+      const result = await RecipEService.searchMedications(query, { limit: 15 });
+      if (result.success) {
+        setSearchResults(result.data.medications);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Erreur recherche médicaments:", error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
     if (prescription) {
@@ -131,9 +159,22 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
 
   const signAndSendMutation = useMutation({
     mutationFn: async (data) => {
-      // Générer un RID simulé (en production, appel à Recip-e)
-      const rid = `BE${Date.now()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-      const barcode = `01${rid}`;
+      setRecipEError(null);
+      
+      // Appel au service Recip-e
+      const recipEResult = await RecipEService.createPrescription(
+        {
+          ...data,
+          medecin_inami: user?.numero_inami,
+        },
+        user?.numero_inami
+      );
+
+      if (!recipEResult.success) {
+        throw new Error(RecipEService.getErrorMessage(recipEResult.error?.code) || recipEResult.error?.message);
+      }
+
+      const { rid, barcode } = recipEResult.data;
 
       const payload = {
         ...data,
@@ -155,14 +196,17 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
         return base44.entities.EPrescription.create(payload);
       }
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eprescriptions"] });
-      toast.success("Prescription signée et envoyée via Recip-e");
+      toast.success(isSimulation 
+        ? "Prescription créée (mode simulation)" 
+        : "Prescription signée et envoyée via Recip-e"
+      );
       onClose();
     },
     onError: (error) => {
-      toast.error("Erreur lors de l'envoi");
-      console.error(error);
+      setRecipEError(error.message);
+      toast.error(error.message || "Erreur lors de l'envoi à Recip-e");
     },
   });
 
@@ -185,7 +229,7 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
   const addMedicament = (drug = null) => {
     const newMed = drug
       ? {
-          nom: drug.nom || drug.name,
+          nom: drug.name || drug.nom,
           cnk: drug.cnk || "",
           dci: drug.dci || "",
           dosage: drug.dosage || "",
@@ -214,6 +258,7 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
       medicaments: [...prev.medicaments, newMed],
     }));
     setDrugSearch("");
+    setSearchResults([]);
   };
 
   const updateMedicament = (index, field, value) => {
@@ -260,11 +305,7 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
     return fullName.includes(patientSearch.toLowerCase());
   });
 
-  const filteredDrugs = drugs.filter((d) => {
-    if (!drugSearch || drugSearch.length < 2) return false;
-    const name = (d.nom || d.name || "").toLowerCase();
-    return name.includes(drugSearch.toLowerCase());
-  });
+
 
   const isPending = saveMutation.isPending || signAndSendMutation.isPending;
 
@@ -279,6 +320,27 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
 
         <ScrollArea className="flex-1 pr-4">
           <div className="space-y-6 py-4">
+            {/* Mode simulation warning */}
+            {isSimulation && (
+              <Alert className="bg-amber-50 border-amber-200">
+                <Info className="w-4 h-4 text-amber-600" />
+                <AlertDescription className="text-amber-800">
+                  <strong>Mode simulation actif.</strong> Les prescriptions ne sont pas envoyées à Recip-e. 
+                  Configurez les certificats eHealth pour une intégration réelle.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Erreur Recip-e */}
+            {recipEError && (
+              <Alert className="bg-red-50 border-red-200">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <AlertDescription className="text-red-800">
+                  <strong>Erreur Recip-e:</strong> {recipEError}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Patient & Type */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -378,28 +440,40 @@ export default function EPrescriptionForm({ isOpen, onClose, prescription, user 
                   </Label>
                 </div>
 
-                {/* Recherche de médicaments */}
+                {/* Recherche de médicaments via Recip-e/SAM */}
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    placeholder="Rechercher un médicament..."
+                    placeholder="Rechercher un médicament (nom, DCI, CNK)..."
                     value={drugSearch}
-                    onChange={(e) => setDrugSearch(e.target.value)}
+                    onChange={(e) => handleDrugSearch(e.target.value)}
                     className="pl-10"
                   />
-                  {filteredDrugs.length > 0 && (
-                    <Card className="absolute z-10 w-full mt-1 max-h-48 overflow-y-auto">
+                  {isSearching && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                    </div>
+                  )}
+                  {searchResults.length > 0 && (
+                    <Card className="absolute z-10 w-full mt-1 max-h-64 overflow-y-auto shadow-lg">
                       <CardContent className="p-2">
-                        {filteredDrugs.slice(0, 10).map((drug) => (
+                        {searchResults.map((drug, idx) => (
                           <div
-                            key={drug.id}
+                            key={drug.cnk || idx}
                             onClick={() => addMedicament(drug)}
-                            className="p-2 hover:bg-gray-100 rounded cursor-pointer"
+                            className="p-2 hover:bg-blue-50 rounded cursor-pointer border-b last:border-0"
                           >
-                            <p className="font-medium">{drug.nom || drug.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {drug.dosage} - {drug.forme}
-                            </p>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium text-gray-900">{drug.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {drug.dci} • {drug.dosage} • {drug.forme}
+                                </p>
+                              </div>
+                              <span className="text-xs text-gray-400 font-mono">
+                                {drug.cnk}
+                              </span>
+                            </div>
                           </div>
                         ))}
                       </CardContent>
