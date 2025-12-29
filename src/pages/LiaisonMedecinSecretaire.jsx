@@ -336,7 +336,7 @@ export default function LiaisonMedecinSecretaire() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-gray-900">
-                          {isDoctor ? liaison.secretaire_nom : `Dr. ${liaison.medecin_nom}`}
+                          {liaison.secretaire_nom}
                         </h3>
                         {getStatusBadge(liaison.statut)}
                         {liaison.ehealth_delegation_active && (
