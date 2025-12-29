@@ -323,18 +323,7 @@ export default function LiaisonMedecinSecretaire() {
         </Dialog>
       </div>
 
-      {/* Info Box pour les secrétaires */}
-      {!isDoctor && (
-        <Alert>
-          <Shield className="h-4 w-4" />
-          <AlertTitle>Accès HUB Patient</AlertTitle>
-          <AlertDescription>
-            Pour consulter le HUB santé d'un patient, vous devez être liée à un médecin 
-            qui a activé la délégation eHealth. Le certificat du médecin sera utilisé 
-            pour authentifier vos requêtes.
-          </AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Liste des liaisons */}
       <div className="grid gap-4">
