@@ -25,6 +25,7 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
 import RapportsMedicaux from './pages/RapportsMedicaux';
+import EPrescriptions from './pages/EPrescriptions';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +57,7 @@ export const PAGES = {
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
     "RapportsMedicaux": RapportsMedicaux,
+    "EPrescriptions": EPrescriptions,
 }
 
 export const pagesConfig = {
