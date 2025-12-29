@@ -11,7 +11,6 @@ import Health from './pages/Health';
 import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
-import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
@@ -42,7 +41,6 @@ export const PAGES = {
     "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
-    "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
     "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
