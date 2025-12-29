@@ -143,17 +143,19 @@ const EHEALTH_MODULES = [
     description: 'Gestion du consentement éclairé du patient pour le partage de données',
     category: 'security',
     mandatory: true,
-    status: 'partial',
+    status: 'implemented',
     icon: Shield,
     color: 'teal',
     features: [
       { name: 'Vérification consentement', implemented: true },
-      { name: 'Demande consentement', implemented: false },
-      { name: 'Révocation consentement', implemented: false },
-      { name: 'Historique consentements', implemented: false }
+      { name: 'Types de consentement multiples', implemented: true },
+      { name: 'Accord/révocation consentement', implemented: true },
+      { name: 'Historique modifications', implemented: true },
+      { name: 'Audit consultation', implemented: true }
     ],
     links: [
-      { label: 'eHealthConsent', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-ehealthconsent' }
+      { label: 'eHealthConsent', url: 'https://www.ehealth.fgov.be/ehealthplatform/fr/service-gestion-du-consentement' },
+      { label: 'MaSanté.be', url: 'https://www.masante.be' }
     ]
   },
   {
