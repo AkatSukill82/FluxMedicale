@@ -22,8 +22,10 @@ import {
   Cloud,
   Settings,
   Info,
-  ArrowRight
+  ArrowRight,
+  Download
 } from 'lucide-react';
+import { downloadFluxMedDocumentation } from '../components/documentation/GenerateDocumentation';
 
 // Définition des modules eHealth obligatoires selon les critères d'homologation
 const EHEALTH_MODULES = [
@@ -308,12 +310,18 @@ export default function ModulesEHealthPage() {
             État d'implémentation des critères d'homologation eHealth/INAMI
           </p>
         </div>
-        <Button variant="outline" asChild>
-          <a href="https://www.ehealth.fgov.be/ehealthplatform/fr/service-enregistrement-des-logiciels" target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-4 h-4 mr-2" />
-            Critères eHealth
-          </a>
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={downloadFluxMedDocumentation} className="bg-blue-600 hover:bg-blue-700">
+            <Download className="w-4 h-4 mr-2" />
+            Documentation PDF
+          </Button>
+          <Button variant="outline" asChild>
+            <a href="https://www.ehealth.fgov.be/ehealthplatform/fr/service-enregistrement-des-logiciels" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Critères eHealth
+            </a>
+          </Button>
+        </div>
       </div>
 
       {/* Score global */}
