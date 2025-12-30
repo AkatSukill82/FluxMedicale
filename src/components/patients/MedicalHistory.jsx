@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X } from 'lucide-react';
+import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X, Edit } from 'lucide-react';
 import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
+import ConsultationEditModal from './ConsultationEditModal';
+import InvoiceEditModal from '../facturation/InvoiceEditModal';
 
 export default function MedicalHistory({ patient }) {
   const location = useLocation();
@@ -18,6 +20,8 @@ export default function MedicalHistory({ patient }) {
   
   const [highlightDate, setHighlightDate] = useState(filterDate);
   const highlightRef = useRef(null);
+  const [editingConsultation, setEditingConsultation] = useState(null);
+  const [editingInvoice, setEditingInvoice] = useState(null);
   const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
     queryKey: ['consultations', patient.id],
     queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation', 100)
@@ -161,8 +165,14 @@ export default function MedicalHistory({ patient }) {
                           </p>
                         )}
                       </div>
-                      <Button variant="ghost" size="icon">
-                        <ChevronRight className="w-4 h-4" />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setEditingConsultation(consult)}
+                      >
+                        <Edit className="w-3 h-3" />
+                        Modifier
                       </Button>
                     </div>
                   </CardContent>
@@ -276,6 +286,15 @@ export default function MedicalHistory({ patient }) {
                           ID: {invoice.id.substring(0, 12)}...
                         </p>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => setEditingInvoice(invoice)}
+                      >
+                        <Edit className="w-3 h-3" />
+                        Modifier
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -314,6 +333,19 @@ export default function MedicalHistory({ patient }) {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Modals d'édition */}
+      <ConsultationEditModal
+        consultation={editingConsultation}
+        isOpen={!!editingConsultation}
+        onClose={() => setEditingConsultation(null)}
+      />
+
+      <InvoiceEditModal
+        invoice={editingInvoice}
+        isOpen={!!editingInvoice}
+        onClose={() => setEditingInvoice(null)}
+      />
     </div>
   );
 }
