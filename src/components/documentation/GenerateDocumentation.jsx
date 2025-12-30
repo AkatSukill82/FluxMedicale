@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export function generateFluxMedDocumentation() {
   const doc = new jsPDF();
@@ -56,7 +56,7 @@ export function generateFluxMedDocumentation() {
 
   const addTable = (headers, data) => {
     addPageIfNeeded(40);
-    doc.autoTable({
+    autoTable(doc, {
       startY: y,
       head: [headers],
       body: data,
