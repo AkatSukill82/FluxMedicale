@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, User, Clock, MoreHorizontal, Users } from "lucide-react";
-import { format, addDays, startOfWeek, isToday } from "date-fns";
+import { format, addDays, startOfWeek, isToday, isValid } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
@@ -128,11 +128,14 @@ export default function WeeklyCalendar({
               );
 
               const slotTime = `${hour}:00:00`;
-              const unavailableSlot = slots?.find(s => 
-                format(new Date(s.start_time), 'yyyy-MM-dd') === dayString && 
-                format(new Date(s.start_time), 'HH:00:00') === slotTime &&
-                s.type === 'Bloque'
-              );
+              const unavailableSlot = slots?.find(s => {
+                if (!s.start_time) return false;
+                const startDate = new Date(s.start_time);
+                if (!isValid(startDate)) return false;
+                return format(startDate, 'yyyy-MM-dd') === dayString && 
+                  format(startDate, 'HH:00:00') === slotTime &&
+                  s.type === 'Bloque';
+              });
 
               return (
                 <Droppable key={dayHourId} droppableId={dayHourId}>
