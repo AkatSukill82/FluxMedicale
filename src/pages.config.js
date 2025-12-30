@@ -27,6 +27,7 @@ import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
+import Documentation from './pages/Documentation';
 import __Layout from './Layout.jsx';
 
 
@@ -60,6 +61,7 @@ export const PAGES = {
     "Templates": Templates,
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
+    "Documentation": Documentation,
 }
 
 export const pagesConfig = {

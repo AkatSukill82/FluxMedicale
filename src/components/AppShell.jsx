@@ -89,7 +89,8 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Statistiques', path: 'Statistics', icon: Activity },
     { title: 'Modules eHealth', path: 'ModulesEHealth', icon: Database },
     { title: 'Rapports Médicaux', path: 'RapportsMedicaux', icon: ClipboardList },
-  ];
+    { title: 'Documentation', path: 'Documentation', icon: FileText },
+    ];
   
   const adminNavItems = [
     { title: t('nav.users'), path: 'Utilisateurs', icon: Users, adminOnly: true },
