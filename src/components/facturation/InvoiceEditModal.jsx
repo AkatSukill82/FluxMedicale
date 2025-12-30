@@ -18,7 +18,7 @@ import { CreditCard, Save, Loader2, Trash2, Plus, Euro } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import NomenclatureSelector from './NomenclatureSelector';
+import NomenSearch from '../nomenclature/NomenSearch';
 
 const STATUS_OPTIONS = [
   { value: 'DRAFT', label: 'Brouillon', color: 'bg-slate-100 text-slate-800' },
@@ -380,7 +380,7 @@ export default function InvoiceEditModal({ invoice, isOpen, onClose, onSave }) {
               <DialogHeader>
                 <DialogTitle>Ajouter un acte</DialogTitle>
               </DialogHeader>
-              <NomenclatureSelector onSelect={handleAddLine} />
+              <NomenSearch onSelect={handleAddLine} />
             </DialogContent>
           </Dialog>
         )}
