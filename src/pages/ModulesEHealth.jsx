@@ -25,7 +25,7 @@ import {
   ArrowRight,
   Download
 } from 'lucide-react';
-import { downloadFluxMedDocumentation } from '../components/documentation/GenerateDocumentation';
+import { downloadFluxMedDocumentation } from '@/components/documentation/GenerateDocumentation';
 
 // Définition des modules eHealth obligatoires selon les critères d'homologation
 const EHEALTH_MODULES = [
