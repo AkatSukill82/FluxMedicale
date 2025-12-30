@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,6 +22,7 @@ import { nissValidator } from '../../eid/nissValidator';
 import { toast } from 'sonner';
 
 import IdSupportButton from '../../idsupport/IdSupportButton';
+import MedicationManager from '../MedicationManager';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -465,6 +465,9 @@ export default function FicheAdministrativeTab({ patient }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Médicaments */}
+      <MedicationManager patient={patient} />
 
       {/* Note RGPD */}
       <Alert className="bg-blue-50 border-blue-200">
