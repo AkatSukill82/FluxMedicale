@@ -470,6 +470,9 @@ export default function FicheAdministrativeTab({ patient }) {
       {/* Médicaments */}
       <MedicationManager patient={patient} />
 
+      {/* Rappels ordonnances */}
+      <PrescriptionReminders patient={patient} />
+
       {/* Note RGPD */}
       <Alert className="bg-blue-50 border-blue-200">
         <Shield className="w-4 h-4 text-blue-600" />
