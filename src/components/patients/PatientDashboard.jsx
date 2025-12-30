@@ -27,7 +27,20 @@ import {
   XCircle,
   Bell
 } from 'lucide-react';
-import { differenceInYears } from 'date-fns';
+import { differenceInYears, isValid } from 'date-fns';
+
+// Helper to safely parse and validate dates
+const safeDate = (dateStr) => {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  return isValid(date) ? date : null;
+};
+
+const safeFormat = (dateStr, formatStr, options = {}) => {
+  const date = safeDate(dateStr);
+  if (!date) return 'Date inconnue';
+  return format(date, formatStr, options);
+};
 
 export default function PatientDashboard({ patient }) {
   // Fetch all patient-related data
@@ -62,7 +75,8 @@ export default function PatientDashboard({ patient }) {
   // Prescription renewals needed
   const prescriptionsToRenew = prescriptions.filter(p => {
     if (!p.recip_e_validity_end) return false;
-    const endDate = new Date(p.recip_e_validity_end);
+    const endDate = safeDate(p.recip_e_validity_end);
+    if (!endDate) return false;
     const daysUntilExpiry = differenceInDays(endDate, new Date());
     return daysUntilExpiry <= 14 && daysUntilExpiry >= 0;
   });
@@ -78,8 +92,8 @@ export default function PatientDashboard({ patient }) {
 
   // Upcoming appointments
   const upcomingAppointments = appointments.filter(a => {
-    const appointmentDate = new Date(a.date);
-    return isFuture(appointmentDate) && a.statut !== 'Annulé';
+    const appointmentDate = safeDate(a.date);
+    return appointmentDate && isFuture(appointmentDate) && a.statut !== 'Annulé';
   });
 
   if (upcomingAppointments.length > 0) {
@@ -88,7 +102,7 @@ export default function PatientDashboard({ patient }) {
       type: 'info',
       icon: Calendar,
       title: 'Prochain rendez-vous',
-      description: `${format(new Date(nextAppointment.date), 'EEEE d MMMM', { locale: fr })} à ${nextAppointment.heure_debut}`
+      description: `${safeFormat(nextAppointment.date, 'EEEE d MMMM', { locale: fr })} à ${nextAppointment.heure_debut}`
     });
   }
 
@@ -130,8 +144,9 @@ export default function PatientDashboard({ patient }) {
   // Stats
   const totalConsultations = consultations.length;
   const consultationsThisYear = consultations.filter(c => {
-    const year = new Date(c.date_consultation).getFullYear();
-    return year === new Date().getFullYear();
+    const date = safeDate(c.date_consultation);
+    if (!date) return false;
+    return date.getFullYear() === new Date().getFullYear();
   }).length;
 
   return (
@@ -323,7 +338,7 @@ export default function PatientDashboard({ patient }) {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-sm">
-                            {format(new Date(consultation.date_consultation), 'd MMMM yyyy', { locale: fr })}
+                            {safeFormat(consultation.date_consultation, 'd MMMM yyyy', { locale: fr })}
                           </span>
                           <Badge variant="outline" className="text-xs">
                             {consultation.statut || 'Completee'}
@@ -370,7 +385,7 @@ export default function PatientDashboard({ patient }) {
                         </div>
                         <div>
                           <p className="font-medium text-sm">
-                            {format(new Date(apt.date), 'EEEE d MMMM', { locale: fr })}
+                            {safeFormat(apt.date, 'EEEE d MMMM', { locale: fr })}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {apt.heure_debut} - {apt.type_consultation || 'Consultation'}
@@ -402,7 +417,8 @@ export default function PatientDashboard({ patient }) {
               ) : (
                 <div className="space-y-2">
                   {prescriptionsToRenew.map(p => {
-                    const daysLeft = differenceInDays(new Date(p.recip_e_validity_end), new Date());
+                    const endDate = safeDate(p.recip_e_validity_end);
+                    const daysLeft = endDate ? differenceInDays(endDate, new Date()) : 0;
                     return (
                       <div key={p.id} className="p-2 bg-orange-50 rounded-lg border border-orange-200">
                         <div className="flex items-center justify-between">
@@ -445,7 +461,7 @@ export default function PatientDashboard({ patient }) {
                 <div key={vacc.id} className="p-3 bg-purple-50 rounded-lg border border-purple-100">
                   <p className="font-medium text-sm text-purple-900">{vacc.vaccine_name}</p>
                   <p className="text-xs text-purple-600 mt-1">
-                    {format(new Date(vacc.vaccination_date), 'dd/MM/yyyy')}
+                    {safeFormat(vacc.vaccination_date, 'dd/MM/yyyy')}
                   </p>
                   {vacc.lot_number && (
                     <p className="text-xs text-muted-foreground">Lot: {vacc.lot_number}</p>
