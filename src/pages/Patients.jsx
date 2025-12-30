@@ -25,10 +25,10 @@ import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrat
 import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
-import EPrescriptionsTab from '../components/patients/tabs/EPrescriptionsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import PatientDashboard from '../components/patients/PatientDashboard';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -52,7 +52,7 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('consultation');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
@@ -303,6 +303,9 @@ export default function Patients() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6">
               <TabsList className="h-12 bg-transparent">
+                <TabsTrigger value="dashboard" className="gap-2">
+                  📊 Tableau de bord
+                </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
@@ -311,11 +314,6 @@ export default function Patients() {
                 <TabsTrigger value="history" className="gap-2">
                   📋 Historique
                 </TabsTrigger>
-                {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-                  <TabsTrigger value="eprescriptions" className="gap-2">
-                    💊 e-Prescriptions
-                  </TabsTrigger>
-                )}
                 <TabsTrigger value="documents" className="gap-2">
                   📁 Documents
                 </TabsTrigger>
@@ -339,6 +337,9 @@ export default function Patients() {
         <div className="flex-1 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="p-6">
+              <TabsContent value="dashboard" className="m-0">
+                <PatientDashboard patient={patient} />
+              </TabsContent>
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="consultation" className="m-0">
                   <ConsultationTab patient={patient} />
@@ -347,11 +348,6 @@ export default function Patients() {
               <TabsContent value="history" className="m-0">
                 <MedicalHistory patient={patient} />
               </TabsContent>
-              {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-                <TabsContent value="eprescriptions" className="m-0">
-                  <EPrescriptionsTab patient={patient} />
-                </TabsContent>
-              )}
               <TabsContent value="documents" className="m-0">
                 <DocumentsTab patient={patient} />
               </TabsContent>
