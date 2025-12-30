@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 
 import IdSupportButton from '../../idsupport/IdSupportButton';
 import MedicationManager from '../MedicationManager';
+import PrescriptionReminders from '../../prescriptions/PrescriptionReminders';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
