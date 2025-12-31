@@ -15,6 +15,7 @@ import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
 import InteractionChecker from '../medications/InteractionChecker';
 import PrescriptionHistory from './PrescriptionHistory';
+import DrugInteractionChecker from '../clinical/DrugInteractionChecker';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Database, History } from 'lucide-react';
 import { recipE } from '@/functions/recipE';
@@ -261,6 +262,13 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
 
             {customMedications.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
+                {/* Alertes interactions médicamenteuses */}
+                <DrugInteractionChecker 
+                  medications={customMedications.map(m => m.product_name || m.substance_name)}
+                  patientMedications={patient.medicaments_actuels?.split(',').map(m => m.trim()) || []}
+                  showInline={true}
+                />
+
                 <InteractionChecker
                   selectedMedications={customMedications}
                   patientId={patient.id}
@@ -337,6 +345,13 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
 
             {customMedications.length > 0 && (
               <div className="space-y-4">
+                {/* Alertes interactions médicamenteuses */}
+                <DrugInteractionChecker 
+                  medications={customMedications.map(m => m.product_name || m.substance_name)}
+                  patientMedications={patient.medicaments_actuels?.split(',').map(m => m.trim()) || []}
+                  showInline={true}
+                />
+
                 <InteractionChecker
                   selectedMedications={customMedications}
                   patientId={patient.id}
