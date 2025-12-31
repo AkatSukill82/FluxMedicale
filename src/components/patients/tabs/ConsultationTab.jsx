@@ -9,6 +9,9 @@ import { fr } from 'date-fns/locale';
 import CareGoalsPanel from '../../clinical/CareGoalsPanel';
 import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
 import GrowthChart from '../GrowthChart';
+import TherapeuticGoalsPanel from '../../clinical/TherapeuticGoalsPanel';
+import PediatricGrowthCharts from '../../clinical/PediatricGrowthCharts';
+import { differenceInYears } from 'date-fns';
 
 export default function ConsultationTab({ patient }) {
   const [selectedConsultation, setSelectedConsultation] = useState(null);
@@ -77,6 +80,14 @@ export default function ConsultationTab({ patient }) {
 
       {/* Courbes de croissance et constantes */}
       <GrowthChart patient={patient} />
+
+      {/* Courbes pédiatriques OMS (si enfant) */}
+      {patient.birthDate && differenceInYears(new Date(), new Date(patient.birthDate)) < 18 && (
+        <PediatricGrowthCharts patient={patient} />
+      )}
+
+      {/* Objectifs thérapeutiques */}
+      <TherapeuticGoalsPanel patient={patient} />
 
       {/* Objectifs de soins */}
       <CareGoalsPanel patientId={patient.id} />
