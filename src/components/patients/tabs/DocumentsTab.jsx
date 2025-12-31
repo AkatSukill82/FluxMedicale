@@ -22,7 +22,8 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DocumentEditor from '../../documents/DocumentEditor';
-import AIDocumentAnalyzer from '../../documents/AIDocumentAnalyzer'; // Added AIDocumentAnalyzer import
+import AIDocumentAnalyzer from '../../documents/AIDocumentAnalyzer';
+import PatientDocumentsManager from '../../documents/PatientDocumentsManager';
 
 export default function DocumentsTab({ patient }) {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -108,10 +109,14 @@ export default function DocumentsTab({ patient }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-slate-900">Documents du patient</h2>
+    <div className="space-y-8">
+      {/* Section fichiers uploadés */}
+      <PatientDocumentsManager patient={patient} />
+
+      {/* Séparateur */}
+      <div className="border-t pt-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-slate-900">Documents générés</h2>
         <Button onClick={() => setShowTemplateSelector(true)} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
           Nouveau document
@@ -312,6 +317,7 @@ export default function DocumentsTab({ patient }) {
           onSaved={handleDocumentSaved}
         />
       )}
+      </div>
     </div>
   );
 }
