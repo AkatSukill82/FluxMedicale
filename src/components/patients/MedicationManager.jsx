@@ -45,12 +45,38 @@ import {
   Clock,
   Calendar,
   AlertTriangle,
-  ArchiveRestore
+  ArchiveRestore,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, isValid } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import DrugInteractionChecker, { useInteractionChecker } from '../clinical/DrugInteractionChecker';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Catégories d'interactions pour médicaments personnalisés
+const INTERACTION_CATEGORIES = [
+  { value: '', label: 'Aucune catégorie' },
+  { value: 'ains', label: 'AINS (Anti-inflammatoires)' },
+  { value: 'corticoide', label: 'Corticoïde' },
+  { value: 'anticoagulant', label: 'Anticoagulant' },
+  { value: 'antiagrégant', label: 'Antiagrégant plaquettaire' },
+  { value: 'iec', label: 'IEC / ARA2' },
+  { value: 'betabloquant', label: 'Bêtabloquant' },
+  { value: 'diuretique', label: 'Diurétique' },
+  { value: 'statine', label: 'Statine' },
+  { value: 'isrs', label: 'Antidépresseur ISRS' },
+  { value: 'benzodiazepine', label: 'Benzodiazépine' },
+  { value: 'opioide', label: 'Opioïde' },
+  { value: 'macrolide', label: 'Macrolide (antibiotique)' },
+  { value: 'fluoroquinolone', label: 'Fluoroquinolone (antibiotique)' },
+  { value: 'metformine', label: 'Metformine' },
+  { value: 'sulfamide', label: 'Sulfamide hypoglycémiant' },
+  { value: 'lithium', label: 'Lithium' },
+  { value: 'digoxine', label: 'Digoxine' },
+  { value: 'potassium', label: 'Potassium' },
+];
 
 // Liste des médicaments courants pré-remplis
 const COMMON_MEDICATIONS = [
@@ -140,7 +166,9 @@ export default function MedicationManager({ patient }) {
     startDate: '',
     endDate: '',
     notes: '',
-    archived: false
+    archived: false,
+    isCustom: false,
+    interactionCategory: ''
   });
 
   // Parse les médicaments du patient (format JSON ou texte)
@@ -161,7 +189,9 @@ export default function MedicationManager({ patient }) {
         startDate: '',
         endDate: '',
         notes: '',
-        archived: false
+        archived: false,
+        isCustom: false,
+        interactionCategory: ''
       })).filter(m => m.name);
     }
   };
@@ -169,6 +199,12 @@ export default function MedicationManager({ patient }) {
   const medications = parseMedications();
   const activeMedications = medications.filter(m => !m.archived);
   const archivedMedications = medications.filter(m => m.archived);
+  
+  // Vérifier les interactions entre tous les médicaments actifs
+  const medicationNamesForInteraction = activeMedications.map(m => 
+    m.interactionCategory || m.name
+  );
+  const { interactions, hasInteractions, hasCritical, hasHigh } = useInteractionChecker(medicationNamesForInteraction);
 
   const updatePatientMutation = useMutation({
     mutationFn: (newMedications) => {
@@ -209,7 +245,9 @@ export default function MedicationManager({ patient }) {
       startDate: formData.startDate,
       endDate: formData.endDate,
       notes: formData.notes.trim(),
-      archived: formData.archived
+      archived: formData.archived,
+      isCustom: formData.isCustom,
+      interactionCategory: formData.interactionCategory
     };
 
     let newMedications;
@@ -256,7 +294,9 @@ export default function MedicationManager({ patient }) {
       startDate: medication.startDate || '',
       endDate: medication.endDate || '',
       notes: medication.notes || '',
-      archived: medication.archived || false
+      archived: medication.archived || false,
+      isCustom: medication.isCustom || false,
+      interactionCategory: medication.interactionCategory || ''
     });
     setShowAddModal(true);
   };
@@ -270,7 +310,9 @@ export default function MedicationManager({ patient }) {
       startDate: '',
       endDate: '',
       notes: '',
-      archived: false
+      archived: false,
+      isCustom: false,
+      interactionCategory: ''
     });
     setEditingMedication(null);
     setShowAddModal(false);
@@ -310,6 +352,20 @@ export default function MedicationManager({ patient }) {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Alertes d'interactions */}
+        {hasInteractions && (
+          <Alert className={`mb-4 ${hasCritical ? 'border-red-600 bg-red-50' : hasHigh ? 'border-orange-500 bg-orange-50' : 'border-yellow-500 bg-yellow-50'}`}>
+            <AlertTriangle className={`w-4 h-4 ${hasCritical ? 'text-red-600' : hasHigh ? 'text-orange-600' : 'text-yellow-600'}`} />
+            <AlertDescription>
+              <strong>{interactions.length} interaction(s) détectée(s)</strong> entre les médicaments actuels.
+              <DrugInteractionChecker 
+                medications={medicationNamesForInteraction}
+                showInline={true}
+              />
+            </AlertDescription>
+          </Alert>
+        )}
+
         {activeMedications.length === 0 ? (
           <p className="text-sm text-muted-foreground italic text-center py-4">
             Aucun médicament enregistré
@@ -323,11 +379,22 @@ export default function MedicationManager({ patient }) {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-semibold text-blue-900">{med.name}</span>
                       {med.dosage && (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                           {med.dosage}
+                        </Badge>
+                      )}
+                      {med.isCustom && (
+                        <Badge variant="outline" className="text-purple-600 border-purple-300 gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          Personnalisé
+                        </Badge>
+                      )}
+                      {med.interactionCategory && (
+                        <Badge variant="outline" className="text-orange-600 border-orange-300 text-xs">
+                          {INTERACTION_CATEGORIES.find(c => c.value === med.interactionCategory)?.label || med.interactionCategory}
                         </Badge>
                       )}
                     </div>
@@ -442,67 +509,118 @@ export default function MedicationManager({ patient }) {
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Toggle médicament personnalisé */}
+            <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <input
+                type="checkbox"
+                id="isCustom"
+                checked={formData.isCustom}
+                onChange={(e) => setFormData({ ...formData, isCustom: e.target.checked })}
+                className="w-4 h-4 rounded border-purple-300 text-purple-600 focus:ring-purple-500"
+              />
+              <Label htmlFor="isCustom" className="flex items-center gap-2 cursor-pointer text-purple-800">
+                <Sparkles className="w-4 h-4" />
+                Médicament personnalisé (non trouvé dans SAMv2)
+              </Label>
+            </div>
+
             {/* Sélecteur de médicament avec combobox */}
             <div className="space-y-2">
               <Label>Médicament *</Label>
-              <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={comboboxOpen}
-                    className="w-full justify-between"
-                  >
-                    {formData.name || "Sélectionner ou saisir..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput 
-                      placeholder="Rechercher un médicament..." 
-                      value={formData.name}
-                      onValueChange={(val) => setFormData({ ...formData, name: val })}
-                    />
-                    <CommandList>
-                      <CommandEmpty>
-                        <div className="p-2 text-sm">
-                          Appuyez sur Entrée pour ajouter "{formData.name}"
-                        </div>
-                      </CommandEmpty>
-                      {Object.entries(
-                        COMMON_MEDICATIONS.reduce((acc, med) => {
-                          if (!acc[med.category]) acc[med.category] = [];
-                          acc[med.category].push(med);
-                          return acc;
-                        }, {})
-                      ).map(([category, meds]) => (
-                        <CommandGroup key={category} heading={category}>
-                          {meds.map((med) => (
-                            <CommandItem
-                              key={med.name}
-                              value={med.name}
-                              onSelect={() => handleSelectMedication(med.name)}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  formData.name === med.name ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              {med.name}
-                              <span className="ml-auto text-xs text-muted-foreground">
-                                {med.defaultDosage}
-                              </span>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              {formData.isCustom ? (
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Nom du médicament personnalisé..."
+                />
+              ) : (
+                <Popover open={comboboxOpen} onOpenChange={setComboboxOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={comboboxOpen}
+                      className="w-full justify-between"
+                    >
+                      {formData.name || "Sélectionner ou saisir..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="Rechercher un médicament..." 
+                        value={formData.name}
+                        onValueChange={(val) => setFormData({ ...formData, name: val })}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          <div className="p-2 text-sm">
+                            Appuyez sur Entrée pour ajouter "{formData.name}"
+                          </div>
+                        </CommandEmpty>
+                        {Object.entries(
+                          COMMON_MEDICATIONS.reduce((acc, med) => {
+                            if (!acc[med.category]) acc[med.category] = [];
+                            acc[med.category].push(med);
+                            return acc;
+                          }, {})
+                        ).map(([category, meds]) => (
+                          <CommandGroup key={category} heading={category}>
+                            {meds.map((med) => (
+                              <CommandItem
+                                key={med.name}
+                                value={med.name}
+                                onSelect={() => handleSelectMedication(med.name)}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.name === med.name ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {med.name}
+                                <span className="ml-auto text-xs text-muted-foreground">
+                                  {med.defaultDosage}
+                                </span>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
+
+            {/* Catégorie d'interaction pour médicaments personnalisés */}
+            {formData.isCustom && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-orange-500" />
+                  Catégorie d'interaction (pour alertes)
+                </Label>
+                <Select
+                  value={formData.interactionCategory}
+                  onValueChange={(val) => setFormData({ ...formData, interactionCategory: val })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Associer à une classe médicamenteuse..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INTERACTION_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Associez ce médicament à une classe pour détecter les interactions avec d'autres traitements.
+                </p>
+              </div>
+            )}
 
             {/* Dosage */}
             <div className="space-y-2">
