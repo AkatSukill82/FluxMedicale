@@ -29,6 +29,7 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import Utilisateurs from './pages/Utilisateurs';
 import TiersPayant from './pages/TiersPayant';
+import Prescriptions from './pages/Prescriptions';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "Tests": Tests,
     "Utilisateurs": Utilisateurs,
     "TiersPayant": TiersPayant,
+    "Prescriptions": Prescriptions,
 }
 
 export const pagesConfig = {
