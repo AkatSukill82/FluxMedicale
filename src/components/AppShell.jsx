@@ -37,6 +37,7 @@ import {
   MessageSquare,
   ClipboardList,
   Pill,
+  Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
