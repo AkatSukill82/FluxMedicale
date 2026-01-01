@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertTriangle, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import HubAccessPanel from '../../hub/HubAccessPanel';
+import ConsultRNPanel from '../../ehealth/ConsultRNPanel';
+import MyCareNetDataPanel from '../../ehealth/MyCareNetDataPanel';
+import EHealthDocumentSender from '../../ehealth/EHealthDocumentSender';
 
 export default function HubsTab({ patient }) {
   const { t } = useI18n();
@@ -33,6 +36,15 @@ export default function HubsTab({ patient }) {
 
   return (
     <div className="space-y-6">
+      {/* Consultation Registre National */}
+      <ConsultRNPanel patient={patient} />
+
+      {/* Données MyCareNet */}
+      <MyCareNetDataPanel patient={patient} />
+
+      {/* Envoi sécurisé eHealthBox */}
+      <EHealthDocumentSender patient={patient} />
+
       {/* Nouveau panneau d'accès HUB avec gestion délégation */}
       <HubAccessPanel patient={patient} />
 
