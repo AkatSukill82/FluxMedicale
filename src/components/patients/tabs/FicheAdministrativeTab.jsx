@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import IdSupportButton from '../../idsupport/IdSupportButton';
 import MedicationManager from '../MedicationManager';
 import PrescriptionReminders from '../../prescriptions/PrescriptionReminders';
+import PatientCommunicationPanel from '../../communication/PatientCommunicationPanel';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -472,6 +473,9 @@ export default function FicheAdministrativeTab({ patient }) {
 
       {/* Rappels ordonnances */}
       <PrescriptionReminders patient={patient} />
+
+      {/* Communications patient */}
+      <PatientCommunicationPanel patient={patient} />
 
       {/* Note RGPD */}
       <Alert className="bg-blue-50 border-blue-200">
