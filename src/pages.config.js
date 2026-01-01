@@ -17,6 +17,7 @@ import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
+import Prescriptions from './pages/Prescriptions';
 import ProfilMedecin from './pages/ProfilMedecin';
 import RapportsMedicaux from './pages/RapportsMedicaux';
 import ReferentialImport from './pages/ReferentialImport';
@@ -27,9 +28,9 @@ import TeleconsultationRoom from './pages/TeleconsultationRoom';
 import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
-import Utilisateurs from './pages/Utilisateurs';
 import TiersPayant from './pages/TiersPayant';
-import Prescriptions from './pages/Prescriptions';
+import Utilisateurs from './pages/Utilisateurs';
+import Rappels from './pages/Rappels';
 import __Layout from './Layout.jsx';
 
 
@@ -53,6 +54,7 @@ export const PAGES = {
     "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
+    "Prescriptions": Prescriptions,
     "ProfilMedecin": ProfilMedecin,
     "RapportsMedicaux": RapportsMedicaux,
     "ReferentialImport": ReferentialImport,
@@ -63,9 +65,9 @@ export const PAGES = {
     "Telemedicine": Telemedicine,
     "Templates": Templates,
     "Tests": Tests,
-    "Utilisateurs": Utilisateurs,
     "TiersPayant": TiersPayant,
-    "Prescriptions": Prescriptions,
+    "Utilisateurs": Utilisateurs,
+    "Rappels": Rappels,
 }
 
 export const pagesConfig = {

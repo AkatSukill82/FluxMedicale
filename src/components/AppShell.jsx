@@ -86,6 +86,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Messagerie', path: 'SecureMessages', icon: MessageSquare },
     { title: t('nav.import'), path: 'Import', icon: Upload },
     { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
+    { title: 'Rappels', path: 'Rappels', icon: Bell },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Tiers Payant', path: 'TiersPayant', icon: Building2 },
     { title: 'Statistiques', path: 'Statistics', icon: Activity },
