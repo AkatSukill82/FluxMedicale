@@ -34,6 +34,7 @@ import Utilisateurs from './pages/Utilisateurs';
 import Stock from './pages/Stock';
 import SuiviPatient from './pages/SuiviPatient';
 import RapportsAutomatises from './pages/RapportsAutomatises';
+import AITasks from './pages/AITasks';
 import __Layout from './Layout.jsx';
 
 
@@ -74,6 +75,7 @@ export const PAGES = {
     "Stock": Stock,
     "SuiviPatient": SuiviPatient,
     "RapportsAutomatises": RapportsAutomatises,
+    "AITasks": AITasks,
 }
 
 export const pagesConfig = {

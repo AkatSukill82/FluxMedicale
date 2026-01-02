@@ -19,7 +19,6 @@ import {
 import {
   LayoutDashboard,
   Calendar,
-  Upload,
   CreditCard,
   Activity,
   Shield,
@@ -35,6 +34,8 @@ import {
   Pill,
   Package,
   HeartPulse,
+  Brain,
+  Upload,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -85,7 +86,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Stocks', path: 'Stock', icon: Package },
     { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
-    { title: 'Statistiques', path: 'Statistics', icon: Activity },
+    { title: 'Assistant IA', path: 'AITasks', icon: Brain },
     ];
   
   const adminNavItems = [
