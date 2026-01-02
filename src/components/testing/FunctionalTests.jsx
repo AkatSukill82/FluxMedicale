@@ -7,7 +7,14 @@ import {
   CreditCard, 
   FolderOpen,
   Clock,
-  History
+  History,
+  Calendar,
+  Pill,
+  Database,
+  Link2,
+  Syringe,
+  Bell,
+  MessageSquare
 } from 'lucide-react';
 
 // Catégories de tests
@@ -19,7 +26,13 @@ export const TEST_CATEGORIES = [
   { id: 'billing', name: 'Facturation', icon: <CreditCard className="w-5 h-5" /> },
   { id: 'documents', name: 'Documents', icon: <FolderOpen className="w-5 h-5" /> },
   { id: 'history', name: 'Historique Patient', icon: <History className="w-5 h-5" /> },
-  { id: 'traceability', name: 'Traçabilité', icon: <Clock className="w-5 h-5" /> }
+  { id: 'traceability', name: 'Traçabilité', icon: <Clock className="w-5 h-5" /> },
+  { id: 'agenda', name: 'Agenda & RDV', icon: <Calendar className="w-5 h-5" /> },
+  { id: 'prescriptions', name: 'Prescriptions', icon: <Pill className="w-5 h-5" /> },
+  { id: 'hub', name: 'HUB Santé', icon: <Database className="w-5 h-5" /> },
+  { id: 'vaccinations', name: 'Vaccinations', icon: <Syringe className="w-5 h-5" /> },
+  { id: 'reminders', name: 'Rappels', icon: <Bell className="w-5 h-5" /> },
+  { id: 'messaging', name: 'Messagerie', icon: <MessageSquare className="w-5 h-5" /> }
 ];
 
 // Helpers
@@ -477,6 +490,575 @@ const tests = [
         createdBy: consultation.created_by,
         createdAt: consultation.created_date
       };
+    }
+  },
+
+  // ────────────────────────────────
+  // 9. AGENDA & RENDEZ-VOUS
+  // ────────────────────────────────
+  {
+    id: 'TEST_16',
+    category: 'agenda',
+    name: 'Création rendez-vous',
+    description: 'Crée un rendez-vous pour le patient',
+    critical: false,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const rdv = await base44.entities.RendezVous.create({
+        patient_id: context.patientId,
+        date: tomorrow.toISOString().split('T')[0],
+        heure_debut: '10:00',
+        heure_fin: '10:30',
+        type_consultation: 'Consultation',
+        motif: 'Test automatisé',
+        statut: 'Planifié',
+        medecin_assigne: user.email,
+        duree_estimee: 30
+      });
+
+      if (!rdv || !rdv.id) {
+        throw new Error('Rendez-vous non créé');
+      }
+
+      return { rdvId: rdv.id };
+    }
+  },
+  {
+    id: 'TEST_17',
+    category: 'agenda',
+    name: 'Modification statut RDV',
+    description: 'Teste les changements de statut du RDV',
+    critical: false,
+    run: async (context) => {
+      if (!context.rdvId) {
+        throw new Error('RDV de test non trouvé');
+      }
+
+      // Test passage à Confirmé
+      await base44.entities.RendezVous.update(context.rdvId, {
+        statut: 'Confirmé'
+      });
+
+      const rdvList = await base44.entities.RendezVous.filter({ id: context.rdvId });
+      if (rdvList[0]?.statut !== 'Confirmé') {
+        throw new Error('Statut non mis à jour');
+      }
+
+      return { statusUpdated: true };
+    }
+  },
+  {
+    id: 'TEST_18',
+    category: 'agenda',
+    name: 'Annulation RDV',
+    description: 'Teste l\'annulation d\'un rendez-vous',
+    critical: false,
+    run: async (context) => {
+      if (!context.rdvId) {
+        throw new Error('RDV de test non trouvé');
+      }
+
+      await base44.entities.RendezVous.update(context.rdvId, {
+        statut: 'Annulé'
+      });
+
+      const rdvList = await base44.entities.RendezVous.filter({ id: context.rdvId });
+      if (rdvList[0]?.statut !== 'Annulé') {
+        throw new Error('Annulation non enregistrée');
+      }
+
+      return { cancelled: true };
+    }
+  },
+
+  // ────────────────────────────────
+  // 10. PRESCRIPTIONS
+  // ────────────────────────────────
+  {
+    id: 'TEST_19',
+    category: 'prescriptions',
+    name: 'Création prescription',
+    description: 'Crée une prescription médicamenteuse',
+    critical: true,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+
+      const prescription = await base44.entities.Prescription.create({
+        patient_id: context.patientId,
+        medecin_email: user.email,
+        date_prescription: new Date().toISOString(),
+        medicaments: [
+          {
+            nom_produit: 'Paracétamol 1g',
+            posologie: '3x/jour',
+            duree_traitement: '5 jours',
+            quantite: 2
+          },
+          {
+            nom_produit: 'Ibuprofène 400mg',
+            posologie: '2x/jour aux repas',
+            duree_traitement: '3 jours',
+            quantite: 1
+          }
+        ],
+        statut_recip_e: 'Brouillon',
+        tracking_status: 'ACTIVE'
+      });
+
+      if (!prescription || !prescription.id) {
+        throw new Error('Prescription non créée');
+      }
+
+      return { prescriptionId: prescription.id };
+    }
+  },
+  {
+    id: 'TEST_20',
+    category: 'prescriptions',
+    name: 'Prescription multi-médicaments',
+    description: 'Vérifie que tous les médicaments sont sauvegardés',
+    critical: true,
+    run: async (context) => {
+      if (!context.prescriptionId) {
+        throw new Error('Prescription de test non trouvée');
+      }
+
+      const prescriptions = await base44.entities.Prescription.filter({
+        id: context.prescriptionId
+      });
+
+      const prescription = prescriptions[0];
+      if (!prescription?.medicaments || prescription.medicaments.length !== 2) {
+        throw new Error('Médicaments non sauvegardés correctement');
+      }
+
+      return { medicamentsCount: prescription.medicaments.length };
+    }
+  },
+  {
+    id: 'TEST_21',
+    category: 'prescriptions',
+    name: 'Statut prescription',
+    description: 'Teste le changement de statut de la prescription',
+    critical: false,
+    run: async (context) => {
+      if (!context.prescriptionId) {
+        throw new Error('Prescription de test non trouvée');
+      }
+
+      await base44.entities.Prescription.update(context.prescriptionId, {
+        statut_recip_e: 'Envoyé',
+        recip_e_rid: 'TEST-RID-' + Date.now()
+      });
+
+      const prescriptions = await base44.entities.Prescription.filter({
+        id: context.prescriptionId
+      });
+
+      if (prescriptions[0]?.statut_recip_e !== 'Envoyé') {
+        throw new Error('Statut non mis à jour');
+      }
+
+      return { statusUpdated: true };
+    }
+  },
+
+  // ────────────────────────────────
+  // 11. HUB SANTÉ
+  // ────────────────────────────────
+  {
+    id: 'TEST_22',
+    category: 'hub',
+    name: 'Création lien thérapeutique',
+    description: 'Teste la création du lien thérapeutique patient-médecin',
+    critical: true,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 3);
+
+      await base44.entities.Patient.update(context.patientId, {
+        therapeutic_link: {
+          active: true,
+          medecin_email: user.email,
+          medecin_nihii: 'TEST-NIHII-123',
+          created_at: new Date().toISOString(),
+          expires_at: expiryDate.toISOString(),
+          method: 'manual'
+        }
+      });
+
+      const patients = await base44.entities.Patient.filter({ id: context.patientId });
+      const patient = patients[0];
+
+      if (!patient?.therapeutic_link?.active) {
+        throw new Error('Lien thérapeutique non créé');
+      }
+
+      return { linkCreated: true };
+    }
+  },
+  {
+    id: 'TEST_23',
+    category: 'hub',
+    name: 'Validité lien thérapeutique',
+    description: 'Vérifie la validité de 3 ans du lien',
+    critical: true,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const patients = await base44.entities.Patient.filter({ id: context.patientId });
+      const patient = patients[0];
+      const link = patient?.therapeutic_link;
+
+      if (!link?.expires_at) {
+        throw new Error('Date d\'expiration manquante');
+      }
+
+      const expiryDate = new Date(link.expires_at);
+      const now = new Date();
+      const diffYears = (expiryDate - now) / (1000 * 60 * 60 * 24 * 365);
+
+      if (diffYears < 2.9 || diffYears > 3.1) {
+        throw new Error('Durée de validité incorrecte (doit être ~3 ans)');
+      }
+
+      return { validityYears: Math.round(diffYears * 10) / 10 };
+    }
+  },
+  {
+    id: 'TEST_24',
+    category: 'hub',
+    name: 'Création consentement HUB',
+    description: 'Teste la création du consentement patient',
+    critical: true,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 3);
+
+      await base44.entities.Patient.update(context.patientId, {
+        gdpr_consent: {
+          has_consented: true,
+          consent_date: new Date().toISOString(),
+          consent_version: '1.0',
+          data_processing_consent: true,
+          data_sharing_consent: true,
+          hub_access_consent: true,
+          expires_at: expiryDate.toISOString(),
+          recorded_by: user.email,
+          method: 'manual',
+          revoked: false
+        }
+      });
+
+      const patients = await base44.entities.Patient.filter({ id: context.patientId });
+      const patient = patients[0];
+
+      if (!patient?.gdpr_consent?.has_consented) {
+        throw new Error('Consentement non enregistré');
+      }
+
+      return { consentCreated: true };
+    }
+  },
+  {
+    id: 'TEST_25',
+    category: 'hub',
+    name: 'Accès HUB conditionnel',
+    description: 'Vérifie que l\'accès HUB nécessite lien ET consentement',
+    critical: true,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const patients = await base44.entities.Patient.filter({ id: context.patientId });
+      const patient = patients[0];
+
+      const hasValidLink = patient?.therapeutic_link?.active && 
+        new Date(patient.therapeutic_link.expires_at) > new Date();
+      
+      const hasValidConsent = patient?.gdpr_consent?.has_consented && 
+        !patient.gdpr_consent.revoked &&
+        new Date(patient.gdpr_consent.expires_at) > new Date();
+
+      const canAccessHub = hasValidLink && hasValidConsent;
+
+      if (!canAccessHub) {
+        throw new Error('Accès HUB devrait être autorisé (lien + consentement valides)');
+      }
+
+      return { hubAccessible: true };
+    }
+  },
+
+  // ────────────────────────────────
+  // 12. VACCINATIONS
+  // ────────────────────────────────
+  {
+    id: 'TEST_26',
+    category: 'vaccinations',
+    name: 'Création vaccination',
+    description: 'Enregistre une vaccination',
+    critical: false,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+
+      const vaccination = await base44.entities.Vaccination.create({
+        patient_id: context.patientId,
+        vaccine_name: 'Vaccin Test Grippe',
+        vaccine_type: 'GRIPPE',
+        vaccination_date: new Date().toISOString().split('T')[0],
+        lot_number: 'LOT-TEST-123',
+        site: 'Bras gauche',
+        dose_number: 1,
+        administered_by: user.email,
+        notes: 'Vaccination test automatisé'
+      });
+
+      if (!vaccination || !vaccination.id) {
+        throw new Error('Vaccination non créée');
+      }
+
+      return { vaccinationId: vaccination.id };
+    }
+  },
+  {
+    id: 'TEST_27',
+    category: 'vaccinations',
+    name: 'Rappel vaccination',
+    description: 'Teste la création d\'un rappel de vaccination',
+    critical: false,
+    run: async (context) => {
+      if (!context.vaccinationId) {
+        throw new Error('Vaccination de test non trouvée');
+      }
+
+      const nextDoseDate = new Date();
+      nextDoseDate.setMonth(nextDoseDate.getMonth() + 6);
+
+      await base44.entities.Vaccination.update(context.vaccinationId, {
+        next_dose_date: nextDoseDate.toISOString().split('T')[0]
+      });
+
+      const vaccinations = await base44.entities.Vaccination.filter({
+        id: context.vaccinationId
+      });
+
+      if (!vaccinations[0]?.next_dose_date) {
+        throw new Error('Date de rappel non enregistrée');
+      }
+
+      return { reminderSet: true };
+    }
+  },
+
+  // ────────────────────────────────
+  // 13. RAPPELS
+  // ────────────────────────────────
+  {
+    id: 'TEST_28',
+    category: 'reminders',
+    name: 'Création rappel patient',
+    description: 'Crée un rappel pour le patient',
+    critical: false,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+      const reminderDate = new Date();
+      reminderDate.setDate(reminderDate.getDate() + 7);
+
+      const reminder = await base44.entities.PatientReminder.create({
+        patient_id: context.patientId,
+        patient_name: 'Test Patient',
+        type: 'suivi',
+        canal: 'email',
+        titre: 'Rappel de test',
+        message: 'Ceci est un rappel automatisé de test',
+        date_rappel: reminderDate.toISOString(),
+        statut: 'planifie',
+        medecin_email: user.email
+      });
+
+      if (!reminder || !reminder.id) {
+        throw new Error('Rappel non créé');
+      }
+
+      return { reminderId: reminder.id };
+    }
+  },
+  {
+    id: 'TEST_29',
+    category: 'reminders',
+    name: 'Rappel prescription',
+    description: 'Crée un rappel de renouvellement de prescription',
+    critical: false,
+    run: async (context) => {
+      if (!context.patientId || !context.prescriptionId) {
+        throw new Error('Patient ou prescription non trouvé');
+      }
+
+      const user = await base44.auth.me();
+      const reminderDate = new Date();
+      reminderDate.setDate(reminderDate.getDate() + 14);
+
+      const reminder = await base44.entities.PrescriptionReminder.create({
+        patient_id: context.patientId,
+        prescription_id: context.prescriptionId,
+        type: 'renewal',
+        medication_name: 'Paracétamol 1g',
+        reminder_date: reminderDate.toISOString().split('T')[0],
+        status: 'active',
+        medecin_email: user.email
+      });
+
+      if (!reminder || !reminder.id) {
+        throw new Error('Rappel prescription non créé');
+      }
+
+      return { prescriptionReminderId: reminder.id };
+    }
+  },
+
+  // ────────────────────────────────
+  // 14. MESSAGERIE INTERNE
+  // ────────────────────────────────
+  {
+    id: 'TEST_30',
+    category: 'messaging',
+    name: 'Création fil de discussion',
+    description: 'Crée un fil de discussion lié au patient',
+    critical: false,
+    run: async (context) => {
+      if (!context.patientId) {
+        throw new Error('Patient de test non trouvé');
+      }
+
+      const user = await base44.auth.me();
+
+      const thread = await base44.entities.MessageThread.create({
+        title: 'Discussion test patient',
+        type: 'patient',
+        participants: [user.email],
+        patient_id: context.patientId,
+        patient_name: 'Test Patient',
+        last_message_at: new Date().toISOString(),
+        is_archived: false,
+        is_urgent: false
+      });
+
+      if (!thread || !thread.id) {
+        throw new Error('Fil de discussion non créé');
+      }
+
+      return { threadId: thread.id };
+    }
+  },
+  {
+    id: 'TEST_31',
+    category: 'messaging',
+    name: 'Envoi message',
+    description: 'Envoie un message dans le fil',
+    critical: false,
+    run: async (context) => {
+      if (!context.threadId) {
+        throw new Error('Fil de discussion non trouvé');
+      }
+
+      const user = await base44.auth.me();
+
+      const message = await base44.entities.InternalMessage.create({
+        thread_id: context.threadId,
+        sender_email: user.email,
+        sender_name: user.full_name || 'Test User',
+        content: 'Message de test automatisé',
+        read_by: [user.email]
+      });
+
+      if (!message || !message.id) {
+        throw new Error('Message non créé');
+      }
+
+      return { messageId: message.id };
+    }
+  },
+
+  // ────────────────────────────────
+  // 15. AUDIT LOG
+  // ────────────────────────────────
+  {
+    id: 'TEST_32',
+    category: 'traceability',
+    name: 'Audit log création',
+    description: 'Vérifie l\'enregistrement des actions dans l\'audit log',
+    critical: false,
+    run: async (context) => {
+      const user = await base44.auth.me();
+
+      const auditEntry = await base44.entities.AuditLog.create({
+        user_email: user.email,
+        action: 'TEST_ACTION',
+        target_entity: 'Patient',
+        target_id: context.patientId || 'test',
+        details: 'Test automatisé de l\'audit log',
+        timestamp: new Date().toISOString()
+      });
+
+      if (!auditEntry || !auditEntry.id) {
+        throw new Error('Entrée audit non créée');
+      }
+
+      return { auditId: auditEntry.id };
+    }
+  },
+  {
+    id: 'TEST_33',
+    category: 'traceability',
+    name: 'Audit log recherche',
+    description: 'Recherche les entrées d\'audit',
+    critical: false,
+    run: async (context) => {
+      const user = await base44.auth.me();
+
+      const auditLogs = await base44.entities.AuditLog.filter({
+        user_email: user.email,
+        action: 'TEST_ACTION'
+      }, '-timestamp', 10);
+
+      if (auditLogs.length === 0) {
+        throw new Error('Aucune entrée d\'audit trouvée');
+      }
+
+      return { auditEntriesFound: auditLogs.length };
     }
   }
 ];
