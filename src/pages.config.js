@@ -19,6 +19,7 @@ import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import Prescriptions from './pages/Prescriptions';
 import ProfilMedecin from './pages/ProfilMedecin';
+import Rappels from './pages/Rappels';
 import RapportsMedicaux from './pages/RapportsMedicaux';
 import ReferentialImport from './pages/ReferentialImport';
 import SecureMessages from './pages/SecureMessages';
@@ -30,7 +31,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import Rappels from './pages/Rappels';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +56,7 @@ export const PAGES = {
     "PrescriptionRenewals": PrescriptionRenewals,
     "Prescriptions": Prescriptions,
     "ProfilMedecin": ProfilMedecin,
+    "Rappels": Rappels,
     "RapportsMedicaux": RapportsMedicaux,
     "ReferentialImport": ReferentialImport,
     "SecureMessages": SecureMessages,
@@ -67,7 +68,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "Rappels": Rappels,
 }
 
 export const pagesConfig = {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -68,7 +69,9 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
       });
     },
     onSuccess: () => {
+      // Invalider toutes les queries liées au patient pour forcer le rafraîchissement
       queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+      queryClient.invalidateQueries({ queryKey: ['allPatients'] });
       toast.success('Lien thérapeutique créé pour 3 ans');
       onSuccess?.();
       onClose();

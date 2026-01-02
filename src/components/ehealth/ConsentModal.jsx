@@ -74,7 +74,9 @@ export default function ConsentModal({ patient, isOpen, onClose, onSuccess }) {
       });
     },
     onSuccess: () => {
+      // Invalider toutes les queries liées au patient pour forcer le rafraîchissement
       queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+      queryClient.invalidateQueries({ queryKey: ['allPatients'] });
       toast.success('Consentement enregistré pour 3 ans');
       onSuccess?.();
       onClose();

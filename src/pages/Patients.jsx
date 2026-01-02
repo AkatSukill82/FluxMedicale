@@ -28,7 +28,6 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
-import PatientDashboard from '../components/patients/PatientDashboard';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -52,7 +51,7 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('consultation');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
@@ -303,9 +302,6 @@ export default function Patients() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6">
               <TabsList className="h-12 bg-transparent">
-                <TabsTrigger value="dashboard" className="gap-2">
-                  📊 Tableau de bord
-                </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
@@ -328,6 +324,9 @@ export default function Patients() {
                 <TabsTrigger value="admin" className="gap-2">
                   👤 Admin
                 </TabsTrigger>
+                <TabsTrigger value="hubs" className="gap-2">
+                  🏥 HUB
+                </TabsTrigger>
               </TabsList>
             </div>
           </Tabs>
@@ -337,9 +336,6 @@ export default function Patients() {
         <div className="flex-1 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="p-6">
-              <TabsContent value="dashboard" className="m-0">
-                <PatientDashboard patient={patient} />
-              </TabsContent>
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="consultation" className="m-0">
                   <ConsultationTab patient={patient} />
@@ -361,6 +357,9 @@ export default function Patients() {
               </TabsContent>
               <TabsContent value="admin" className="m-0">
                 <FicheAdministrativeTab patient={patient} />
+              </TabsContent>
+              <TabsContent value="hubs" className="m-0">
+                <HubsTab patient={patient} />
               </TabsContent>
             </div>
           </Tabs>

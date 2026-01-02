@@ -15,13 +15,17 @@ import {
 } from 'lucide-react';
 import { format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import TherapeuticLinkModal from '../ehealth/TherapeuticLinkModal';
 import ConsentModal from '../ehealth/ConsentModal';
 
 export default function HubStatusCard({ patient }) {
+  const navigate = useNavigate();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hubAccessAttempted, setHubAccessAttempted] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Vérifier le lien thérapeutique
   const therapeuticLink = patient?.therapeutic_link;
@@ -51,15 +55,22 @@ export default function HubStatusCard({ patient }) {
       setHubAccessAttempted(true);
       return;
     }
-    // TODO: Naviguer vers l'onglet HUB ou ouvrir le panneau HUB
-    window.open('#hub-access', '_self');
+    // Naviguer vers l'onglet HUB
+    navigate(createPageUrl(`Patients?patient=${patient.id}&tab=hubs`));
   };
 
   // Callback après création du lien
   const handleLinkSuccess = () => {
-    if (hubAccessAttempted && !hasValidConsent) {
+    setRefreshKey(prev => prev + 1);
+    if (hubAccessAttempted) {
       setTimeout(() => setShowConsentModal(true), 300);
     }
+  };
+
+  // Callback après création du consentement
+  const handleConsentSuccess = () => {
+    setRefreshKey(prev => prev + 1);
+    setHubAccessAttempted(false);
   };
 
   const formatExpiryDate = (dateStr) => {
@@ -182,7 +193,7 @@ export default function HubStatusCard({ patient }) {
         patient={patient}
         isOpen={showConsentModal}
         onClose={() => setShowConsentModal(false)}
-        onSuccess={() => setHubAccessAttempted(false)}
+        onSuccess={handleConsentSuccess}
       />
     </>
   );
