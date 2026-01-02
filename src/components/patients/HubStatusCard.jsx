@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +13,8 @@ import {
   AlertTriangle,
   Calendar,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import { format, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -20,12 +23,24 @@ import { createPageUrl } from '@/utils';
 import TherapeuticLinkModal from '../ehealth/TherapeuticLinkModal';
 import ConsentModal from '../ehealth/ConsentModal';
 
-export default function HubStatusCard({ patient }) {
+export default function HubStatusCard({ patient: initialPatient }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hubAccessAttempted, setHubAccessAttempted] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Récupérer les données du patient en temps réel
+  const { data: patient, refetch } = useQuery({
+    queryKey: ['patientHubStatus', initialPatient?.id],
+    queryFn: async () => {
+      const patients = await base44.entities.Patient.list();
+      return patients.find(p => p.id === initialPatient?.id) || initialPatient;
+    },
+    initialData: initialPatient,
+    enabled: !!initialPatient?.id,
+    refetchOnWindowFocus: false
+  });
 
   // Vérifier le lien thérapeutique
   const therapeuticLink = patient?.therapeutic_link;
@@ -60,16 +75,20 @@ export default function HubStatusCard({ patient }) {
   };
 
   // Callback après création du lien
-  const handleLinkSuccess = () => {
-    setRefreshKey(prev => prev + 1);
+  const handleLinkSuccess = async () => {
+    // Rafraîchir les données immédiatement
+    await refetch();
+    queryClient.invalidateQueries({ queryKey: ['patient', patient?.id] });
     if (hubAccessAttempted) {
       setTimeout(() => setShowConsentModal(true), 300);
     }
   };
 
   // Callback après création du consentement
-  const handleConsentSuccess = () => {
-    setRefreshKey(prev => prev + 1);
+  const handleConsentSuccess = async () => {
+    // Rafraîchir les données immédiatement
+    await refetch();
+    queryClient.invalidateQueries({ queryKey: ['patient', patient?.id] });
     setHubAccessAttempted(false);
   };
 

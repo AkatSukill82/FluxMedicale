@@ -35,6 +35,19 @@ export default function ConsentModal({ patient, isOpen, onClose, onSuccess }) {
     hub_access: false
   });
 
+  // Reset state when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab('eid');
+      setIsProcessing(false);
+      setManualConsents({
+        data_processing: false,
+        data_sharing: false,
+        hub_access: false
+      });
+    }
+  }, [isOpen]);
+
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
@@ -76,10 +89,12 @@ export default function ConsentModal({ patient, isOpen, onClose, onSuccess }) {
     onSuccess: () => {
       // Invalider toutes les queries liées au patient pour forcer le rafraîchissement
       queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+      queryClient.invalidateQueries({ queryKey: ['patientHubStatus', patient.id] });
       queryClient.invalidateQueries({ queryKey: ['allPatients'] });
       toast.success('Consentement enregistré pour 3 ans');
-      onSuccess?.();
       onClose();
+      // Appeler onSuccess après la fermeture pour que le parent puisse refetch
+      setTimeout(() => onSuccess?.(), 100);
     },
     onError: (error) => {
       toast.error('Erreur: ' + error.message);

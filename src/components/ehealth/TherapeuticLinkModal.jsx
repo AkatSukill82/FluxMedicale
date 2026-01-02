@@ -33,6 +33,15 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
   const [isProcessing, setIsProcessing] = useState(false);
   const [manualNihii, setManualNihii] = useState('');
 
+  // Reset state when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab('eid');
+      setIsProcessing(false);
+      setManualNihii('');
+    }
+  }, [isOpen]);
+
   const { data: currentUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me()
@@ -71,10 +80,12 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
     onSuccess: () => {
       // Invalider toutes les queries liées au patient pour forcer le rafraîchissement
       queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
+      queryClient.invalidateQueries({ queryKey: ['patientHubStatus', patient.id] });
       queryClient.invalidateQueries({ queryKey: ['allPatients'] });
       toast.success('Lien thérapeutique créé pour 3 ans');
-      onSuccess?.();
       onClose();
+      // Appeler onSuccess après la fermeture pour que le parent puisse refetch
+      setTimeout(() => onSuccess?.(), 100);
     },
     onError: (error) => {
       toast.error('Erreur: ' + error.message);
