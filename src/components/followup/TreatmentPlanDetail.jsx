@@ -22,7 +22,8 @@ import {
   Clock,
   FileText,
   MessageSquare,
-  Loader2
+  Loader2,
+  Brain
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -30,6 +31,7 @@ import { toast } from 'sonner';
 import TreatmentPlanForm from './TreatmentPlanForm';
 import ProgressEntryForm from './ProgressEntryForm';
 import GenerateReportModal from './GenerateReportModal';
+import AIFollowUpAssistant from './AIFollowUpAssistant';
 
 const STEP_STATUS = {
   a_faire: { label: 'À faire', color: 'bg-slate-100 text-slate-800' },
@@ -147,6 +149,10 @@ export default function TreatmentPlanDetail({ plan, onBack }) {
             <Target className="w-4 h-4" />
             Vue d'ensemble
           </TabsTrigger>
+          <TabsTrigger value="ai" className="gap-2">
+            <Brain className="w-4 h-4" />
+            Analyse IA
+          </TabsTrigger>
           <TabsTrigger value="progress" className="gap-2">
             <TrendingUp className="w-4 h-4" />
             Historique
@@ -260,6 +266,28 @@ export default function TreatmentPlanDetail({ plan, onBack }) {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="ai" className="mt-4">
+          <AIFollowUpAssistant 
+            plan={plan}
+            progressEntries={progressEntries}
+            onSuggestObjective={async (obj) => {
+              const newObjective = {
+                id: `obj-${Date.now()}`,
+                title: obj.title,
+                target_value: obj.target_value,
+                unit: obj.unit,
+                current_value: '',
+                status: 'en_cours',
+                progress_percent: 0
+              };
+              const updatedObjectives = [...(plan.objectives || []), newObjective];
+              await base44.entities.TreatmentPlan.update(plan.id, { objectives: updatedObjectives });
+              queryClient.invalidateQueries({ queryKey: ['treatmentPlans'] });
+              toast.success('Objectif ajouté');
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="progress" className="mt-4">
