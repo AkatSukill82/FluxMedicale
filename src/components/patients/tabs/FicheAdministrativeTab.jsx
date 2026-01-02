@@ -25,6 +25,7 @@ import IdSupportButton from '../../idsupport/IdSupportButton';
 import MedicationManager from '../MedicationManager';
 import PrescriptionReminders from '../../prescriptions/PrescriptionReminders';
 import PatientCommunicationPanel from '../../communication/PatientCommunicationPanel';
+import GDPRConsentManager from '../../gdpr/GDPRConsentManager';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -468,6 +469,12 @@ export default function FicheAdministrativeTab({ patient }) {
         </CardContent>
       </Card>
 
+      {/* Consentement RGPD */}
+      <GDPRConsentManager 
+        patient={patient} 
+        onUpdate={() => queryClient.invalidateQueries({ queryKey: ['patient', patient.id] })}
+      />
+
       {/* Médicaments */}
       <MedicationManager patient={patient} />
 
@@ -477,14 +484,6 @@ export default function FicheAdministrativeTab({ patient }) {
       {/* Communications patient */}
       <PatientCommunicationPanel patient={patient} />
 
-      {/* Note RGPD */}
-      <Alert className="bg-blue-50 border-blue-200">
-        <Shield className="w-4 h-4 text-blue-600" />
-        <AlertDescription className="text-blue-900">
-          <strong>Confidentialité:</strong> Le NISS est masqué dans les listes globales (RGPD - minimisation).
-          Complet uniquement dans la fiche patient (rôles autorisés). Toute consultation est auditée.
-        </AlertDescription>
-      </Alert>
     </div>
   );
 }
