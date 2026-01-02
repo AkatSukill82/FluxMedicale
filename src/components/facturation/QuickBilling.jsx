@@ -3,12 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Euro, Clock, CreditCard, Loader2, FileText, Printer } from 'lucide-react';
+import { Euro, Clock, CreditCard, Loader2, FileText, Printer, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import InsuranceVerification from './InsuranceVerification';
 
 // Modèles de facturation rapide pour consultations courantes
 const QUICK_BILLING_TEMPLATES = [
@@ -58,6 +60,20 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('quick');
   const [invoiceType, setInvoiceType] = useState('EATTEST'); // EATTEST, EFACT, PAPER
   const [printOnClose, setPrintOnClose] = useState(true);
+  const [insuranceVerified, setInsuranceVerified] = useState(false);
+  const [insuranceResult, setInsuranceResult] = useState(null);
+
+  // Gérer le résultat de la vérification d'assurance
+  const handleInsuranceVerified = (result) => {
+    setInsuranceVerified(true);
+    setInsuranceResult(result);
+  };
+
+  // Vérifier si le patient peut être facturé normalement
+  const canBillNormally = insuranceResult?.status === 'EN_ORDRE' || insuranceResult?.status === 'ACTIF';
+  const isNotInsured = insuranceResult?.regime === 'AUCUN' || 
+                       insuranceResult?.status === 'PAS_EN_ORDRE' || 
+                       insuranceResult?.status === 'EXPIRE';
 
   const billMutation = useMutation({
     mutationFn: async (data) => {
@@ -157,10 +173,33 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
           </DialogTitle>
         </DialogHeader>
 
+        {/* Vérification d'assurance obligatoire */}
+        <div className="mb-4 p-4 bg-slate-50 rounded-lg border">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            🔍 Vérification d'assurabilité
+          </h3>
+          <InsuranceVerification 
+            patient={patient} 
+            onVerified={handleInsuranceVerified}
+            autoCheck={true}
+          />
+        </div>
+
+        {/* Alerte si patient pas en ordre */}
+        {insuranceVerified && isNotInsured && (
+          <Alert className="mb-4 bg-red-50 border-red-300">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <AlertDescription className="text-red-800">
+              <strong>Attention:</strong> Le patient n'est pas en ordre d'assurance. 
+              L'intégralité des frais sera à sa charge. Assurez-vous qu'il en soit informé.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="quick">Facturation rapide</TabsTrigger>
-            <TabsTrigger value="custom">Codes INAMI</TabsTrigger>
+            <TabsTrigger value="quick" disabled={!insuranceVerified}>Facturation rapide</TabsTrigger>
+            <TabsTrigger value="custom" disabled={!insuranceVerified}>Codes INAMI</TabsTrigger>
           </TabsList>
 
           <TabsContent value="quick" className="space-y-4">
