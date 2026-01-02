@@ -6,15 +6,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pill, Thermometer, Droplets, Wind, Loader2, Plus, X, Search } from 'lucide-react';
+import { Pill, Thermometer, Droplets, Wind, Loader2, Plus, X, Search, FileText, Mail, Archive, Settings } from 'lucide-react';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import MedicationSearch from '../medications/MedicationSearch';
 import SAMv2Search from '../medications/SAMv2Search';
+import AdvancedMedicationSearch from '../medications/AdvancedMedicationSearch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
 import InteractionChecker from '../medications/InteractionChecker';
 import PrescriptionHistory from './PrescriptionHistory';
+import PrescriptionPDFGenerator from './PrescriptionPDFGenerator';
+import PrescriptionTemplateSettings from './PrescriptionTemplateSettings';
 import DrugInteractionChecker from '../clinical/DrugInteractionChecker';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, Database, History } from 'lucide-react';
@@ -58,6 +61,8 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [customMedications, setCustomMedications] = useState([]);
   const [activeTab, setActiveTab] = useState(initialMedications ? 'custom' : 'templates');
+  const [createdPrescription, setCreatedPrescription] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Pré-remplir avec les médicaments initiaux (duplication)
   React.useEffect(() => {
@@ -87,41 +92,65 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
       let medicamentsData;
       if (data.isCustom) {
         medicamentsData = data.medications.map(med => ({
-          product_name: med.product_name || med.name,
+          nom_produit: med.product_name || med.name,
           cnk: med.cnk,
-          substance_name: med.substance_name,
-          posology: med.posology,
-          duration: med.duration,
-          quantity: med.quantity || 1,
+          posologie: med.posology,
+          duree_traitement: med.duration,
+          quantite: med.quantity || 1,
           instructions: med.instructions
         }));
       } else {
         medicamentsData = data.medications.map(med => ({
-          product_name: med.name,
-          posology: med.posology,
-          duration: med.duration,
-          quantity: 1
+          nom_produit: med.name,
+          posologie: med.posology,
+          duree_traitement: med.duration,
+          quantite: 1
         }));
       }
 
-      // Envoyer via Recip-e
-      const response = await recipE({
-        action: 'create_prescription',
+      // Créer la prescription dans la base de données
+      const prescription = await base44.entities.Prescription.create({
         patient_id: patient.id,
-        patient_niss: getNISS(patient),
-        medications: medicamentsData,
-        prescriber_nihii: currentUser.numero_inami,
-        validity_days: 3
+        medecin_email: currentUser.email,
+        date_prescription: new Date().toISOString(),
+        medicaments: medicamentsData,
+        statut_recip_e: 'Brouillon',
+        tracking_status: 'PENDING'
       });
 
-      return response.data;
+      // Envoyer via Recip-e
+      try {
+        const response = await recipE({
+          action: 'create_prescription',
+          patient_id: patient.id,
+          patient_niss: getNISS(patient),
+          medications: medicamentsData,
+          prescriber_nihii: currentUser.numero_inami,
+          validity_days: 3
+        });
+
+        // Mettre à jour avec les infos Recip-e
+        await base44.entities.Prescription.update(prescription.id, {
+          recip_e_rid: response.data?.rid,
+          recip_e_barcode: response.data?.barcode,
+          statut_recip_e: 'Envoyé',
+          tracking_status: 'ACTIVE'
+        });
+
+        return { ...prescription, ...response.data };
+      } catch (error) {
+        // Même en cas d'erreur Recip-e, la prescription est sauvegardée
+        console.warn('Erreur Recip-e, prescription sauvegardée localement:', error);
+        return prescription;
+      }
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
       queryClient.invalidateQueries({ queryKey: ['prescription-history'] });
-      handleSuccess(`Prescription envoyée via Recip-e (RID: ${data.rid})`);
+      queryClient.invalidateQueries({ queryKey: ['patientDocuments', patient?.id] });
+      setCreatedPrescription(data);
+      handleSuccess(`Prescription créée${data.rid ? ` (RID: ${data.rid})` : ''}`);
       setCustomMedications([]);
-      onClose();
     },
     onError: (error) => {
       handleError(error, 'Prescription');
@@ -155,14 +184,74 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
     prescribeMutation.mutate({ medications: customMedications, isCustom: true });
   };
 
+  // Si une prescription a été créée, afficher les options PDF/email
+  if (createdPrescription) {
+    return (
+      <Dialog open={isOpen} onOpenChange={() => { setCreatedPrescription(null); onClose(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              ✓ Prescription créée
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <p className="font-medium">{createdPrescription.medicaments?.length} médicament(s) prescrit(s)</p>
+              {createdPrescription.recip_e_rid && (
+                <p className="text-sm text-green-700 mt-1">
+                  RID Recip-e: <span className="font-mono">{createdPrescription.recip_e_rid}</span>
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Actions disponibles:</p>
+              <PrescriptionPDFGenerator 
+                prescription={createdPrescription}
+                patient={patient}
+                onGenerated={(url) => console.log('PDF généré:', url)}
+              />
+            </div>
+
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => { setCreatedPrescription(null); onClose(); }}
+            >
+              Fermer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Afficher les paramètres de template
+  if (showSettings) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <PrescriptionTemplateSettings onClose={() => setShowSettings(false)} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Pill className="w-5 h-5" />
-            Prescription rapide
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <Pill className="w-5 h-5" />
+              Prescription rapide
+            </DialogTitle>
+            <Button variant="ghost" size="sm" onClick={() => setShowSettings(true)}>
+              <Settings className="w-4 h-4 mr-1" />
+              Template PDF
+            </Button>
+          </div>
           <p className="text-sm text-muted-foreground">
             Choisissez un template ou cherchez dans la base de médicaments
           </p>
@@ -338,9 +427,11 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
                 💊 <strong>{customMedications.length === 0 ? 'Aucun médicament sélectionné' : `${customMedications.length} médicament(s) sélectionné(s)`}</strong>
               </p>
             </div>
-            <MedicationSearch 
+            <AdvancedMedicationSearch 
               onSelect={handleAddMedication}
               selectedMedications={customMedications}
+              patient={patient}
+              showHistory={true}
             />
 
             {customMedications.length > 0 && (
