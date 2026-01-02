@@ -33,6 +33,7 @@ import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
 import Stock from './pages/Stock';
 import SuiviPatient from './pages/SuiviPatient';
+import RapportsAutomatises from './pages/RapportsAutomatises';
 import __Layout from './Layout.jsx';
 
 
@@ -72,6 +73,7 @@ export const PAGES = {
     "Utilisateurs": Utilisateurs,
     "Stock": Stock,
     "SuiviPatient": SuiviPatient,
+    "RapportsAutomatises": RapportsAutomatises,
 }
 
 export const pagesConfig = {
