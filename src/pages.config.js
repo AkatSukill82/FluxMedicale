@@ -32,6 +32,7 @@ import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
 import Stock from './pages/Stock';
+import SuiviPatient from './pages/SuiviPatient';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +71,7 @@ export const PAGES = {
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
     "Stock": Stock,
+    "SuiviPatient": SuiviPatient,
 }
 
 export const pagesConfig = {

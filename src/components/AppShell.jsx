@@ -39,6 +39,7 @@ import {
   Pill,
   Bell,
   Package,
+  HeartPulse,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -89,6 +90,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.import'), path: 'Import', icon: Upload },
     { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
     { title: 'Rappels', path: 'Rappels', icon: Bell },
+    { title: 'Suivi Patient', path: 'SuiviPatient', icon: HeartPulse },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Tiers Payant', path: 'TiersPayant', icon: Building2 },
     { title: 'Stocks', path: 'Stock', icon: Package },
