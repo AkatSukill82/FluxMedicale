@@ -28,6 +28,7 @@ import {
   Bell
 } from 'lucide-react';
 import { differenceInYears, isValid } from 'date-fns';
+import HubStatusCard from './HubStatusCard';
 
 // Helper to safely parse and validate dates
 const safeDate = (dateStr) => {
@@ -176,6 +177,9 @@ export default function PatientDashboard({ patient }) {
           ))}
         </div>
       )}
+
+      {/* HUB Access Card */}
+      <HubStatusCard patient={patient} />
 
       {/* Key Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
