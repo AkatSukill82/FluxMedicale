@@ -38,6 +38,7 @@ import {
   ClipboardList,
   Pill,
   Bell,
+  Package,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Rappels', path: 'Rappels', icon: Bell },
     { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
     { title: 'Tiers Payant', path: 'TiersPayant', icon: Building2 },
+    { title: 'Stocks', path: 'Stock', icon: Package },
     { title: 'Statistiques', path: 'Statistics', icon: Activity },
     { title: 'Modules eHealth', path: 'ModulesEHealth', icon: Database },
     { title: 'Rapports Médicaux', path: 'RapportsMedicaux', icon: ClipboardList },
