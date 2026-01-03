@@ -87,6 +87,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Stocks', path: 'Stock', icon: Package },
     { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
     { title: 'Assistant IA', path: 'AITasks', icon: Brain },
+    { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
     ];
   
   const adminNavItems = [

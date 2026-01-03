@@ -46,6 +46,13 @@ function classifyError(error) {
   return { type: 'INTERNAL', title: 'Erreur interne', icon: '⚙️' };
 }
 
+// Types de demandes Chapitre IV
+const REQUEST_TYPES = [
+  { id: 'medication', label: 'Médicament', icon: '💊' },
+  { id: 'ambulatory', label: 'Soins ambulatoires', icon: '🏥' },
+  { id: 'device', label: 'Dispositif médical', icon: '🩺' }
+];
+
 // Codes diagnostics courants pour Chapitre IV
 const COMMON_DIAGNOSES = {
   '5.8.1': [
@@ -70,6 +77,17 @@ const COMMON_DIAGNOSES = {
     { code: 'C43.9', description: 'Mélanome malin de la peau' },
     { code: 'C34.9', description: 'Cancer bronchique non à petites cellules' },
     { code: 'C67.9', description: 'Carcinome urothélial' },
+  ],
+  // Soins ambulatoires
+  'ambulatory_physio': [
+    { code: 'M54.5', description: 'Lombalgie chronique' },
+    { code: 'M47.9', description: 'Spondylose' },
+    { code: 'G35', description: 'Sclérose en plaques' },
+  ],
+  'ambulatory_logo': [
+    { code: 'F80.1', description: 'Trouble du langage expressif' },
+    { code: 'R47.0', description: 'Dysphasie' },
+    { code: 'I69.3', description: 'Séquelles AVC' },
   ]
 };
 
@@ -82,6 +100,7 @@ export default function ChapterIVRequestForm({
 }) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
+    requestType: 'medication',
     paragraph: medication?.chapter_iv?.paragraph || '',
     diagnosis: null,
     customDiagnosis: '',
@@ -248,6 +267,28 @@ export default function ChapterIVRequestForm({
             </Alert>
           )}
 
+          {/* Type de demande */}
+          <div className="space-y-2">
+            <Label>Type de demande</Label>
+            <div className="flex gap-2">
+              {REQUEST_TYPES.map(type => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, requestType: type.id })}
+                  className={`flex-1 p-3 rounded-lg border text-center transition-all ${
+                    formData.requestType === type.id 
+                      ? 'border-purple-500 bg-purple-50' 
+                      : 'border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <span className="text-xl">{type.icon}</span>
+                  <p className="text-sm font-medium mt-1">{type.label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Paragraphe */}
           <div className="space-y-2">
             <Label>Paragraphe Chapitre IV *</Label>
@@ -263,6 +304,8 @@ export default function ChapterIVRequestForm({
                 <SelectItem value="4.2.2">§ 4.2.2 - Anticoagulants oraux directs</SelectItem>
                 <SelectItem value="5.8.1">§ 5.8.1 - Immunosuppresseurs biologiques</SelectItem>
                 <SelectItem value="8.1">§ 8.1 - Antinéoplasiques</SelectItem>
+                <SelectItem value="ambulatory_physio">§ Soins ambulatoires - Kinésithérapie</SelectItem>
+                <SelectItem value="ambulatory_logo">§ Soins ambulatoires - Logopédie</SelectItem>
                 <SelectItem value="other">Autre paragraphe</SelectItem>
               </SelectContent>
             </Select>
