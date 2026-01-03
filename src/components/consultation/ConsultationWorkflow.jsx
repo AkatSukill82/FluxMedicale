@@ -82,7 +82,6 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
-  const [showTemplates, setShowTemplates] = useState(false);
   const [isConventionne, setIsConventionne] = useState(true);
   const [editingCodeId, setEditingCodeId] = useState(null);
   const [printInvoice, setPrintInvoice] = useState(true);
