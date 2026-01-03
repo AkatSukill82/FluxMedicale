@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Clock, Loader2, Video } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { format, addWeeks, subWeeks, startOfWeek } from "date-fns";
@@ -20,6 +20,7 @@ import UnavailabilityManager from "../components/agenda/UnavailabilityManager";
 import ReminderSettings from "../components/agenda/ReminderSettings";
 import DoctorAvailabilityView from "../components/agenda/DoctorAvailabilityView";
 import AppointmentNotifications from "../components/agenda/AppointmentNotifications";
+import TeleconsultationScheduler from "../components/teleconsultation/TeleconsultationScheduler";
 
 export default function Agenda() {
   const queryClient = useQueryClient();
@@ -32,6 +33,7 @@ export default function Agenda() {
   const [showUnavailability, setShowUnavailability] = useState(false);
   const [showReminders, setShowReminders] = useState(false);
   const [showAvailability, setShowAvailability] = useState(false);
+  const [showTeleconsultation, setShowTeleconsultation] = useState(false);
   const [filterPraticien, setFilterPraticien] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -203,6 +205,15 @@ export default function Agenda() {
               onClick={() => setShowAvailability(!showAvailability)}
             >
               Disponibilités
+            </Button>
+
+            <Button 
+              variant="outline"
+              onClick={() => setShowTeleconsultation(true)}
+              className="gap-2"
+            >
+              <Video className="w-4 h-4" />
+              Téléconsultation
             </Button>
             
             <Button 
@@ -393,6 +404,13 @@ export default function Agenda() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {showTeleconsultation && (
+          <TeleconsultationScheduler
+            isOpen={showTeleconsultation}
+            onClose={() => setShowTeleconsultation(false)}
+          />
+        )}
       </div>
     </DragDropContext>
   );

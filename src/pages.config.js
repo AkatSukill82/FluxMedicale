@@ -3,6 +3,7 @@ import Agenda from './pages/Agenda';
 import Audit from './pages/Audit';
 import AuditSecurity from './pages/AuditSecurity';
 import Cabinets from './pages/Cabinets';
+import ChapitreIV from './pages/ChapitreIV';
 import Dashboard from './pages/Dashboard';
 import Documentation from './pages/Documentation';
 import EIDTest from './pages/EIDTest';
@@ -35,7 +36,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import ChapitreIV from './pages/ChapitreIV';
 import __Layout from './Layout.jsx';
 
 
@@ -45,6 +45,7 @@ export const PAGES = {
     "Audit": Audit,
     "AuditSecurity": AuditSecurity,
     "Cabinets": Cabinets,
+    "ChapitreIV": ChapitreIV,
     "Dashboard": Dashboard,
     "Documentation": Documentation,
     "EIDTest": EIDTest,
@@ -77,7 +78,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "ChapitreIV": ChapitreIV,
 }
 
 export const pagesConfig = {
