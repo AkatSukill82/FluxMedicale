@@ -10,11 +10,7 @@ import {
   X, 
   CreditCard,
   Pill,
-  FileText,
-  Shield,
-  ShieldCheck,
-  ShieldX,
-  ShieldAlert
+  FileText
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -39,6 +35,7 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import MedicalCertificateGenerator from '../components/certificates/MedicalCertificateGenerator';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -61,6 +58,7 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
+  const [showCertificateGenerator, setShowCertificateGenerator] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -200,52 +198,6 @@ export default function Patients() {
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
-  // Composant indicateur RGPD
-  const GDPRStatusIndicator = ({ consent }) => {
-    if (!consent) {
-      return (
-        <Badge className="bg-slate-100 text-slate-600 gap-1 text-xs">
-          <Shield className="w-3 h-3" />
-          RGPD
-        </Badge>
-      );
-    }
-    
-    if (consent.revoked) {
-      return (
-        <Badge className="bg-red-100 text-red-700 gap-1 text-xs" title="Consentement révoqué">
-          <ShieldX className="w-3 h-3" />
-          Révoqué
-        </Badge>
-      );
-    }
-    
-    if (consent.expires_at && new Date(consent.expires_at) < new Date()) {
-      return (
-        <Badge className="bg-orange-100 text-orange-700 gap-1 text-xs" title="Consentement expiré">
-          <ShieldAlert className="w-3 h-3" />
-          Expiré
-        </Badge>
-      );
-    }
-    
-    if (consent.has_consented) {
-      return (
-        <Badge className="bg-green-100 text-green-700 gap-1 text-xs" title="Consentement actif">
-          <ShieldCheck className="w-3 h-3" />
-          RGPD ✓
-        </Badge>
-      );
-    }
-    
-    return (
-      <Badge className="bg-slate-100 text-slate-600 gap-1 text-xs">
-        <Shield className="w-3 h-3" />
-        RGPD
-      </Badge>
-    );
-  };
-
   return (
     <div className="flex h-full bg-slate-50">
       {/* Sidebar gauche - Infos patient */}
@@ -264,10 +216,7 @@ export default function Patients() {
               <span>•</span>
               <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
-              <GDPRStatusIndicator consent={patient.gdpr_consent} />
-            </div>
+            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
           </div>
         </div>
 
@@ -302,8 +251,16 @@ export default function Patients() {
               >
                 💉 Vacciner (Alt+V)
               </Button>
-            </>
-          )}
+              <Button
+                onClick={() => setShowCertificateGenerator(true)}
+                className="w-full justify-start gap-2"
+                size="sm"
+                variant="outline"
+              >
+                📄 Certificat
+              </Button>
+              </>
+              )}
         </div>
 
         {/* Notifications */}
@@ -453,6 +410,14 @@ export default function Patients() {
           onClose={() => setShowQuickVaccination(false)}
         />
       )}
-    </div>
-  );
-}
+
+      {showCertificateGenerator && (
+        <MedicalCertificateGenerator
+          patient={patient}
+          isOpen={showCertificateGenerator}
+          onClose={() => setShowCertificateGenerator(false)}
+        />
+      )}
+      </div>
+      );
+      }

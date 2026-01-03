@@ -34,6 +34,7 @@ import GenericAlternatives from '../medications/GenericAlternatives';
 import SAMv2Search from '../medications/SAMv2Search';
 import { recipE } from '@/functions/recipE';
 import InvoiceReceipt from '../facturation/InvoiceReceipt';
+import VitalSignsInput from './VitalSignsInput';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -67,6 +68,8 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
     traitement: '',
     notes: ''
   });
+  
+  const [vitalSigns, setVitalSigns] = useState({});
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
@@ -140,6 +143,26 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         prescriptions: consultationData.traitement,
         statut: 'Completee'
       });
+
+      // Sauvegarder les constantes vitales si renseignées
+      if (Object.values(vitalSigns).some(v => v !== '' && v !== 0)) {
+        await base44.entities.VitalSigns.create({
+          patient_id: patient.id,
+          consultation_id: consultation.id,
+          date_mesure: new Date().toISOString(),
+          tension_systolique: vitalSigns.systolic ? parseInt(vitalSigns.systolic) : null,
+          tension_diastolique: vitalSigns.diastolic ? parseInt(vitalSigns.diastolic) : null,
+          frequence_cardiaque: vitalSigns.heart_rate ? parseInt(vitalSigns.heart_rate) : null,
+          temperature: vitalSigns.temperature ? parseFloat(vitalSigns.temperature) : null,
+          saturation_o2: vitalSigns.spo2 ? parseInt(vitalSigns.spo2) : null,
+          frequence_respiratoire: vitalSigns.respiratory_rate ? parseInt(vitalSigns.respiratory_rate) : null,
+          poids: vitalSigns.weight ? parseFloat(vitalSigns.weight) : null,
+          taille: vitalSigns.height ? parseInt(vitalSigns.height) : null,
+          score_douleur: vitalSigns.pain_score || null,
+          glycemie: vitalSigns.glycemia ? parseInt(vitalSigns.glycemia) : null,
+          notes: vitalSigns.notes || null
+        });
+      }
 
       // 2. Créer la prescription si médicaments
       if (selectedMedications.length > 0) {
@@ -528,6 +551,13 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 2: Examen */}
           {currentStep === 1 && (
             <div className="space-y-6 max-w-3xl mx-auto">
+              {/* Constantes vitales */}
+              <VitalSignsInput
+                data={vitalSigns}
+                onChange={setVitalSigns}
+                patientBirthDate={patient?.birthDate}
+              />
+
               <div>
                 <Label className="text-lg font-semibold mb-3 block">Anamnèse</Label>
                 <Textarea
