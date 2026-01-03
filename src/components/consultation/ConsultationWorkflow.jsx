@@ -35,6 +35,10 @@ import SAMv2Search from '../medications/SAMv2Search';
 import { recipE } from '@/functions/recipE';
 import InvoiceReceipt from '../facturation/InvoiceReceipt';
 import VitalSignsInput from './VitalSignsInput';
+import DiagnosisCodeSearch from './DiagnosisCodeSearch';
+import VoiceDictation from './VoiceDictation';
+import ImageAttachments from './ImageAttachments';
+import ConsultationTemplates from './ConsultationTemplates';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -70,6 +74,11 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   });
   
   const [vitalSigns, setVitalSigns] = useState({});
+  const [diagnosisCodes, setDiagnosisCodes] = useState([]);
+  const [attachedImages, setAttachedImages] = useState([]);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showVoiceDictation, setShowVoiceDictation] = useState(false);
+  const [activeVoiceField, setActiveVoiceField] = useState(null);
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
@@ -519,6 +528,16 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 1: Motif */}
           {currentStep === 0 && (
             <div className="space-y-6 max-w-3xl mx-auto">
+              <div className="flex justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowTemplates(true)}
+                  className="gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Utiliser un template
+                </Button>
+              </div>
               <div>
                 <Label className="text-lg font-semibold mb-3 block">Motif de consultation</Label>
                 <Textarea
@@ -558,8 +577,30 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                 patientBirthDate={patient?.birthDate}
               />
 
+              {/* Dictée vocale */}
+              <VoiceDictation
+                targetField={activeVoiceField || 'Anamnèse'}
+                onTranscript={(text) => {
+                  if (activeVoiceField === 'examen') {
+                    setConsultationData({...consultationData, examen_clinique: consultationData.examen_clinique + '\n' + text});
+                  } else {
+                    setConsultationData({...consultationData, anamnese: consultationData.anamnese + '\n' + text});
+                  }
+                }}
+              />
+
               <div>
-                <Label className="text-lg font-semibold mb-3 block">Anamnèse</Label>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-lg font-semibold">Anamnèse</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setActiveVoiceField('anamnese')}
+                    className="text-purple-600"
+                  >
+                    🎤 Dicter
+                  </Button>
+                </div>
                 <Textarea
                   value={consultationData.anamnese}
                   onChange={(e) => setConsultationData({...consultationData, anamnese: e.target.value})}
@@ -568,7 +609,17 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                 />
               </div>
               <div>
-                <Label className="text-lg font-semibold mb-3 block">Examen clinique *</Label>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-lg font-semibold">Examen clinique *</Label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setActiveVoiceField('examen')}
+                    className="text-purple-600"
+                  >
+                    🎤 Dicter
+                  </Button>
+                </div>
                 <Textarea
                   value={consultationData.examen_clinique}
                   onChange={(e) => setConsultationData({...consultationData, examen_clinique: e.target.value})}
@@ -577,13 +628,31 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                   autoFocus
                 />
               </div>
+
+              {/* Images / Photos */}
+              <div>
+                <Label className="text-lg font-semibold mb-3 block">📷 Photos / Images cliniques</Label>
+                <ImageAttachments
+                  images={attachedImages}
+                  onChange={setAttachedImages}
+                  patientId={patient?.id}
+                />
+              </div>
+
+              {/* Diagnostic avec codes */}
               <div>
                 <Label className="text-lg font-semibold mb-3 block">Diagnostic</Label>
                 <Input
                   value={consultationData.diagnostic}
                   onChange={(e) => setConsultationData({...consultationData, diagnostic: e.target.value})}
                   placeholder="Diagnostic posé..."
-                  className="text-base h-12"
+                  className="text-base h-12 mb-3"
+                />
+                <Label className="text-sm font-medium mb-2 block text-slate-600">Codes CISP-2 / ICD-10</Label>
+                <DiagnosisCodeSearch
+                  value={diagnosisCodes}
+                  onChange={setDiagnosisCodes}
+                  codeSystem="both"
                 />
               </div>
             </div>
@@ -1086,7 +1155,24 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
             </Button>
           )}
         </div>
+      {/* Modal Templates */}
+      {showTemplates && (
+        <ConsultationTemplates
+          isOpen={showTemplates}
+          onClose={() => setShowTemplates(false)}
+          onSelectTemplate={(template) => {
+            setConsultationData({
+              ...consultationData,
+              motif: template.content.motif || consultationData.motif,
+              anamnese: template.content.anamnese || consultationData.anamnese,
+              examen_clinique: template.content.examen_clinique || consultationData.examen_clinique,
+              diagnostic: template.content.diagnostic || consultationData.diagnostic,
+              traitement: template.content.prescriptions || consultationData.traitement
+            });
+          }}
+        />
+      )}
       </DialogContent>
-    </Dialog>
-  );
-}
+      </Dialog>
+      );
+      }
