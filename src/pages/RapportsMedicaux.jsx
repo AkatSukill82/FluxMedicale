@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,9 @@ import {
   Eye,
   Edit,
   Trash2,
+  BarChart3,
+  Clock,
+  Settings,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -30,6 +34,9 @@ import { fr } from "date-fns/locale";
 import MedicalReportForm from "../components/reports/MedicalReportForm";
 import MedicalReportViewer from "../components/reports/MedicalReportViewer";
 import MedicalReportPDF from "../components/reports/MedicalReportPDF";
+import PeriodicReportGenerator from "../components/reports/PeriodicReportGenerator";
+import ReportTemplatesManager from "../components/reports/ReportTemplatesManager";
+import ReportsAnalyticsDashboard from "../components/reports/ReportsAnalyticsDashboard";
 
 const REPORT_TYPES = {
   consultation: { label: "Consultation", color: "bg-blue-100 text-blue-700" },
@@ -48,10 +55,12 @@ const STATUS_BADGES = {
 };
 
 export default function RapportsMedicaux() {
+  const [activeTab, setActiveTab] = useState("reports");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showForm, setShowForm] = useState(false);
+  const [showPeriodicGenerator, setShowPeriodicGenerator] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [viewingReport, setViewingReport] = useState(null);
   const [generatingPDF, setGeneratingPDF] = useState(null);
@@ -108,17 +117,45 @@ export default function RapportsMedicaux() {
             Gérez et créez des rapports médicaux pour vos patients
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setSelectedReport(null);
-            setShowForm(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nouveau rapport
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowPeriodicGenerator(true)}
+          >
+            <Clock className="w-4 h-4 mr-2" />
+            Rapport périodique
+          </Button>
+          <Button
+            onClick={() => {
+              setSelectedReport(null);
+              setShowForm(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nouveau rapport
+          </Button>
+        </div>
       </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="reports" className="gap-2">
+            <FileText className="w-4 h-4" />
+            Rapports
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="gap-2">
+            <Settings className="w-4 h-4" />
+            Modèles
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytique
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="reports" className="mt-4 space-y-4">
 
       {/* Filters */}
       <Card>
@@ -284,11 +321,30 @@ export default function RapportsMedicaux() {
         />
       )}
 
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-4">
+          <ReportTemplatesManager />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-4">
+          <ReportsAnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
+
       {/* PDF Generator */}
       {generatingPDF && (
         <MedicalReportPDF
           report={generatingPDF}
           onClose={() => setGeneratingPDF(null)}
+        />
+      )}
+
+      {/* Periodic Report Generator */}
+      {showPeriodicGenerator && (
+        <PeriodicReportGenerator
+          isOpen={showPeriodicGenerator}
+          onClose={() => setShowPeriodicGenerator(false)}
         />
       )}
     </div>

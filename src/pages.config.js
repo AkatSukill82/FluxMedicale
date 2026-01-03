@@ -1,3 +1,4 @@
+import AITasks from './pages/AITasks';
 import Agenda from './pages/Agenda';
 import Audit from './pages/Audit';
 import AuditSecurity from './pages/AuditSecurity';
@@ -20,25 +21,25 @@ import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import Prescriptions from './pages/Prescriptions';
 import ProfilMedecin from './pages/ProfilMedecin';
 import Rappels from './pages/Rappels';
+import RapportsAutomatises from './pages/RapportsAutomatises';
 import RapportsMedicaux from './pages/RapportsMedicaux';
 import ReferentialImport from './pages/ReferentialImport';
 import SecureMessages from './pages/SecureMessages';
 import Securite from './pages/Securite';
 import Statistics from './pages/Statistics';
+import Stock from './pages/Stock';
+import SuiviPatient from './pages/SuiviPatient';
 import TeleconsultationRoom from './pages/TeleconsultationRoom';
 import Telemedicine from './pages/Telemedicine';
 import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import Stock from './pages/Stock';
-import SuiviPatient from './pages/SuiviPatient';
-import RapportsAutomatises from './pages/RapportsAutomatises';
-import AITasks from './pages/AITasks';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AITasks": AITasks,
     "Agenda": Agenda,
     "Audit": Audit,
     "AuditSecurity": AuditSecurity,
@@ -61,21 +62,20 @@ export const PAGES = {
     "Prescriptions": Prescriptions,
     "ProfilMedecin": ProfilMedecin,
     "Rappels": Rappels,
+    "RapportsAutomatises": RapportsAutomatises,
     "RapportsMedicaux": RapportsMedicaux,
     "ReferentialImport": ReferentialImport,
     "SecureMessages": SecureMessages,
     "Securite": Securite,
     "Statistics": Statistics,
+    "Stock": Stock,
+    "SuiviPatient": SuiviPatient,
     "TeleconsultationRoom": TeleconsultationRoom,
     "Telemedicine": Telemedicine,
     "Templates": Templates,
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "Stock": Stock,
-    "SuiviPatient": SuiviPatient,
-    "RapportsAutomatises": RapportsAutomatises,
-    "AITasks": AITasks,
 }
 
 export const pagesConfig = {
