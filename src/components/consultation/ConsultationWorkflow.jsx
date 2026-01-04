@@ -39,6 +39,7 @@ import DiagnosisCodeSearch from './DiagnosisCodeSearch';
 import VoiceDictation from './VoiceDictation';
 import ImageAttachments from './ImageAttachments';
 import ConsultationTemplates from './ConsultationTemplates';
+import ConsultationReportGenerator from './ConsultationReportGenerator';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -79,6 +80,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [showVoiceDictation, setShowVoiceDictation] = useState(false);
   const [activeVoiceField, setActiveVoiceField] = useState(null);
+  const [showReportGenerator, setShowReportGenerator] = useState(false);
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
@@ -1154,6 +1156,33 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
             </Button>
           )}
         </div>
+      {/* Bouton export PDF dans le résumé */}
+      {currentStep === WORKFLOW_STEPS.length - 1 && (
+        <div className="fixed bottom-24 right-8">
+          <Button
+            variant="outline"
+            onClick={() => setShowReportGenerator(true)}
+            className="gap-2 shadow-lg"
+          >
+            <FileText className="w-4 h-4" />
+            Exporter en PDF
+          </Button>
+        </div>
+      )}
+
+      {/* Modal Générateur de rapport */}
+      {showReportGenerator && (
+        <ConsultationReportGenerator
+          isOpen={showReportGenerator}
+          onClose={() => setShowReportGenerator(false)}
+          consultation={consultationData}
+          patient={patient}
+          vitalSigns={vitalSigns}
+          diagnosisCodes={diagnosisCodes}
+          prescriptions={selectedMedications}
+        />
+      )}
+
       {/* Modal Templates */}
       {showTemplates && (
         <ConsultationTemplates
