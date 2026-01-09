@@ -26,6 +26,7 @@ import MedicationManager from '../MedicationManager';
 import PrescriptionReminders from '../../prescriptions/PrescriptionReminders';
 import PatientCommunicationPanel from '../../communication/PatientCommunicationPanel';
 import GDPRConsentManager from '../../gdpr/GDPRConsentManager';
+import MedicalHistoryPanel from '../MedicalHistoryPanel';
 
 export default function FicheAdministrativeTab({ patient }) {
   const queryClient = useQueryClient();
@@ -466,6 +467,19 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Antécédents médicaux */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            Antécédents médicaux
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MedicalHistoryPanel patientId={patient.id} />
         </CardContent>
       </Card>
 
