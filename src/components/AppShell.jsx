@@ -36,6 +36,7 @@ import {
   HeartPulse,
   Brain,
   Upload,
+  BarChart3,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -88,7 +89,8 @@ export default function AppShell({ children, currentPageName }) {
     { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
     { title: 'Assistant IA', path: 'AITasks', icon: Brain },
     { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
-    ];
+          { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
+          ];
   
   const adminNavItems = [
     { title: t('nav.users'), path: 'Utilisateurs', icon: Users, adminOnly: true },
