@@ -4,12 +4,9 @@ import { googleCalendarSync } from '@/functions/googleCalendarSync';
 import { base44 } from '@/api/base44Client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   Calendar,
   RefreshCw,
@@ -17,22 +14,21 @@ import {
   X,
   Upload,
   Download,
-  Clock,
-  User,
   AlertCircle,
   Loader2,
   ExternalLink,
-  Settings
+  ChevronRight,
+  Clock,
+  User,
+  Zap
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 export default function GoogleCalendarSync({ isOpen, onClose }) {
   const queryClient = useQueryClient();
-  const [syncDirection, setSyncDirection] = useState('both'); // 'toGoogle', 'fromGoogle', 'both'
   const [selectedCalendar, setSelectedCalendar] = useState('primary');
-  const [autoSync, setAutoSync] = useState(false);
 
   // Récupérer les calendriers Google
   const { data: calendarsData, isLoading: loadingCalendars, error: calendarsError } = useQuery({
@@ -46,7 +42,7 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
   });
 
   // Récupérer les événements Google
-  const { data: googleEventsData, isLoading: loadingEvents, refetch: refetchEvents, error: eventsError } = useQuery({
+  const { data: googleEventsData, isLoading: loadingEvents, refetch: refetchEvents } = useQuery({
     queryKey: ['googleEvents', selectedCalendar],
     queryFn: async () => {
       const response = await googleCalendarSync({ 
@@ -55,7 +51,7 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
       });
       return response.data || response;
     },
-    enabled: isOpen && !!selectedCalendar,
+    enabled: isOpen && !!selectedCalendar && !calendarsError,
     retry: 1
   });
 
@@ -89,7 +85,7 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
       toast.success('RDV synchronisé avec Google Calendar');
     },
     onError: (error) => {
-      toast.error('Erreur de synchronisation: ' + error.message);
+      toast.error('Erreur: ' + error.message);
     }
   });
 
@@ -121,258 +117,284 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
 
   const getPatientName = (patientId) => {
     const patient = patients.find(p => p.id === patientId);
-    if (!patient) return 'Patient inconnu';
+    if (!patient) return 'Patient';
     const name = patient.name?.[0] || {};
-    return `${(name.given || []).join(' ')} ${name.family || ''}`.trim();
+    return `${(name.given || []).join(' ')} ${name.family || ''}`.trim() || 'Patient';
   };
 
-  const unsyncedCount = localAppointments.filter(
+  const unsyncedAppointments = localAppointments.filter(
     apt => !apt.google_calendar_event_id && apt.statut !== 'Annulé'
-  ).length;
+  );
+  const syncedAppointments = localAppointments.filter(apt => apt.google_calendar_event_id);
+
+  const isConnected = !calendarsError && calendarsData?.calendars?.length > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-blue-600" />
-            Synchronisation Google Calendar
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+        {/* Header */}
+        <DialogHeader className="p-4 sm:p-6 pb-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+          <DialogTitle className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+              <Calendar className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <span className="text-lg font-bold">Google Calendar</span>
+              <p className="text-sm font-normal text-muted-foreground">
+                Synchronisez vos rendez-vous
+              </p>
+            </div>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Afficher les erreurs si présentes */}
-          {(calendarsError || eventsError) && (
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="py-4">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600" />
-                  <div>
-                    <p className="font-semibold text-red-800">Erreur de connexion</p>
-                    <p className="text-sm text-red-600">
-                      {calendarsError?.message || eventsError?.message || 'Impossible de se connecter à Google Calendar'}
-                    </p>
+        <ScrollArea className="flex-1 max-h-[calc(90vh-180px)]">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            
+            {/* État de connexion */}
+            {loadingCalendars ? (
+              <Card className="border-2 border-dashed">
+                <CardContent className="py-8 flex flex-col items-center justify-center text-center">
+                  <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-3" />
+                  <p className="font-medium text-slate-700">Connexion à Google Calendar...</p>
+                  <p className="text-sm text-muted-foreground">Veuillez patienter</p>
+                </CardContent>
+              </Card>
+            ) : calendarsError ? (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="py-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-red-800">Connexion impossible</p>
+                      <p className="text-sm text-red-600 mt-1">
+                        Vérifiez que Google Calendar est bien autorisé dans les paramètres de l'application.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => queryClient.invalidateQueries({ queryKey: ['googleCalendars'] })}
+                      className="flex-shrink-0 w-full sm:w-auto"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Réessayer
+                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-green-200 bg-green-50">
+                <CardContent className="py-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-green-800">Connecté</p>
+                      <p className="text-sm text-green-600">
+                        {calendarsData?.calendars?.length || 0} calendrier(s) • {syncedAppointments.length} RDV synchronisés
+                      </p>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => refetchEvents()}
+                      className="flex-shrink-0"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Statut de connexion */}
-          <Card className={loadingCalendars ? "bg-slate-50" : calendarsError ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}>
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {loadingCalendars ? (
-                    <>
-                      <Loader2 className="w-10 h-10 animate-spin text-slate-400" />
-                      <div>
-                        <p className="font-semibold text-slate-800">Connexion en cours...</p>
-                        <p className="text-sm text-slate-600">Récupération des calendriers</p>
+            {/* Actions rapides */}
+            {isConnected && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Card 
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    unsyncedAppointments.length > 0 ? 'border-blue-200 bg-blue-50/50' : ''
+                  }`}
+                  onClick={() => unsyncedAppointments.length > 0 && syncAllMutation.mutate()}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        unsyncedAppointments.length > 0 ? 'bg-blue-500' : 'bg-slate-200'
+                      }`}>
+                        {syncAllMutation.isPending ? (
+                          <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        ) : (
+                          <Upload className={`w-5 h-5 ${unsyncedAppointments.length > 0 ? 'text-white' : 'text-slate-400'}`} />
+                        )}
                       </div>
-                    </>
-                  ) : calendarsError ? (
-                    <>
-                      <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
-                        <X className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-red-800">Erreur de connexion</p>
-                        <p className="text-sm text-red-600">Vérifiez l'autorisation Google</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-green-800">Connecté à Google Calendar</p>
-                        <p className="text-sm text-green-600">
-                          {calendarsData?.calendars?.length || 0} calendrier(s) disponible(s)
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm">Synchroniser tout</p>
+                        <p className="text-xs text-muted-foreground">
+                          {unsyncedAppointments.length > 0 
+                            ? `${unsyncedAppointments.length} RDV en attente` 
+                            : 'Tout est synchronisé ✓'}
                         </p>
                       </div>
-                    </>
-                  )}
+                      {unsyncedAppointments.length > 0 && (
+                        <Badge className="bg-blue-600">{unsyncedAppointments.length}</Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-slate-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <Download className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-slate-500">Importer</p>
+                        <p className="text-xs text-muted-foreground">Bientôt disponible</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Liste des RDV */}
+            {isConnected && localAppointments.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm text-slate-700">Vos rendez-vous</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {syncedAppointments.length}/{localAppointments.length} synchronisés
+                  </Badge>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => refetchEvents()}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Actualiser
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Sélection du calendrier */}
-          {calendarsData?.calendars && (
-            <div>
-              <Label className="text-sm font-medium mb-2 block">Calendrier cible</Label>
-              <div className="flex flex-wrap gap-2">
-                {calendarsData.calendars.map(cal => (
-                  <Button
-                    key={cal.id}
-                    variant={selectedCalendar === cal.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCalendar(cal.id)}
-                  >
-                    {cal.summary}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Separator />
-
-          {/* Actions de synchronisation */}
-          <div className="grid grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Upload className="w-4 h-4 text-blue-600" />
-                  Vers Google Calendar
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {unsyncedCount} rendez-vous non synchronisés
-                </p>
-                <Button 
-                  onClick={() => syncAllMutation.mutate()}
-                  disabled={syncAllMutation.isPending || unsyncedCount === 0}
-                  className="w-full"
-                >
-                  {syncAllMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4 mr-2" />
-                  )}
-                  Synchroniser tout ({unsyncedCount})
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Download className="w-4 h-4 text-green-600" />
-                  Depuis Google Calendar
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">
-                  {googleEventsData?.events?.length || 0} événements trouvés
-                </p>
-                <Button variant="outline" className="w-full" disabled>
-                  <Download className="w-4 h-4 mr-2" />
-                  Importer (bientôt)
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Liste des RDV à synchroniser */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Rendez-vous récents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64">
+                
                 <div className="space-y-2">
-                  {localAppointments.slice(0, 20).map(apt => (
-                    <div 
-                      key={apt.id} 
-                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          apt.google_calendar_event_id ? 'bg-green-500' : 'bg-orange-500'
+                  {localAppointments.slice(0, 15).map(apt => {
+                    const isSynced = !!apt.google_calendar_event_id;
+                    const isSyncing = syncToGoogleMutation.isPending && syncToGoogleMutation.variables?.id === apt.id;
+                    
+                    return (
+                      <div 
+                        key={apt.id} 
+                        className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                          isSynced 
+                            ? 'bg-green-50 border border-green-100' 
+                            : 'bg-slate-50 border border-slate-100 hover:bg-slate-100'
+                        }`}
+                      >
+                        {/* Indicateur de statut */}
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          isSynced ? 'bg-green-500' : 'bg-orange-400'
                         }`} />
-                        <div>
-                          <p className="font-medium text-sm">
+                        
+                        {/* Info RDV */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
                             {getPatientName(apt.patient_id)}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(apt.date), 'dd/MM/yyyy', { locale: fr })} à {apt.heure_debut}
-                            {' • '}{apt.type_consultation}
-                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span>{format(new Date(apt.date), 'dd MMM', { locale: fr })}</span>
+                            <span>•</span>
+                            <span>{apt.heure_debut}</span>
+                            <span className="hidden sm:inline">• {apt.type_consultation}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {apt.google_calendar_event_id ? (
-                          <Badge variant="outline" className="bg-green-50 text-green-700">
+
+                        {/* Badge/Action */}
+                        {isSynced ? (
+                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 text-xs flex-shrink-0">
                             <Check className="w-3 h-3 mr-1" />
-                            Synchronisé
+                            <span className="hidden sm:inline">Synchronisé</span>
                           </Badge>
                         ) : (
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="h-8 px-2 sm:px-3 flex-shrink-0 hover:bg-blue-100 hover:text-blue-700"
                             onClick={() => syncToGoogleMutation.mutate(apt)}
-                            disabled={syncToGoogleMutation.isPending}
+                            disabled={isSyncing}
                           >
-                            {syncToGoogleMutation.isPending ? (
+                            {isSyncing ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                              <Upload className="w-4 h-4" />
+                              <>
+                                <Zap className="w-4 h-4 sm:mr-1" />
+                                <span className="hidden sm:inline text-xs">Sync</span>
+                              </>
                             )}
                           </Button>
                         )}
                       </div>
-                    </div>
+                    );
+                  })}
+                </div>
+
+                {localAppointments.length > 15 && (
+                  <p className="text-center text-xs text-muted-foreground mt-3">
+                    +{localAppointments.length - 15} autres rendez-vous
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Événements Google */}
+            {isConnected && googleEventsData?.events?.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-sm text-slate-700 mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Dans Google Calendar
+                </h3>
+                <div className="space-y-2">
+                  {googleEventsData.events.slice(0, 5).map(event => (
+                    <a 
+                      key={event.id}
+                      href={event.htmlLink}
+                      target="_blank"
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all group"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{event.summary}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {event.start?.dateTime 
+                            ? format(new Date(event.start.dateTime), 'dd MMM à HH:mm', { locale: fr })
+                            : event.start?.date}
+                        </p>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-blue-600 flex-shrink-0" />
+                    </a>
                   ))}
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+              </div>
+            )}
 
-          {/* Événements Google */}
-          {googleEventsData?.events && googleEventsData.events.length > 0 && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Événements Google Calendar
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-48">
-                  <div className="space-y-2">
-                    {googleEventsData.events.slice(0, 10).map(event => (
-                      <div 
-                        key={event.id} 
-                        className="flex items-center justify-between p-3 bg-blue-50 rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium text-sm">{event.summary}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {event.start?.dateTime 
-                              ? format(parseISO(event.start.dateTime), 'dd/MM/yyyy HH:mm', { locale: fr })
-                              : event.start?.date}
-                          </p>
-                        </div>
-                        <a 
-                          href={event.htmlLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Footer */}
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={onClose}>
-              Fermer
-            </Button>
+            {/* État vide */}
+            {isConnected && localAppointments.length === 0 && (
+              <Card className="border-2 border-dashed">
+                <CardContent className="py-8 text-center">
+                  <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="font-medium text-slate-600">Aucun rendez-vous</p>
+                  <p className="text-sm text-muted-foreground">
+                    Créez des rendez-vous pour les synchroniser
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-4 border-t bg-slate-50 flex justify-end">
+          <Button variant="outline" onClick={onClose}>
+            Fermer
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
