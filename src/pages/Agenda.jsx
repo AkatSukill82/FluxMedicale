@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, ChevronLeft, ChevronRight, Clock, Loader2, Video } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Clock, Loader2, Video, Calendar } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { format, addWeeks, subWeeks, startOfWeek } from "date-fns";
@@ -223,9 +223,7 @@ export default function Agenda() {
               onClick={() => setShowGoogleSync(true)}
               className="gap-2"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M19.5 22H4.5A2.5 2.5 0 0 1 2 19.5V4.5A2.5 2.5 0 0 1 4.5 2h15A2.5 2.5 0 0 1 22 4.5v15a2.5 2.5 0 0 1-2.5 2.5zM9 18l3-2.5L9 13v5zm6-12h-6l-3 2.5L9 11h6l3-2.5L15 6z"/>
-              </svg>
+              <Calendar className="w-4 h-4" />
               Google Calendar
             </Button>
             
