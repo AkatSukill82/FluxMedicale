@@ -35,26 +35,28 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
   const [autoSync, setAutoSync] = useState(false);
 
   // Récupérer les calendriers Google
-  const { data: calendarsData, isLoading: loadingCalendars } = useQuery({
+  const { data: calendarsData, isLoading: loadingCalendars, error: calendarsError } = useQuery({
     queryKey: ['googleCalendars'],
     queryFn: async () => {
       const response = await googleCalendarSync({ action: 'list_calendars' });
-      return response.data;
+      return response.data || response;
     },
-    enabled: isOpen
+    enabled: isOpen,
+    retry: 1
   });
 
   // Récupérer les événements Google
-  const { data: googleEventsData, isLoading: loadingEvents, refetch: refetchEvents } = useQuery({
+  const { data: googleEventsData, isLoading: loadingEvents, refetch: refetchEvents, error: eventsError } = useQuery({
     queryKey: ['googleEvents', selectedCalendar],
     queryFn: async () => {
       const response = await googleCalendarSync({ 
         action: 'list_events',
         data: { calendarId: selectedCalendar }
       });
-      return response.data;
+      return response.data || response;
     },
-    enabled: isOpen && !!selectedCalendar
+    enabled: isOpen && !!selectedCalendar,
+    retry: 1
   });
 
   // Récupérer les RDV locaux
@@ -79,7 +81,7 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
         action: 'sync_appointment',
         data: { appointment, patient }
       });
-      return response.data;
+      return response.data || response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['googleEvents'] });
@@ -139,20 +141,59 @@ export default function GoogleCalendarSync({ isOpen, onClose }) {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Afficher les erreurs si présentes */}
+          {(calendarsError || eventsError) && (
+            <Card className="bg-red-50 border-red-200">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <div>
+                    <p className="font-semibold text-red-800">Erreur de connexion</p>
+                    <p className="text-sm text-red-600">
+                      {calendarsError?.message || eventsError?.message || 'Impossible de se connecter à Google Calendar'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Statut de connexion */}
-          <Card className="bg-green-50 border-green-200">
+          <Card className={loadingCalendars ? "bg-slate-50" : calendarsError ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"}>
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                    <Check className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-green-800">Connecté à Google Calendar</p>
-                    <p className="text-sm text-green-600">
-                      {calendarsData?.calendars?.length || 0} calendrier(s) disponible(s)
-                    </p>
-                  </div>
+                  {loadingCalendars ? (
+                    <>
+                      <Loader2 className="w-10 h-10 animate-spin text-slate-400" />
+                      <div>
+                        <p className="font-semibold text-slate-800">Connexion en cours...</p>
+                        <p className="text-sm text-slate-600">Récupération des calendriers</p>
+                      </div>
+                    </>
+                  ) : calendarsError ? (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                        <X className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-red-800">Erreur de connexion</p>
+                        <p className="text-sm text-red-600">Vérifiez l'autorisation Google</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-green-800">Connecté à Google Calendar</p>
+                        <p className="text-sm text-green-600">
+                          {calendarsData?.calendars?.length || 0} calendrier(s) disponible(s)
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <Button variant="outline" size="sm" onClick={() => refetchEvents()}>
                   <RefreshCw className="w-4 h-4 mr-2" />
