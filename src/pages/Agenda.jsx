@@ -21,6 +21,7 @@ import ReminderSettings from "../components/agenda/ReminderSettings";
 import DoctorAvailabilityView from "../components/agenda/DoctorAvailabilityView";
 import AppointmentNotifications from "../components/agenda/AppointmentNotifications";
 import TeleconsultationScheduler from "../components/teleconsultation/TeleconsultationScheduler";
+import GoogleCalendarSync from "../components/agenda/GoogleCalendarSync";
 
 export default function Agenda() {
   const queryClient = useQueryClient();
@@ -34,6 +35,7 @@ export default function Agenda() {
   const [showReminders, setShowReminders] = useState(false);
   const [showAvailability, setShowAvailability] = useState(false);
   const [showTeleconsultation, setShowTeleconsultation] = useState(false);
+  const [showGoogleSync, setShowGoogleSync] = useState(false);
   const [filterPraticien, setFilterPraticien] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -214,6 +216,17 @@ export default function Agenda() {
             >
               <Video className="w-4 h-4" />
               Téléconsultation
+            </Button>
+
+            <Button 
+              variant="outline"
+              onClick={() => setShowGoogleSync(true)}
+              className="gap-2"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19.5 22H4.5A2.5 2.5 0 0 1 2 19.5V4.5A2.5 2.5 0 0 1 4.5 2h15A2.5 2.5 0 0 1 22 4.5v15a2.5 2.5 0 0 1-2.5 2.5zM9 18l3-2.5L9 13v5zm6-12h-6l-3 2.5L9 11h6l3-2.5L15 6z"/>
+              </svg>
+              Google Calendar
             </Button>
             
             <Button 
@@ -409,6 +422,13 @@ export default function Agenda() {
           <TeleconsultationScheduler
             isOpen={showTeleconsultation}
             onClose={() => setShowTeleconsultation(false)}
+          />
+        )}
+
+        {showGoogleSync && (
+          <GoogleCalendarSync
+            isOpen={showGoogleSync}
+            onClose={() => setShowGoogleSync(false)}
           />
         )}
       </div>
