@@ -28,6 +28,7 @@ import ReferentialImport from './pages/ReferentialImport';
 import SecureMessages from './pages/SecureMessages';
 import Securite from './pages/Securite';
 import Statistics from './pages/Statistics';
+import Statistiques from './pages/Statistiques';
 import Stock from './pages/Stock';
 import SuiviPatient from './pages/SuiviPatient';
 import TeleconsultationRoom from './pages/TeleconsultationRoom';
@@ -36,7 +37,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import Statistiques from './pages/Statistiques';
 import __Layout from './Layout.jsx';
 
 
@@ -71,6 +71,7 @@ export const PAGES = {
     "SecureMessages": SecureMessages,
     "Securite": Securite,
     "Statistics": Statistics,
+    "Statistiques": Statistiques,
     "Stock": Stock,
     "SuiviPatient": SuiviPatient,
     "TeleconsultationRoom": TeleconsultationRoom,
@@ -79,7 +80,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "Statistiques": Statistiques,
 }
 
 export const pagesConfig = {

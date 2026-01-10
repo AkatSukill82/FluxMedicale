@@ -1,36 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
-  Users,
-  Calendar,
-  CreditCard,
-  FileText,
   Search,
   Plus,
+  Calendar,
   Clock,
-  TrendingUp,
-  Activity,
-  Stethoscope,
   ChevronRight,
-  Loader2
+  Loader2,
+  CreditCard,
+  Sun,
+  Sunrise,
+  Moon
 } from 'lucide-react';
 import { useI18n } from '../components/i18n/i18nContext';
 import { useEIDReader } from '../components/eid/useEIDReader';
-import { format, isToday, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export default function Dashboard() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const { readEID, isReading, eidDetected } = useEIDReader();
+  const { readEID, isReading } = useEIDReader();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -39,21 +37,16 @@ export default function Dashboard() {
 
   const { data: patients = [] } = useQuery({
     queryKey: ['patients'],
-    queryFn: () => base44.entities.Patient.list('-created_date', 100),
+    queryFn: () => base44.entities.Patient.list('-created_date', 50),
   });
 
-  const { data: todayAppointments = [] } = useQuery({
+  const { data: todayAppointments = [], isLoading: loadingRdv } = useQuery({
     queryKey: ['todayAppointments'],
     queryFn: async () => {
       const today = format(new Date(), 'yyyy-MM-dd');
-      const all = await base44.entities.RendezVous.list('-date', 50);
-      return all.filter(rdv => rdv.date === today);
+      const all = await base44.entities.RendezVous.list('heure_debut', 50);
+      return all.filter(rdv => rdv.date === today && rdv.statut !== 'Annulé');
     },
-  });
-
-  const { data: recentInvoices = [] } = useQuery({
-    queryKey: ['recentInvoices'],
-    queryFn: () => base44.entities.Invoice.list('-created_date', 10),
   });
 
   const handleSearch = (e) => {
@@ -78,66 +71,55 @@ export default function Dashboard() {
     return fullName.includes(searchQuery.toLowerCase()) || niss.includes(searchQuery);
   });
 
-  // Stats
-  const stats = {
-    totalPatients: patients.length,
-    todayAppointments: todayAppointments.length,
-    pendingInvoices: recentInvoices.filter(i => i.statut === 'En attente').length,
+  const getPatientName = (patientId) => {
+    const patient = patients.find(p => p.id === patientId);
+    if (!patient) return 'Patient';
+    const name = patient.name?.find(n => n.use === 'official');
+    return `${(name?.given || []).join(' ')} ${name?.family || ''}`.trim() || 'Patient';
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {t('dashboard.welcome', { name: user?.full_name?.split(' ')[0] || 'Docteur' })}
-          </h1>
-          <p className="text-slate-600">
-            {format(new Date(), "EEEE d MMMM yyyy", { locale: fr })}
-          </p>
-        </div>
+  // Greeting based on time
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const GreetingIcon = hour < 12 ? Sunrise : hour < 18 ? Sun : Moon;
 
-        {/* Quick actions */}
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={handleReadEID}
-            disabled={isReading}
-            variant="outline"
-            className="gap-2"
-          >
-            {isReading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Stethoscope className="w-4 h-4" />
-            )}
-            {t('actions.readEID')}
-          </Button>
-          <Button
-            onClick={() => navigate(createPageUrl('Patients'))}
-            className="bg-blue-600 hover:bg-blue-700 gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Nouveau patient
-          </Button>
+  // Next appointment
+  const now = new Date();
+  const nextAppointment = todayAppointments.find(rdv => {
+    const [h, m] = (rdv.heure_debut || '00:00').split(':');
+    const rdvTime = new Date();
+    rdvTime.setHours(parseInt(h), parseInt(m), 0);
+    return rdvTime >= now;
+  });
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Greeting - Simple & Calm */}
+      <div className="text-center py-6">
+        <div className="inline-flex items-center gap-2 text-slate-400 mb-2">
+          <GreetingIcon className="w-5 h-5" />
+          <span className="text-sm">{format(new Date(), "EEEE d MMMM", { locale: fr })}</span>
         </div>
+        <h1 className="text-3xl font-light text-slate-800">
+          {greeting}, <span className="font-medium">{user?.full_name?.split(' ')[0] || 'Docteur'}</span>
+        </h1>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="p-4">
+      {/* Search - Central & Prominent */}
+      <Card className="shadow-sm">
+        <CardContent className="p-3">
           <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
-              placeholder={t('dashboard.searchPatient')}
+              placeholder="Rechercher un patient (nom ou NISS)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-lg"
+              className="pl-12 h-14 text-lg border-0 shadow-none focus-visible:ring-0 bg-slate-50 rounded-xl"
             />
             {filteredPatients.length > 0 && searchQuery.length >= 2 && (
-              <Card className="absolute z-10 w-full mt-2 shadow-lg">
-                <CardContent className="p-2 max-h-64 overflow-y-auto">
-                  {filteredPatients.slice(0, 8).map(p => {
+              <Card className="absolute z-10 w-full mt-2 shadow-xl border-0">
+                <CardContent className="p-2 max-h-72 overflow-y-auto">
+                  {filteredPatients.slice(0, 6).map(p => {
                     const name = p.name?.find(n => n.use === 'official');
                     const fullName = `${(name?.given || []).join(' ')} ${name?.family || ''}`.trim();
                     return (
@@ -145,13 +127,20 @@ export default function Dashboard() {
                         key={p.id}
                         type="button"
                         onClick={() => navigate(createPageUrl(`Patients?patient=${p.id}`))}
-                        className="w-full p-3 text-left hover:bg-slate-100 rounded-lg flex items-center justify-between"
+                        className="w-full p-4 text-left hover:bg-blue-50 rounded-xl flex items-center justify-between transition-colors"
                       >
-                        <div>
-                          <p className="font-medium">{fullName}</p>
-                          <p className="text-sm text-slate-500">{p.birthDate}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="font-semibold text-blue-600 text-sm">
+                              {name?.given?.[0]?.[0]}{name?.family?.[0]}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium">{fullName}</p>
+                            <p className="text-sm text-slate-500">{p.birthDate}</p>
+                          </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <ChevronRight className="w-5 h-5 text-slate-300" />
                       </button>
                     );
                   })}
@@ -162,152 +151,119 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card 
-          className="cursor-pointer hover:border-blue-300 transition-colors"
+      {/* Quick Actions - Clean Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Button
+          variant="outline"
+          onClick={handleReadEID}
+          disabled={isReading}
+          className="h-auto py-4 flex flex-col gap-2 hover:bg-blue-50 hover:border-blue-200"
+        >
+          {isReading ? (
+            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+          ) : (
+            <CreditCard className="w-6 h-6 text-blue-600" />
+          )}
+          <span className="text-xs font-medium">Lire eID</span>
+        </Button>
+
+        <Button
+          variant="outline"
           onClick={() => navigate(createPageUrl('Patients'))}
+          className="h-auto py-4 flex flex-col gap-2 hover:bg-green-50 hover:border-green-200"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Patients</p>
-                <p className="text-3xl font-bold">{stats.totalPatients}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <Plus className="w-6 h-6 text-green-600" />
+          <span className="text-xs font-medium">Nouveau patient</span>
+        </Button>
 
-        <Card 
-          className="cursor-pointer hover:border-green-300 transition-colors"
+        <Button
+          variant="outline"
           onClick={() => navigate(createPageUrl('Agenda'))}
+          className="h-auto py-4 flex flex-col gap-2 hover:bg-purple-50 hover:border-purple-200"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">RDV aujourd'hui</p>
-                <p className="text-3xl font-bold">{stats.todayAppointments}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <Calendar className="w-6 h-6 text-purple-600" />
+          <span className="text-xs font-medium">Agenda</span>
+        </Button>
 
-        <Card 
-          className="cursor-pointer hover:border-orange-300 transition-colors"
-          onClick={() => navigate(createPageUrl('Facturation'))}
+        <Button
+          variant="outline"
+          onClick={() => navigate(createPageUrl('Prescriptions'))}
+          className="h-auto py-4 flex flex-col gap-2 hover:bg-orange-50 hover:border-orange-200"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-500">Factures en attente</p>
-                <p className="text-3xl font-bold">{stats.pendingInvoices}</p>
-              </div>
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <Clock className="w-6 h-6 text-orange-600" />
+          <span className="text-xs font-medium">Prescriptions</span>
+        </Button>
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's appointments */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Rendez-vous du jour</CardTitle>
+      {/* Today's Appointments - Clean List */}
+      <Card className="shadow-sm">
+        <CardContent className="p-0">
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="font-semibold">Aujourd'hui</h2>
+                <p className="text-sm text-slate-500">
+                  {todayAppointments.length} rendez-vous
+                </p>
+              </div>
+            </div>
             <Button 
               variant="ghost" 
               size="sm"
               onClick={() => navigate(createPageUrl('Agenda'))}
+              className="text-blue-600"
             >
               Voir tout
-              <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
-          </CardHeader>
-          <CardContent>
-            {todayAppointments.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                <p>Aucun rendez-vous aujourd'hui</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {todayAppointments.slice(0, 5).map(rdv => (
-                  <div 
-                    key={rdv.id}
-                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer"
-                    onClick={() => navigate(createPageUrl(`Patients?patient=${rdv.patient_id}`))}
-                  >
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{rdv.heure_debut}</p>
-                      <p className="text-sm text-slate-500">{rdv.motif || rdv.type_consultation}</p>
-                    </div>
-                    <Badge variant="outline">{rdv.statut}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Recent patients */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Patients récents</CardTitle>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate(createPageUrl('Patients'))}
-            >
-              Voir tout
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {patients.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                <Users className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                <p>Aucun patient enregistré</p>
+          {loadingRdv ? (
+            <div className="p-8 text-center">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-300" />
+            </div>
+          ) : todayAppointments.length === 0 ? (
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Calendar className="w-8 h-8 text-slate-300" />
               </div>
-            ) : (
-              <div className="space-y-3">
-                {patients.slice(0, 5).map(p => {
-                  const name = p.name?.find(n => n.use === 'official');
-                  const fullName = `${(name?.given || []).join(' ')} ${name?.family || ''}`.trim();
-                  return (
-                    <div 
-                      key={p.id}
-                      className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer"
-                      onClick={() => navigate(createPageUrl(`Patients?patient=${p.id}`))}
-                    >
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <span className="font-semibold text-purple-600">
-                          {name?.given?.[0]?.[0]}{name?.family?.[0]}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium">{fullName}</p>
-                        <p className="text-sm text-slate-500">{p.birthDate}</p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
+              <p className="text-slate-500 font-medium">Journée libre</p>
+              <p className="text-sm text-slate-400">Aucun rendez-vous prévu</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {todayAppointments.slice(0, 6).map((rdv, index) => {
+                const isNext = nextAppointment?.id === rdv.id;
+                return (
+                  <button
+                    key={rdv.id}
+                    onClick={() => navigate(createPageUrl(`Patients?patient=${rdv.patient_id}`))}
+                    className={`w-full p-4 text-left hover:bg-slate-50 flex items-center gap-4 transition-colors ${
+                      isNext ? 'bg-blue-50' : ''
+                    }`}
+                  >
+                    <div className={`w-12 text-center ${isNext ? 'text-blue-600' : 'text-slate-600'}`}>
+                      <p className="text-lg font-semibold">{rdv.heure_debut}</p>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{getPatientName(rdv.patient_id)}</p>
+                      <p className="text-sm text-slate-500 truncate">
+                        {rdv.motif || rdv.type_consultation}
+                      </p>
+                    </div>
+                    {isNext && (
+                      <Badge className="bg-blue-600 flex-shrink-0">Prochain</Badge>
+                    )}
+                    <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
