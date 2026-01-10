@@ -1157,7 +1157,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           )}
         </div>
       {/* Bouton export PDF dans le résumé */}
-      {currentStep === WORKFLOW_STEPS.length - 1 && (
+      {currentStep === STEPS.length - 1 && (
         <div className="fixed bottom-24 right-8">
           <Button
             variant="outline"
