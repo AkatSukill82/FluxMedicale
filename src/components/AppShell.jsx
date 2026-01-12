@@ -37,6 +37,7 @@ import {
   Brain,
   Upload,
   BarChart3,
+  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -78,19 +79,19 @@ export default function AppShell({ children, currentPageName }) {
   const isAdmin = user?.role === 'admin';
 
   const navigationItems = [
-    { title: t('nav.dashboard'), path: 'Dashboard', icon: LayoutDashboard },
-    { title: t('nav.patients'), path: 'Patients', icon: Users },
-    { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
-    { title: 'Messagerie', path: 'Inbox', icon: MessageSquare },
-    { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
-    { title: 'Suivi', path: 'SuiviPatient', icon: HeartPulse },
-    { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
-    { title: 'Stocks', path: 'Stock', icon: Package },
-    { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
-    { title: 'Assistant IA', path: 'AITasks', icon: Brain },
-    { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
-          { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
-          ];
+        { title: t('nav.dashboard'), path: 'Dashboard', icon: LayoutDashboard },
+        { title: t('nav.patients'), path: 'Patients', icon: Users },
+        { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
+        { title: 'Messagerie', path: 'Inbox', icon: MessageSquare },
+        { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
+        { title: 'Suivi', path: 'SuiviPatient', icon: HeartPulse },
+        { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
+        { title: 'Automatisation', path: 'Automatisation', icon: Zap },
+        { title: 'Stocks', path: 'Stock', icon: Package },
+        { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
+        { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
+        { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
+      ];
   
   const adminNavItems = [
     { title: t('nav.users'), path: 'Utilisateurs', icon: Users, adminOnly: true },
