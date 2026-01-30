@@ -68,7 +68,6 @@ import Inbox from './pages/Inbox';
 import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
-import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import Prescriptions from './pages/Prescriptions';
 import ProfilMedecin from './pages/ProfilMedecin';
@@ -112,7 +111,6 @@ export const PAGES = {
     "Inbox": Inbox,
     "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
     "ModulesEHealth": ModulesEHealth,
-    "Patients": Patients,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "Prescriptions": Prescriptions,
