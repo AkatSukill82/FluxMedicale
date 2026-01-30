@@ -68,7 +68,6 @@ import Inbox from './pages/Inbox';
 import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
-import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import Prescriptions from './pages/Prescriptions';
 import ProfilMedecin from './pages/ProfilMedecin';
@@ -88,6 +87,7 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
+import Patients from './pages/Patients';
 import __Layout from './Layout.jsx';
 
 
@@ -113,7 +113,6 @@ export const PAGES = {
     "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
     "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
-    "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "Prescriptions": Prescriptions,
     "ProfilMedecin": ProfilMedecin,
@@ -133,6 +132,7 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
+    "Patients": Patients,
 }
 
 export const pagesConfig = {
