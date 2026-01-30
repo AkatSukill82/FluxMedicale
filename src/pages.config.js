@@ -87,8 +87,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import GestionPatients from './pages/GestionPatients';
-import Patients from './pages/Patients';
 import __Layout from './Layout.jsx';
 
 
@@ -133,8 +131,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "GestionPatients": GestionPatients,
-    "Patients": Patients,
 }
 
 export const pagesConfig = {
