@@ -34,8 +34,10 @@ import {
   FileText,
   Download,
   RefreshCw,
-  Loader2
+  Loader2,
+  Shield
 } from 'lucide-react';
+import ThinEpidemiologyStats from '../components/statistics/ThinEpidemiologyStats';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -352,6 +354,10 @@ export default function Statistiques() {
             <Pill className="w-4 h-4" />
             Prescriptions
           </TabsTrigger>
+          <TabsTrigger value="thin" className="gap-2">
+            <Shield className="w-4 h-4" />
+            THIN Épidémio
+          </TabsTrigger>
         </TabsList>
 
         {/* Consultations Tab */}
@@ -594,6 +600,11 @@ export default function Statistiques() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* THIN Epidemiology Tab */}
+        <TabsContent value="thin" className="space-y-6">
+          <ThinEpidemiologyStats />
         </TabsContent>
       </Tabs>
     </div>
