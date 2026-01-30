@@ -7,10 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
-  X, 
   CreditCard,
-  Pill,
-  FileText
+  Pill
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -22,7 +20,6 @@ import { usePermissions, PERMISSIONS } from '../components/auth/RBACGuard';
 // Import tabs
 import ConsultationTab from '../components/patients/tabs/ConsultationTab';
 import FicheAdministrativeTab from '../components/patients/tabs/FicheAdministrativeTab';
-import HubsTab from '../components/patients/tabs/HubsTab';
 import FacturationTab from '../components/patients/tabs/FacturationTab';
 import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
@@ -36,7 +33,7 @@ import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
 
-export default function Patients() {
+export default function PatientsPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
