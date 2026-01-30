@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -37,7 +36,7 @@ import QuickVaccination from '../components/vaccinations/QuickVaccination';
 // Import new list view
 import PatientListView from '../components/patients/PatientListView';
 
-export default function Patients() {
+export default function PatientsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -84,7 +83,7 @@ export default function Patients() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <p className="text-slate-500">Patient non trouvé</p>
-        <Button variant="outline" onClick={() => navigate(createPageUrl('Patients'))}>
+        <Button variant="outline" onClick={() => navigate(createPageUrl('PatientsPage'))}>
           Retour à la liste
         </Button>
       </div>
@@ -106,7 +105,7 @@ export default function Patients() {
           <Button 
             variant="ghost" 
             size="icon"
-            onClick={() => navigate(createPageUrl('Patients'))}
+            onClick={() => navigate(createPageUrl('PatientsPage'))}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
