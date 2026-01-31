@@ -52,6 +52,7 @@ import Agenda from './pages/Agenda';
 import Audit from './pages/Audit';
 import AuditSecurity from './pages/AuditSecurity';
 import Automatisation from './pages/Automatisation';
+import BookingPublic from './pages/BookingPublic';
 import Cabinets from './pages/Cabinets';
 import ChapitreIV from './pages/ChapitreIV';
 import Dashboard from './pages/Dashboard';
@@ -87,7 +88,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import BookingPublic from './pages/BookingPublic';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +97,7 @@ export const PAGES = {
     "Audit": Audit,
     "AuditSecurity": AuditSecurity,
     "Automatisation": Automatisation,
+    "BookingPublic": BookingPublic,
     "Cabinets": Cabinets,
     "ChapitreIV": ChapitreIV,
     "Dashboard": Dashboard,
@@ -132,7 +133,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "BookingPublic": BookingPublic,
 }
 
 export const pagesConfig = {

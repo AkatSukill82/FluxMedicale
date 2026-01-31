@@ -29,7 +29,8 @@ import {
   AlertCircle,
   ExternalLink,
   Building2,
-  Users
+  Users,
+  Calendar
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -102,7 +103,13 @@ export default function ProfilMedecinPage() {
         
         // Conventionnement
         is_conventionne: user.is_conventionne !== false,
-        conventionnement: user.conventionnement || 'conventionne'
+        conventionnement: user.conventionnement || 'conventionne',
+        
+        // Agenda externe
+        external_calendar_type: user.external_calendar_type || '',
+        external_calendar_url: user.external_calendar_url || '',
+        external_calendar_id: user.external_calendar_id || '',
+        sync_to_external: user.sync_to_external !== false
       };
 
       setFormData(profileData);
@@ -214,7 +221,13 @@ export default function ProfilMedecinPage() {
         
         // Conventionnement
         is_conventionne: formData.is_conventionne,
-        conventionnement: formData.conventionnement
+        conventionnement: formData.conventionnement,
+        
+        // Agenda externe
+        external_calendar_type: formData.external_calendar_type,
+        external_calendar_url: formData.external_calendar_url,
+        external_calendar_id: formData.external_calendar_id,
+        sync_to_external: formData.sync_to_external
       };
 
       // Si super admin, peut aussi modifier identité
@@ -371,6 +384,10 @@ export default function ProfilMedecinPage() {
           <TabsTrigger value="backup" className="text-xs">
             <Save className="w-4 h-4 mr-1" />
             Backup
+          </TabsTrigger>
+          <TabsTrigger value="agenda" className="text-xs">
+            <Calendar className="w-4 h-4 mr-1" />
+            Agenda externe
           </TabsTrigger>
         </TabsList>
 
@@ -975,6 +992,168 @@ export default function ProfilMedecinPage() {
         {/* Tab Backup */}
         <TabsContent value="backup" className="mt-6">
           <AutoBackupService />
+        </TabsContent>
+
+        {/* Tab Agenda Externe */}
+        <TabsContent value="agenda" className="mt-6">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  Agenda externe
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="w-4 h-4 text-blue-600" />
+                  <AlertDescription className="text-blue-900">
+                    Connectez votre agenda externe (Doctolib, Google Calendar, Outlook, etc.) pour synchroniser vos rendez-vous.
+                  </AlertDescription>
+                </Alert>
+
+                <div>
+                  <Label>Type d'agenda externe</Label>
+                  <Select
+                    value={formData.external_calendar_type}
+                    onValueChange={(value) => handleChange('external_calendar_type', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez votre agenda" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Aucun</SelectItem>
+                      <SelectItem value="google">Google Calendar</SelectItem>
+                      <SelectItem value="outlook">Microsoft Outlook</SelectItem>
+                      <SelectItem value="doctolib">Doctolib</SelectItem>
+                      <SelectItem value="ical">Flux iCal (URL)</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.external_calendar_type && (
+                  <>
+                    {formData.external_calendar_type === 'ical' || formData.external_calendar_type === 'other' ? (
+                      <div>
+                        <Label>URL du flux iCal</Label>
+                        <Input
+                          value={formData.external_calendar_url}
+                          onChange={(e) => handleChange('external_calendar_url', e.target.value)}
+                          placeholder="https://calendar.google.com/calendar/ical/..."
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          Copiez l'URL iCal depuis votre agenda externe
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Label>Identifiant de calendrier</Label>
+                        <Input
+                          value={formData.external_calendar_id}
+                          onChange={(e) => handleChange('external_calendar_id', e.target.value)}
+                          placeholder={
+                            formData.external_calendar_type === 'google' ? 'votre@email.com ou ID calendrier' :
+                            formData.external_calendar_type === 'doctolib' ? 'ID praticien Doctolib' :
+                            'Identifiant du calendrier'
+                          }
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          {formData.external_calendar_type === 'google' && 'Email Google ou ID du calendrier partagé'}
+                          {formData.external_calendar_type === 'outlook' && 'Email Outlook ou ID du calendrier'}
+                          {formData.external_calendar_type === 'doctolib' && 'Votre identifiant praticien Doctolib'}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                      <div>
+                        <div className="font-medium">Synchronisation automatique</div>
+                        <p className="text-xs text-slate-600">
+                          Envoyer automatiquement les nouveaux RDV vers l'agenda externe
+                        </p>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={formData.sync_to_external}
+                        onChange={(e) => handleChange('sync_to_external', e.target.checked)}
+                        className="w-5 h-5"
+                      />
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Intégrations disponibles</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-medium">Google Calendar</span>
+                        <Badge className="ml-2 bg-green-600">Connecté</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Synchronisation bidirectionnelle avec Google Calendar
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-lg opacity-60">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-slate-400 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-medium">Doctolib</span>
+                        <Badge variant="outline" className="ml-2">Bientôt</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Import des RDV Doctolib (API non publique)
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-lg opacity-60">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-slate-400 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-medium">Outlook</span>
+                        <Badge variant="outline" className="ml-2">Bientôt</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Synchronisation avec Microsoft Outlook
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <span className="font-medium">Flux iCal</span>
+                        <Badge className="ml-2 bg-green-600">Disponible</Badge>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600">
+                      Import via URL iCal (lecture seule)
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
