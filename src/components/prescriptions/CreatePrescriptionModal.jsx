@@ -136,14 +136,16 @@ export default function CreatePrescriptionModal({ isOpen, onClose, onSuccess, pr
         
         await base44.entities.PatientReminder.create({
           patient_id: selectedPatient.id,
-          title: `Renouvellement ordonnance - ${patientFullName}`,
-          description: `L'ordonnance expire le ${format(validityEnd, 'dd/MM/yyyy')}. Médicaments: ${medicaments.map(m => m.nom_produit).join(', ')}`,
-          type: 'prescription_renewal',
-          scheduled_date: format(reminderDate, 'yyyy-MM-dd'),
-          status: 'pending',
+          patient_name: patientFullName,
+          titre: `Renouvellement ordonnance`,
+          message: `L'ordonnance expire le ${format(validityEnd, 'dd/MM/yyyy')}. Médicaments: ${medicaments.map(m => m.nom_produit).join(', ')}`,
+          type: 'prescription',
+          date_rappel: new Date(reminderDate).toISOString(),
+          statut: 'planifie',
           medecin_email: currentUser.email,
           related_entity_type: 'Prescription',
-          related_entity_id: prescription.id
+          related_entity_id: prescription.id,
+          delai_avant_jours: renewalDays
         });
       }
       
