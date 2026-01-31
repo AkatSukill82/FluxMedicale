@@ -10,7 +10,9 @@ import {
   X, 
   CreditCard,
   Pill,
-  FileText
+  FileText,
+  Calendar,
+  MessageSquare
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -28,6 +30,9 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import PatientDashboardSummary from '../components/patients/PatientDashboardSummary';
+import PatientUnifiedCalendar from '../components/patients/PatientUnifiedCalendar';
+import PatientSecureMessaging from '../components/patients/PatientSecureMessaging';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -302,11 +307,20 @@ export default function Patients() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6">
               <TabsList className="h-12 bg-transparent">
+                <TabsTrigger value="overview" className="gap-2">
+                  📊 Aperçu
+                </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
                     📝 Consultation
                   </TabsTrigger>
                 )}
+                <TabsTrigger value="calendar" className="gap-2">
+                  📅 Calendrier
+                </TabsTrigger>
+                <TabsTrigger value="messages" className="gap-2">
+                  💬 Messages
+                </TabsTrigger>
                 <TabsTrigger value="history" className="gap-2">
                   📋 Historique
                 </TabsTrigger>
@@ -315,7 +329,7 @@ export default function Patients() {
                 </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="secure-files" className="gap-2">
-                    🔒 Fichiers sécurisés
+                    🔒 Sécurisé
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="billing" className="gap-2">
@@ -333,11 +347,21 @@ export default function Patients() {
         <div className="flex-1 overflow-y-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="p-6">
+              <TabsContent value="overview" className="m-0 space-y-6">
+                <PatientDashboardSummary patient={patient} onNavigate={setActiveTab} />
+                <PatientUnifiedCalendar patient={patient} />
+              </TabsContent>
               {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                 <TabsContent value="consultation" className="m-0">
                   <ConsultationTab patient={patient} />
                 </TabsContent>
               )}
+              <TabsContent value="calendar" className="m-0">
+                <PatientUnifiedCalendar patient={patient} />
+              </TabsContent>
+              <TabsContent value="messages" className="m-0">
+                <PatientSecureMessaging patient={patient} />
+              </TabsContent>
               <TabsContent value="history" className="m-0">
                 <MedicalHistory patient={patient} />
               </TabsContent>
