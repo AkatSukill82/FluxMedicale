@@ -53,7 +53,8 @@ export default function PatientUnifiedCalendar({ patient }) {
 
   const { data: reminders = [] } = useQuery({
     queryKey: ['patientCalendarReminders', patient.id],
-    queryFn: () => base44.entities.PatientReminder.filter({ patient_id: patient.id })
+    queryFn: () => base44.entities.PatientReminder.filter({ patient_id: patient.id }),
+    select: (data) => data || []
   });
 
   const { data: prescriptions = [] } = useQuery({
@@ -83,13 +84,13 @@ export default function PatientUnifiedCalendar({ patient }) {
         data: i
       })),
     ...reminders
-      .filter(r => r.scheduled_date && r.status !== 'completed')
+      .filter(r => r.date_rappel && r.statut !== 'envoye')
       .map(r => ({
         id: `rem-${r.id}`,
-        type: 'reminder',
-        date: new Date(r.scheduled_date),
-        title: r.title || 'Rappel',
-        status: r.status,
+        type: r.type === 'prescription' ? 'prescription' : 'reminder',
+        date: new Date(r.date_rappel),
+        title: r.titre || 'Rappel',
+        status: r.statut,
         data: r
       })),
     ...prescriptions
