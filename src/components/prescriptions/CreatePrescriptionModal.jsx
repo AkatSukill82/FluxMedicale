@@ -32,6 +32,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Pill,
   User,
@@ -40,10 +42,14 @@ import {
   Loader2,
   Check,
   ChevronsUpDown,
-  Sparkles
+  Sparkles,
+  Send,
+  Calendar,
+  Bell
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { addDays, format } from 'date-fns';
 
 const COMMON_MEDICATIONS = [
   { name: 'Paracétamol 1g', posologie: '1 à 3x/jour', duree: '5' },
@@ -63,6 +69,12 @@ export default function CreatePrescriptionModal({ isOpen, onClose, onSuccess, pr
   const [datePrescription, setDatePrescription] = useState(new Date().toISOString().split('T')[0]);
   const [medicaments, setMedicaments] = useState([]);
   const [newMed, setNewMed] = useState({ nom_produit: '', posologie: '', duree_traitement: '', quantite: 1, isCustom: false });
+  
+  // Options d'envoi et rappels
+  const [sendToPatient, setSendToPatient] = useState(false);
+  const [messageContent, setMessageContent] = useState('');
+  const [createRenewalReminder, setCreateRenewalReminder] = useState(true);
+  const [renewalDays, setRenewalDays] = useState(7); // Rappel X jours avant fin
 
   // Charger les patients
   const { data: patients = [] } = useQuery({
@@ -78,18 +90,71 @@ export default function CreatePrescriptionModal({ isOpen, onClose, onSuccess, pr
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      return base44.entities.Prescription.create({
+      // Calculer la durée max pour la date de fin de validité
+      const maxDuration = Math.max(...medicaments.map(m => parseInt(m.duree_traitement) || 30));
+      const validityEnd = addDays(new Date(datePrescription), maxDuration);
+      
+      // Créer la prescription
+      const prescription = await base44.entities.Prescription.create({
         patient_id: selectedPatient.id,
         medecin_email: currentUser?.email,
         date_prescription: new Date(datePrescription).toISOString(),
         medicaments: medicaments,
         tracking_status: 'ACTIVE',
-        statut_recip_e: 'Brouillon'
+        statut_recip_e: 'Brouillon',
+        recip_e_validity_start: datePrescription,
+        recip_e_validity_end: format(validityEnd, 'yyyy-MM-dd')
       });
+
+      const patientName = selectedPatient.name?.find(n => n.use === 'official');
+      const patientFullName = `${(patientName?.given || []).join(' ')} ${patientName?.family || ''}`.trim();
+      
+      // Envoyer via messagerie si demandé
+      if (sendToPatient) {
+        const medsText = medicaments.map(m => 
+          `• ${m.nom_produit}: ${m.posologie} pendant ${m.duree_traitement} jours`
+        ).join('\n');
+        
+        const defaultMessage = `Bonjour,\n\nVoici votre nouvelle ordonnance:\n\n${medsText}\n\n${messageContent ? messageContent + '\n\n' : ''}Cordialement,\nDr ${currentUser.full_name}`;
+        
+        await base44.entities.PatientMessage.create({
+          patient_id: selectedPatient.id,
+          patient_name: patientFullName,
+          sender_type: 'medecin',
+          sender_email: currentUser.email,
+          sender_name: currentUser.full_name,
+          subject: 'Nouvelle ordonnance',
+          content: defaultMessage,
+          category: 'resultat',
+          priority: 'normale'
+        });
+      }
+      
+      // Créer un rappel de renouvellement si demandé
+      if (createRenewalReminder && maxDuration > renewalDays) {
+        const reminderDate = addDays(validityEnd, -renewalDays);
+        
+        await base44.entities.PatientReminder.create({
+          patient_id: selectedPatient.id,
+          title: `Renouvellement ordonnance - ${patientFullName}`,
+          description: `L'ordonnance expire le ${format(validityEnd, 'dd/MM/yyyy')}. Médicaments: ${medicaments.map(m => m.nom_produit).join(', ')}`,
+          type: 'prescription_renewal',
+          scheduled_date: format(reminderDate, 'yyyy-MM-dd'),
+          status: 'pending',
+          medecin_email: currentUser.email,
+          related_entity_type: 'Prescription',
+          related_entity_id: prescription.id
+        });
+      }
+      
+      return prescription;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allPrescriptions'] });
-      toast.success('Prescription créée avec succès');
+      queryClient.invalidateQueries({ queryKey: ['patientMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['patientReminders'] });
+      toast.success('Prescription créée' + (sendToPatient ? ' et envoyée au patient' : ''));
+      onClose();
       onSuccess?.();
     },
     onError: (error) => {
@@ -310,6 +375,76 @@ export default function CreatePrescriptionModal({ isOpen, onClose, onSuccess, pr
                     </Button>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Options d'envoi et rappels */}
+          {medicaments.length > 0 && (
+            <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50">
+              <h4 className="font-medium text-sm flex items-center gap-2">
+                <Send className="w-4 h-4" />
+                Options de transmission
+              </h4>
+              
+              {/* Envoi au patient */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="sendToPatient"
+                    checked={sendToPatient}
+                    onCheckedChange={setSendToPatient}
+                  />
+                  <label htmlFor="sendToPatient" className="text-sm cursor-pointer">
+                    Envoyer l'ordonnance au patient via messagerie sécurisée
+                  </label>
+                </div>
+                
+                {sendToPatient && (
+                  <Textarea
+                    placeholder="Message personnalisé (optionnel)..."
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    className="text-sm"
+                    rows={2}
+                  />
+                )}
+              </div>
+
+              {/* Rappel de renouvellement */}
+              <div className="space-y-3 pt-3 border-t">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="createReminder"
+                    checked={createRenewalReminder}
+                    onCheckedChange={setCreateRenewalReminder}
+                  />
+                  <label htmlFor="createReminder" className="text-sm cursor-pointer flex items-center gap-1">
+                    <Bell className="w-3 h-3" />
+                    Créer un rappel de renouvellement
+                  </label>
+                </div>
+                
+                {createRenewalReminder && (
+                  <div className="flex items-center gap-2 ml-6">
+                    <span className="text-sm text-muted-foreground">Rappeler</span>
+                    <Select
+                      value={String(renewalDays)}
+                      onValueChange={(v) => setRenewalDays(Number(v))}
+                    >
+                      <SelectTrigger className="w-24 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="3">3 jours</SelectItem>
+                        <SelectItem value="5">5 jours</SelectItem>
+                        <SelectItem value="7">7 jours</SelectItem>
+                        <SelectItem value="14">14 jours</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">avant expiration</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
