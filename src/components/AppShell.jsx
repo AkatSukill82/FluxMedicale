@@ -121,15 +121,15 @@ export default function AppShell({ children, currentPageName }) {
     <SidebarProvider>
       <div className="h-screen w-full bg-background flex">
         <Sidebar
-          className={cn(
-            "border-r no-print transition-all duration-300 ease-in-out bg-slate-900 text-slate-100",
-            isCollapsed ? "w-20" : "w-64"
-          )}
+        className={cn(
+          "border-r no-print transition-all duration-300 ease-in-out bg-white text-slate-900",
+          isCollapsed ? "w-20" : "w-64"
+        )}
         >
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className={cn("text-lg font-bold text-white flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
-                <Stethoscope className="w-7 h-7 flex-shrink-0 text-blue-400" />
+              <SidebarGroupLabel className={cn("text-lg font-bold text-slate-900 flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
+                <Stethoscope className="w-7 h-7 flex-shrink-0 text-slate-900" />
                 <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden">FluxMed</motion.span>
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -146,8 +146,8 @@ export default function AppShell({ children, currentPageName }) {
                         <Link 
                           to={createPageUrl(item.path)} 
                           className={cn(
-                            "flex items-center gap-3 justify-start text-slate-300 hover:text-white hover:bg-slate-800",
-                            location.pathname.includes(createPageUrl(item.path)) && "bg-slate-800 text-white"
+                            "flex items-center gap-3 justify-start text-slate-700 hover:text-slate-900 hover:bg-slate-100",
+                            location.pathname.includes(createPageUrl(item.path)) && "bg-slate-100 text-slate-900"
                           )} 
                           title={item.title}
                         >
@@ -160,7 +160,7 @@ export default function AppShell({ children, currentPageName }) {
                 </SidebarMenu>
                  {isAdmin && (
                   <>
-                    <p className={cn("text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : "Administration"}</p>
+                    <p className={cn("text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : "Administration"}</p>
                     <SidebarMenu>
                       {adminNavItems.map((item) => (
                          <SidebarMenuItem key={item.path} className="relative">
@@ -174,8 +174,8 @@ export default function AppShell({ children, currentPageName }) {
                             <Link 
                               to={createPageUrl(item.path)} 
                               className={cn(
-                                "flex items-center gap-3 justify-start text-slate-300 hover:text-white hover:bg-slate-800",
-                                location.pathname.includes(createPageUrl(item.path)) && "bg-slate-800 text-white"
+                                "flex items-center gap-3 justify-start text-slate-700 hover:text-slate-900 hover:bg-slate-100",
+                                location.pathname.includes(createPageUrl(item.path)) && "bg-slate-100 text-slate-900"
                               )} 
                               title={item.title}
                             >
@@ -191,7 +191,7 @@ export default function AppShell({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t border-slate-800 p-4 flex flex-col items-center">
+          <SidebarFooter className="border-t border-slate-200 p-4 flex flex-col items-center">
              <SidebarMenu>
                 <SidebarMenuItem className="w-full relative">
                   {location.pathname.includes(createPageUrl(profileNavItem.path)) && (
@@ -204,8 +204,8 @@ export default function AppShell({ children, currentPageName }) {
                     <Link 
                       to={createPageUrl(profileNavItem.path)} 
                       className={cn(
-                        "flex items-center gap-3 justify-start w-full text-slate-300 hover:text-white hover:bg-slate-800",
-                        location.pathname.includes(createPageUrl(profileNavItem.path)) && "bg-slate-800 text-white"
+                        "flex items-center gap-3 justify-start w-full text-slate-700 hover:text-slate-900 hover:bg-slate-100",
+                        location.pathname.includes(createPageUrl(profileNavItem.path)) && "bg-slate-100 text-slate-900"
                       )} 
                       title={profileNavItem.title}
                     >
@@ -215,7 +215,7 @@ export default function AppShell({ children, currentPageName }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
              </SidebarMenu>
-             <Button variant="ghost" size="icon" className="mt-4 text-slate-400 hover:text-white hover:bg-slate-800" onClick={() => setIsCollapsed(!isCollapsed)}>
+             <Button variant="ghost" size="icon" className="mt-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100" onClick={() => setIsCollapsed(!isCollapsed)}>
                 {isCollapsed ? <ChevronsRight /> : <ChevronsLeft />}
              </Button>
           </SidebarFooter>
