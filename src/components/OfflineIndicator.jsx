@@ -62,17 +62,6 @@ export default function OfflineIndicator() {
   return null;
 }
 
-// Fonction utilitaire pour ajouter une action à la queue offline
-export function queueOfflineAction(action) {
-  const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-  queue.push({
-    ...action,
-    timestamp: new Date().toISOString(),
-    id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  });
-  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
-}
-
 // Hook pour vérifier le statut en ligne
 export function useOnlineStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
