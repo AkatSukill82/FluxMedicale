@@ -51,7 +51,7 @@ export default function Patients() {
     base44.auth.me().then(setCurrentUser);
   }, []);
   
-  const [activeTab, setActiveTab] = useState('consultation');
+  const [activeTab, setActiveTab] = useState('overview');
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
   const [showQuickBilling, setShowQuickBilling] = useState(false);
