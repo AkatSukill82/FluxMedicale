@@ -43,6 +43,10 @@ import ManualPaymentRecorder from '../components/facturation/ManualPaymentRecord
 import AutomaticReminders from '../components/facturation/AutomaticReminders';
 import AccountingExport from '../components/facturation/AccountingExport';
 import AttestationPrint from '../components/facturation/AttestationPrint';
+import InvoiceCreator from '../components/facturation/InvoiceCreator';
+import PaymentRecorder from '../components/facturation/PaymentRecorder';
+import TarifManager from '../components/facturation/TarifManager';
+import RevenueOverview from '../components/facturation/RevenueOverview';
 
 const EmptyState = () => (
   <div className="text-center py-16 px-6 bg-muted/50 rounded-lg border-2 border-dashed border-border">
@@ -67,6 +71,8 @@ export default function FacturationPage() {
   const [selectedForBatch, setSelectedForBatch] = useState([]);
   const [showPaymentRecorder, setShowPaymentRecorder] = useState(false);
   const [showAccountingExport, setShowAccountingExport] = useState(false);
+  const [showInvoiceCreator, setShowInvoiceCreator] = useState(false);
+  const [showNewPayment, setShowNewPayment] = useState(false);
 
   const [filters, setFilters] = useState({
     period: '30',
@@ -278,14 +284,12 @@ export default function FacturationPage() {
             <TabsTrigger value="invoices">💰 Factures</TabsTrigger>
             <TabsTrigger value="payments">📈 Suivi paiements</TabsTrigger>
             <TabsTrigger value="recurring">🔄 Récurrentes</TabsTrigger>
+            <TabsTrigger value="tarifs">🏷️ Tarifs</TabsTrigger>
             <TabsTrigger value="reminders">⏰ Relances</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard" className="space-y-4">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-slate-900">Vue d'ensemble financière</h1>
-            </div>
-            <FinancialDashboard invoices={filteredInvoices} />
+            <RevenueOverview />
           </TabsContent>
 
           <TabsContent value="invoices" className="space-y-4">
@@ -293,18 +297,25 @@ export default function FacturationPage() {
           <h1 className="text-2xl font-bold text-slate-900">Facturation</h1>
           <div className="flex gap-3">
             <Button 
+              onClick={() => setShowInvoiceCreator(true)}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Nouvelle facture
+            </Button>
+            <Button 
               variant="outline" 
               size="sm"
               onClick={handleCreateBatch}
               disabled={batchableInvoices.length === 0}
             >
               <FileText className="w-4 h-4 mr-2" />
-              Créer facture groupée ({batchableInvoices.length})
+              Facture groupée ({batchableInvoices.length})
             </Button>
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setShowPaymentRecorder(true)}
+              onClick={() => setShowNewPayment(true)}
             >
               <Euro className="w-4 h-4 mr-2" />
               Enregistrer paiement
@@ -394,6 +405,10 @@ export default function FacturationPage() {
             <RecurringInvoiceManager />
           </TabsContent>
 
+          <TabsContent value="tarifs">
+            <TarifManager />
+          </TabsContent>
+
           <TabsContent value="reminders">
             <PaymentReminderSystem />
           </TabsContent>
@@ -413,6 +428,28 @@ export default function FacturationPage() {
         isOpen={showAccountingExport}
         onClose={() => setShowAccountingExport(false)}
       />
+
+      {/* Modal création facture */}
+      {showInvoiceCreator && (
+        <InvoiceCreator
+          isOpen={showInvoiceCreator}
+          onClose={() => setShowInvoiceCreator(false)}
+          onCreated={() => {
+            setShowInvoiceCreator(false);
+          }}
+        />
+      )}
+
+      {/* Modal enregistrement paiement amélioré */}
+      {showNewPayment && (
+        <PaymentRecorder
+          isOpen={showNewPayment}
+          onClose={() => setShowNewPayment(false)}
+          onRecorded={() => {
+            setShowNewPayment(false);
+          }}
+        />
+      )}
     </div>
   );
 }
