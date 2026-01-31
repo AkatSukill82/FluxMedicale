@@ -47,12 +47,14 @@ import { useI18n } from './i18n/i18nContext';
 import MedicalAssistant from './agent/MedicalAssistant';
 import CommandPalette from './CommandPalette';
 import NotificationBell from './notifications/NotificationBell';
+import ThinLogoutCollector from './thin/ThinLogoutCollector';
 
 export default function AppShell({ children, currentPageName }) {
   const { t } = useI18n();
   const [user, setUser] = useState(null);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const location = useLocation();
+      const [isCollapsed, setIsCollapsed] = useState(false);
+      const [showThinDialog, setShowThinDialog] = useState(false);
+      const location = useLocation();
 
   useEffect(() => {
     loadUser();
@@ -67,14 +69,18 @@ export default function AppShell({ children, currentPageName }) {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await base44.auth.logout();
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Erreur déconnexion:', error);
-    }
-  };
+  const handleLogoutClick = () => {
+        setShowThinDialog(true);
+      };
+
+      const handleLogout = async () => {
+        try {
+          await base44.auth.logout();
+          window.location.href = '/';
+        } catch (error) {
+          console.error('Erreur déconnexion:', error);
+        }
+      };
 
   const isAdmin = user?.role === 'admin';
 
@@ -236,13 +242,13 @@ export default function AppShell({ children, currentPageName }) {
                 </Link>
 
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleLogout}
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="w-5 h-5" />
-                </Button>
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleLogoutClick}
+                                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      >
+                                        <LogOut className="w-5 h-5" />
+                                      </Button>
               </div>
               )}
             </div>
@@ -264,6 +270,14 @@ export default function AppShell({ children, currentPageName }) {
       </div>
 
       <MedicalAssistant />
-    </SidebarProvider>
+
+                {showThinDialog && (
+                  <ThinLogoutCollector
+                    isOpen={showThinDialog}
+                    onClose={() => setShowThinDialog(false)}
+                    onLogout={handleLogout}
+                  />
+                )}
+              </SidebarProvider>
   );
 }
