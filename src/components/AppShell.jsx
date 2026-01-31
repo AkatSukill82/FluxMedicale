@@ -38,6 +38,10 @@ import {
   Upload,
   BarChart3,
   Zap,
+  Wifi,
+  WifiOff,
+  Cloud,
+  Home,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -48,13 +52,17 @@ import MedicalAssistant from './agent/MedicalAssistant';
 import CommandPalette from './CommandPalette';
 import NotificationBell from './notifications/NotificationBell';
 import ThinLogoutCollector from './thin/ThinLogoutCollector';
+import OfflineModePanel from './offline/OfflineModePanel';
+import { useSyncManager } from './offline/useSyncManager';
 
 export default function AppShell({ children, currentPageName }) {
   const { t } = useI18n();
   const [user, setUser] = useState(null);
       const [isCollapsed, setIsCollapsed] = useState(false);
       const [showThinDialog, setShowThinDialog] = useState(false);
+      const [showOfflinePanel, setShowOfflinePanel] = useState(false);
       const location = useLocation();
+      const { isOnline, pendingCount, isSyncing } = useSyncManager();
 
   useEffect(() => {
     loadUser();
@@ -223,6 +231,36 @@ export default function AppShell({ children, currentPageName }) {
                 </h1>
               </div>
               
+              {/* Bouton Mode Hors-ligne */}
+              <Button
+                variant={isOnline ? "outline" : "destructive"}
+                size="sm"
+                onClick={() => setShowOfflinePanel(true)}
+                className={cn(
+                  "gap-2",
+                  !isOnline && "animate-pulse",
+                  pendingCount > 0 && isOnline && "border-yellow-400 bg-yellow-50"
+                )}
+              >
+                {isOnline ? (
+                  isSyncing ? (
+                    <Cloud className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Home className="w-4 h-4" />
+                  )
+                ) : (
+                  <WifiOff className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {isOnline ? "Visite à domicile" : "Hors-ligne"}
+                </span>
+                {pendingCount > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-yellow-500 text-white text-xs rounded-full">
+                    {pendingCount}
+                  </span>
+                )}
+              </Button>
+              
               {user && (
               <div className="flex items-center gap-3">
                   <CommandPalette />
@@ -278,6 +316,11 @@ export default function AppShell({ children, currentPageName }) {
                     onLogout={handleLogout}
                   />
                 )}
+
+                <OfflineModePanel
+                  isOpen={showOfflinePanel}
+                  onClose={() => setShowOfflinePanel(false)}
+                />
               </SidebarProvider>
   );
 }
