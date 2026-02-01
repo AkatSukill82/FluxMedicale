@@ -30,7 +30,8 @@ import {
   ExternalLink,
   Building2,
   Users,
-  Calendar
+  Calendar,
+  Accessibility
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,6 +39,7 @@ import { validateIBAN, validateEmail, validatePhone } from '../components/utils/
 import AutoBackupService from '../components/backup/AutoBackupService';
 import CabinetManager from '../components/cabinet/CabinetManager';
 import LiaisonMedecinSecretaireTab from '../components/profile/LiaisonMedecinSecretaireTab';
+import AccessibilitySettings from '../components/settings/AccessibilitySettings';
 
 export default function ProfilMedecinPage() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -388,6 +390,10 @@ export default function ProfilMedecinPage() {
           <TabsTrigger value="agenda" className="text-xs">
             <Calendar className="w-4 h-4 mr-1" />
             Agenda externe
+          </TabsTrigger>
+          <TabsTrigger value="accessibilite" className="text-xs">
+            <Accessibility className="w-4 h-4 mr-1" />
+            Affichage
           </TabsTrigger>
         </TabsList>
 
@@ -992,6 +998,11 @@ export default function ProfilMedecinPage() {
         {/* Tab Backup */}
         <TabsContent value="backup" className="mt-6">
           <AutoBackupService />
+        </TabsContent>
+
+        {/* Tab Accessibilité */}
+        <TabsContent value="accessibilite" className="mt-6">
+          <AccessibilitySettings />
         </TabsContent>
 
         {/* Tab Agenda Externe */}
