@@ -42,6 +42,8 @@ import {
   WifiOff,
   Cloud,
   Home,
+  Phone,
+  TestTube,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -98,8 +100,10 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
         { title: 'Messagerie', path: 'Inbox', icon: MessageSquare },
         { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
+        { title: 'Laboratoire', path: 'Laboratoire', icon: TestTube },
         { title: 'Suivi', path: 'SuiviPatient', icon: HeartPulse },
         { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
+        { title: 'Garde', path: 'Garde', icon: Phone },
         { title: 'Automatisation', path: 'Automatisation', icon: Zap },
         { title: 'Stocks', path: 'Stock', icon: Package },
         { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
