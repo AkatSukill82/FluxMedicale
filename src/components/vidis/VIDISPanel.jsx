@@ -25,7 +25,7 @@ export default function VIDISPanel({ patient, currentUser }) {
   const [hasTherapeuticLink, setHasTherapeuticLink] = useState(false);
   const [showAccessDenied, setShowAccessDenied] = useState(false);
   
-  const { getSMP, isLoading, error } = useVIDIS(currentUser);
+  const { readMedicationScheme, isLoading, error } = useVIDIS(currentUser);
 
   useEffect(() => {
     checkPrerequisites();
@@ -48,8 +48,39 @@ export default function VIDISPanel({ patient, currentUser }) {
   };
 
   const loadSMP = async () => {
-    const data = await getSMP(patient);
-    setSmpData(data);
+    const data = await readMedicationScheme(patient);
+    if (data) {
+      // Adapter la structure des données pour le rendu
+      setSmpData({
+        medicationscheme: {
+          version: 1,
+          author: data.source,
+          hub_source: 'VIDIS',
+          last_update: data.last_updated
+        },
+        medicationschemeelement: data.items?.map(item => ({
+          id: item.id,
+          substance: item.inn,
+          preparation: item.name,
+          posology: item.posology,
+          route: 'Oral',
+          indication: item.reason,
+          status: item.status === 'active' ? 'ACTIVE' : 'SUSPENDED',
+          prescriber: item.prescriber?.split(' (')?.[0] || item.prescriber,
+          prescriber_nihii: item.prescriber?.match(/INAMI: (\d+)/)?.[1] || '',
+          start_date: item.start_date,
+          end_date: item.end_date
+        })) || [],
+        treatmentsuspension: data.items?.filter(item => item.status === 'suspended')?.map(item => ({
+          id: item.id,
+          substance: item.inn,
+          preparation: item.name,
+          suspension_reason: item.suspension_reason,
+          suspended_at: item.end_date,
+          suspended_by: item.prescriber?.split(' (')?.[0] || item.prescriber
+        })) || []
+      });
+    }
   };
 
   const handleRequestAccess = () => {
