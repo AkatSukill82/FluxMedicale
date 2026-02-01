@@ -12,7 +12,8 @@ import {
   Link2,
   Shield,
   Database,
-  Calendar
+  Calendar,
+  FileText
 } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { format, isAfter } from 'date-fns';
@@ -24,7 +25,7 @@ import EHealthDocumentSender from '../../ehealth/EHealthDocumentSender';
 import TherapeuticLinkModal from '../../ehealth/TherapeuticLinkModal';
 import ConsentModal from '../../ehealth/ConsentModal';
 
-export default function HubsTab({ patient }) {
+export default function HubsTab({ patient, onOpenSumehr }) {
   const { t } = useI18n();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
@@ -137,6 +138,16 @@ export default function HubsTab({ patient }) {
             >
               <Database className="w-4 h-4 mr-2" />
               Accéder au HUB
+            </Button>
+
+            {/* Bouton Sumehr */}
+            <Button
+              onClick={onOpenSumehr}
+              variant="outline"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Éditer Sumehr
             </Button>
           </div>
 
