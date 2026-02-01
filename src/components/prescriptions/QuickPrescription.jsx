@@ -19,9 +19,11 @@ import PrescriptionHistory from './PrescriptionHistory';
 import PrescriptionPDFGenerator from './PrescriptionPDFGenerator';
 import PrescriptionTemplateSettings from './PrescriptionTemplateSettings';
 import DrugInteractionChecker from '../clinical/DrugInteractionChecker';
+import RecurringPrescriptionForm from './RecurringPrescriptionForm';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Database, History } from 'lucide-react';
+import { Sparkles, Database, History, RefreshCw, AlertTriangle } from 'lucide-react';
 import { recipE } from '@/functions/recipE';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Templates de prescriptions courantes
 const PRESCRIPTION_TEMPLATES = [
@@ -63,6 +65,8 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
   const [activeTab, setActiveTab] = useState(initialMedications ? 'custom' : 'templates');
   const [createdPrescription, setCreatedPrescription] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [recurringOptions, setRecurringOptions] = useState({});
+  const [interactionWarnings, setInteractionWarnings] = useState([]);
 
   // Pré-remplir avec les médicaments initiaux (duplication)
   React.useEffect(() => {
@@ -115,7 +119,15 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
         date_prescription: new Date().toISOString(),
         medicaments: medicamentsData,
         statut_recip_e: 'Brouillon',
-        tracking_status: 'PENDING'
+        tracking_status: 'PENDING',
+        // Options récurrentes
+        is_recurring: recurringOptions.is_recurring || false,
+        recurring_frequency: recurringOptions.recurring_frequency,
+        max_renewals: recurringOptions.max_renewals,
+        chronic_condition: recurringOptions.chronic_condition,
+        next_renewal_date: recurringOptions.next_renewal_date,
+        recurring_end_date: recurringOptions.recurring_end_date,
+        renewal_count: 0
       });
 
       // Envoyer via Recip-e
@@ -363,6 +375,12 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
                   patientId={patient.id}
                 />
 
+                {/* Options prescription récurrente */}
+                <RecurringPrescriptionForm 
+                  value={recurringOptions}
+                  onChange={setRecurringOptions}
+                />
+
                 <h3 className="font-semibold text-sm">Médicaments sélectionnés ({customMedications.length})</h3>
                 {customMedications.map((med, index) => (
                   <div key={index} className="space-y-3">
@@ -446,6 +464,12 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
                 <InteractionChecker
                   selectedMedications={customMedications}
                   patientId={patient.id}
+                />
+
+                {/* Options prescription récurrente */}
+                <RecurringPrescriptionForm 
+                  value={recurringOptions}
+                  onChange={setRecurringOptions}
                 />
 
                 <h3 className="font-semibold text-sm">Médicaments sélectionnés ({customMedications.length})</h3>
