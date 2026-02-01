@@ -16,7 +16,7 @@ import { useVaccinations } from './useVaccinations';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-export default function VaccinationsPanel({ patient }) {
+export default function VaccinationsPanel({ patient, showVaccinetSync = false }) {
   const { isLoading, vaccinations, loadVaccinations } = useVaccinations();
   const [hasLoaded, setHasLoaded] = useState(false);
 
@@ -41,22 +41,58 @@ export default function VaccinationsPanel({ patient }) {
   return (
     <div className="space-y-6">
       {/* En-tête */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-xl font-semibold text-slate-900">Vaccinations</h2>
-          <p className="text-slate-600 text-sm mt-1">
-            Historique vaccinal du patient (sources officielles)
-          </p>
+      {!showVaccinetSync && (
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-xl font-semibold text-slate-900">Vaccinations</h2>
+            <p className="text-slate-600 text-sm mt-1">
+              Historique vaccinal du patient (sources officielles)
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open('https://vaccination-info.be/calendrier', '_blank')}
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Calendrier vaccinal
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.open('https://vaccination-info.be/calendrier', '_blank')}
-        >
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Calendrier vaccinal
-        </Button>
-      </div>
+      )}
+
+      {/* Boutons de synchronisation Vaccinet */}
+      {showVaccinetSync && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (niss) {
+                loadVaccinations(niss);
+              }
+            }}
+            disabled={isLoading || !niss}
+            className="border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Syringe className="w-4 h-4 mr-2" />}
+            Synchroniser Vaccinnet+ (Flandre)
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (niss) {
+                loadVaccinations(niss);
+              }
+            }}
+            disabled={isLoading || !niss}
+            className="border-purple-300 text-purple-700 hover:bg-purple-50"
+          >
+            {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Syringe className="w-4 h-4 mr-2" />}
+            Synchroniser e-Vax (Wallonie-Bruxelles)
+          </Button>
+        </div>
+      )}
 
       {/* Chargement */}
       {isLoading && (
