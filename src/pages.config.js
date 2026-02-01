@@ -62,10 +62,12 @@ import EPrescriptions from './pages/EPrescriptions';
 import Facturation from './pages/Facturation';
 import FollowUpTasks from './pages/FollowUpTasks';
 import GDPRRegistry from './pages/GDPRRegistry';
+import Garde from './pages/Garde';
 import Health from './pages/Health';
 import Home from './pages/Home';
 import Import from './pages/Import';
 import Inbox from './pages/Inbox';
+import Laboratoire from './pages/Laboratoire';
 import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
 import Patients from './pages/Patients';
@@ -88,8 +90,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import Garde from './pages/Garde';
-import Laboratoire from './pages/Laboratoire';
 import __Layout from './Layout.jsx';
 
 
@@ -109,10 +109,12 @@ export const PAGES = {
     "Facturation": Facturation,
     "FollowUpTasks": FollowUpTasks,
     "GDPRRegistry": GDPRRegistry,
+    "Garde": Garde,
     "Health": Health,
     "Home": Home,
     "Import": Import,
     "Inbox": Inbox,
+    "Laboratoire": Laboratoire,
     "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
     "ModulesEHealth": ModulesEHealth,
     "Patients": Patients,
@@ -135,8 +137,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "Garde": Garde,
-    "Laboratoire": Laboratoire,
 }
 
 export const pagesConfig = {

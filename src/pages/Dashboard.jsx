@@ -17,18 +17,22 @@ import {
   CreditCard,
   Sun,
   Sunrise,
-  Moon
+  Moon,
+  Settings2
 } from 'lucide-react';
 import { useI18n } from '../components/i18n/i18nContext';
 import { useEIDReader } from '../components/eid/useEIDReader';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import DashboardWidgetManager, { useDashboardWidgets } from '../components/dashboard/DashboardWidgetManager';
+import { AVAILABLE_WIDGETS } from '../components/dashboard/widgetConfig';
 
 export default function Dashboard() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { readEID, isReading } = useEIDReader();
+  const { config, visibleWidgets, toggleWidget, reorderWidgets, resetToDefault } = useDashboardWidgets();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -195,75 +199,41 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      {/* Today's Appointments - Clean List */}
-      <Card className="shadow-sm">
-        <CardContent className="p-0">
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold">Aujourd'hui</h2>
-                <p className="text-sm text-slate-500">
-                  {todayAppointments.length} rendez-vous
-                </p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate(createPageUrl('Agenda'))}
-              className="text-blue-600"
-            >
-              Voir tout
-            </Button>
-          </div>
+      {/* Configurable Widgets Section */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-slate-700">Mes widgets</h2>
+        <DashboardWidgetManager 
+          config={config}
+          toggleWidget={toggleWidget}
+          reorderWidgets={reorderWidgets}
+          resetToDefault={resetToDefault}
+        />
+      </div>
 
-          {loadingRdv ? (
-            <div className="p-8 text-center">
-              <Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-300" />
-            </div>
-          ) : todayAppointments.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Calendar className="w-8 h-8 text-slate-300" />
-              </div>
-              <p className="text-slate-500 font-medium">Journée libre</p>
-              <p className="text-sm text-slate-400">Aucun rendez-vous prévu</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {todayAppointments.slice(0, 6).map((rdv, index) => {
-                const isNext = nextAppointment?.id === rdv.id;
-                return (
-                  <button
-                    key={rdv.id}
-                    onClick={() => navigate(createPageUrl(`Patients?patient=${rdv.patient_id}`))}
-                    className={`w-full p-4 text-left hover:bg-slate-50 flex items-center gap-4 transition-colors ${
-                      isNext ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <div className={`w-12 text-center ${isNext ? 'text-blue-600' : 'text-slate-600'}`}>
-                      <p className="text-lg font-semibold">{rdv.heure_debut}</p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{getPatientName(rdv.patient_id)}</p>
-                      <p className="text-sm text-slate-500 truncate">
-                        {rdv.motif || rdv.type_consultation}
-                      </p>
-                    </div>
-                    {isNext && (
-                      <Badge className="bg-blue-600 flex-shrink-0">Prochain</Badge>
-                    )}
-                    <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Dynamic Widgets Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {visibleWidgets.map(widget => (
+          <div key={widget.id}>
+            {widget.component}
+          </div>
+        ))}
+      </div>
+
+      {visibleWidgets.length === 0 && (
+        <Card className="shadow-sm">
+          <CardContent className="p-8 text-center">
+            <Settings2 className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+            <p className="text-slate-500 font-medium">Aucun widget actif</p>
+            <p className="text-sm text-slate-400 mb-4">Personnalisez votre tableau de bord</p>
+            <DashboardWidgetManager 
+              config={config}
+              toggleWidget={toggleWidget}
+              reorderWidgets={reorderWidgets}
+              resetToDefault={resetToDefault}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
