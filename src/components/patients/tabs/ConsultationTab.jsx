@@ -11,6 +11,7 @@ import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
 import GrowthChart from '../GrowthChart';
 import TherapeuticGoalsPanel from '../../clinical/TherapeuticGoalsPanel';
 import PediatricGrowthCharts from '../../clinical/PediatricGrowthCharts';
+import PrescriptionRenewalPanel from '../../prescriptions/PrescriptionRenewalPanel';
 import { differenceInYears } from 'date-fns';
 
 export default function ConsultationTab({ patient }) {
@@ -85,6 +86,9 @@ export default function ConsultationTab({ patient }) {
       {patient.birthDate && differenceInYears(new Date(), new Date(patient.birthDate)) < 18 && (
         <PediatricGrowthCharts patient={patient} />
       )}
+
+      {/* Traitements chroniques & Renouvellements */}
+      <PrescriptionRenewalPanel patient={patient} />
 
       {/* Objectifs thérapeutiques */}
       <TherapeuticGoalsPanel patient={patient} />
