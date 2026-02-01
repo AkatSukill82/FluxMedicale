@@ -4,18 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { 
-  Sun, 
-  Moon, 
-  Monitor,
   Type,
   Eye,
-  Zap,
-  Check
+  Zap
 } from 'lucide-react';
 import { useTheme } from '../theme/ThemeProvider';
 
 export default function AccessibilitySettings() {
-  const { theme, setTheme, accessibility, setAccessibility } = useTheme();
+  const { accessibility, setAccessibility } = useTheme();
 
   const fontSizes = [
     { id: 'small', label: 'Petit', size: '14px' },
@@ -24,52 +20,8 @@ export default function AccessibilitySettings() {
     { id: 'xlarge', label: 'Très grand', size: '20px' }
   ];
 
-  const themes = [
-    { id: 'light', label: 'Clair', icon: Sun },
-    { id: 'dark', label: 'Sombre', icon: Moon },
-    { id: 'system', label: 'Système', icon: Monitor }
-  ];
-
-  const handleThemeChange = (newTheme) => {
-    if (newTheme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      setTheme(systemTheme);
-    } else {
-      setTheme(newTheme);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Thème */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sun className="w-5 h-5" />
-            Thème visuel
-          </CardTitle>
-          <CardDescription>
-            Choisissez l'apparence de l'application
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-3">
-            {themes.map(({ id, label, icon: Icon }) => (
-              <Button
-                key={id}
-                variant={theme === id || (id === 'system' && theme === 'light') ? 'default' : 'outline'}
-                className="h-auto py-4 flex flex-col gap-2"
-                onClick={() => handleThemeChange(id)}
-              >
-                <Icon className="w-6 h-6" />
-                <span className="text-sm">{label}</span>
-                {theme === id && <Check className="w-4 h-4 absolute top-2 right-2" />}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Taille du texte */}
       <Card>
         <CardHeader>
