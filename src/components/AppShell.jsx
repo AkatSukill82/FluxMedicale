@@ -44,6 +44,9 @@ import {
   Home,
   Phone,
   TestTube,
+  Settings,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -56,15 +59,25 @@ import NotificationBell from './notifications/NotificationBell';
 import ThinLogoutCollector from './thin/ThinLogoutCollector';
 import OfflineModePanel from './offline/OfflineModePanel';
 import { useSyncManager } from './offline/useSyncManager';
+import { useTheme } from './theme/ThemeProvider';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 export default function AppShell({ children, currentPageName }) {
   const { t } = useI18n();
   const [user, setUser] = useState(null);
-      const [isCollapsed, setIsCollapsed] = useState(false);
-      const [showThinDialog, setShowThinDialog] = useState(false);
-      const [showOfflinePanel, setShowOfflinePanel] = useState(false);
-      const location = useLocation();
-      const { isOnline, pendingCount, isSyncing } = useSyncManager();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showThinDialog, setShowThinDialog] = useState(false);
+  const [showOfflinePanel, setShowOfflinePanel] = useState(false);
+  const location = useLocation();
+  const { isOnline, pendingCount, isSyncing } = useSyncManager();
+  const { theme, setTheme, isDark } = useTheme();
 
   useEffect(() => {
     loadUser();
@@ -269,6 +282,18 @@ export default function AppShell({ children, currentPageName }) {
               <div className="flex items-center gap-3">
                   <CommandPalette />
                   <NotificationBell />
+                  
+                  {/* Theme Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                    className="text-muted-foreground hover:text-foreground"
+                    title={isDark ? 'Mode clair' : 'Mode sombre'}
+                  >
+                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  </Button>
+
                   <LanguageSelector />
 
                 <Link 
