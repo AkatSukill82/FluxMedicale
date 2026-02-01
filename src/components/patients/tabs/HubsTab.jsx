@@ -24,12 +24,22 @@ import MyCareNetDataPanel from '../../ehealth/MyCareNetDataPanel';
 import EHealthDocumentSender from '../../ehealth/EHealthDocumentSender';
 import TherapeuticLinkModal from '../../ehealth/TherapeuticLinkModal';
 import ConsentModal from '../../ehealth/ConsentModal';
+import VIDISPanel from '../../vidis/VIDISPanel';
+import MediPrimaCheck from '../../mediprima/MediPrimaCheck';
+import VaccinationsPanel from '../../vaccinations/VaccinationsPanel';
 
 export default function HubsTab({ patient, onOpenSumehr }) {
   const { t } = useI18n();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hubAccessAttempted, setHubAccessAttempted] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  React.useEffect(() => {
+    import('@/api/base44Client').then(({ base44 }) => {
+      base44.auth.me().then(setCurrentUser);
+    });
+  }, []);
   
   // Vérifier le lien thérapeutique
   const therapeuticLink = patient?.therapeutic_link;
@@ -218,6 +228,24 @@ export default function HubsTab({ patient, onOpenSumehr }) {
           <HubAccessPanel patient={patient} />
         </div>
       )}
+
+      {/* VIDIS - Schéma de Médication Partagé (Vitalink) */}
+      <VIDISPanel patient={patient} currentUser={currentUser} />
+
+      {/* Vaccinet - Vaccinations */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            💉 Vaccinet - Registre de Vaccination
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VaccinationsPanel patient={patient} showVaccinetSync={true} />
+        </CardContent>
+      </Card>
+
+      {/* MediPrima - CPAS */}
+      <MediPrimaCheck patient={patient} currentUser={currentUser} />
 
       {/* Modals */}
       <TherapeuticLinkModal
