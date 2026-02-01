@@ -91,111 +91,114 @@ export default function WeeklyCalendar({
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-card overflow-x-auto">
-      <div className="grid grid-cols-[auto_repeat(7,minmax(140px,1fr))] min-w-[1200px]">
-        {/* En-tête vide */}
-        <div className="sticky top-0 bg-card border-b p-4 z-10"></div>
-        
-        {/* En-têtes des jours */}
-        {days.map((day) => (
-          <div 
-            key={day.toISOString()} 
-            className={cn("sticky top-0 bg-card border-b p-4 z-10 text-center", isToday(day) && "bg-primary/10")}
-          >
-            <div className={cn("font-semibold uppercase text-xs", isToday(day) ? 'text-primary' : 'text-muted-foreground')}>
-              {format(day, 'EEE', { locale: fr })}
+    <Card className="shadow-lg border-0 bg-card h-full flex flex-col">
+      {/* Container principal - pleine hauteur sur desktop/tablet, scrollable sur mobile */}
+      <div className="flex-1 overflow-x-auto md:overflow-hidden">
+        <div className="grid grid-cols-[auto_repeat(7,minmax(100px,1fr))] min-w-[800px] md:min-w-0 h-full md:h-full">
+          {/* En-tête vide */}
+          <div className="sticky top-0 bg-card border-b p-2 md:p-3 z-10"></div>
+          
+          {/* En-têtes des jours */}
+          {days.map((day) => (
+            <div 
+              key={day.toISOString()} 
+              className={cn("sticky top-0 bg-card border-b p-2 md:p-3 z-10 text-center", isToday(day) && "bg-primary/10")}
+            >
+              <div className={cn("font-semibold uppercase text-[10px] md:text-xs", isToday(day) ? 'text-primary' : 'text-muted-foreground')}>
+                {format(day, 'EEE', { locale: fr })}
+              </div>
+              <div className={cn("text-lg md:text-xl font-bold", isToday(day) ? 'text-primary' : 'text-foreground')}>
+                {format(day, 'd')}
+              </div>
             </div>
-            <div className={cn("text-2xl font-bold", isToday(day) ? 'text-primary' : 'text-foreground')}>
-              {format(day, 'd')}
-            </div>
-          </div>
-        ))}
+          ))}
 
-        {/* Grille horaire */}
-        {hours.map((hour) => (
-          <React.Fragment key={hour}>
-            {/* Colonne des heures */}
-            <div className="p-4 border-r text-center bg-muted/30 font-medium text-muted-foreground text-sm sticky left-0">
-              {hour}:00
-            </div>
-            
-            {days.map((day) => {
-              const dayString = format(day, 'yyyy-MM-dd');
-              const dayHourId = `day-${format(day, 'yyyyMMdd')}-${hour}`;
+          {/* Grille horaire */}
+          {hours.map((hour) => (
+            <React.Fragment key={hour}>
+              {/* Colonne des heures */}
+              <div className="p-1 md:p-2 border-r text-center bg-muted/30 font-medium text-muted-foreground text-[10px] md:text-xs sticky left-0 flex items-center justify-center">
+                {hour}h
+              </div>
+              
+              {days.map((day) => {
+                const dayString = format(day, 'yyyy-MM-dd');
+                const dayHourId = `day-${format(day, 'yyyyMMdd')}-${hour}`;
 
-              const appointmentsInSlot = rendezVous.filter(rdv => 
-                rdv.date === dayString && rdv.heure_debut?.startsWith(hour)
-              );
+                const appointmentsInSlot = rendezVous.filter(rdv => 
+                  rdv.date === dayString && rdv.heure_debut?.startsWith(hour)
+                );
 
-              const slotTime = `${hour}:00:00`;
-              const unavailableSlot = slots?.find(s => {
-                if (!s.start_time) return false;
-                const startDate = new Date(s.start_time);
-                if (!isValid(startDate)) return false;
-                return format(startDate, 'yyyy-MM-dd') === dayString && 
-                  format(startDate, 'HH:00:00') === slotTime &&
-                  s.type === 'Bloque';
-              });
+                const slotTime = `${hour}:00:00`;
+                const unavailableSlot = slots?.find(s => {
+                  if (!s.start_time) return false;
+                  const startDate = new Date(s.start_time);
+                  if (!isValid(startDate)) return false;
+                  return format(startDate, 'yyyy-MM-dd') === dayString && 
+                    format(startDate, 'HH:00:00') === slotTime &&
+                    s.type === 'Bloque';
+                });
 
-              return (
-                <Droppable key={dayHourId} droppableId={dayHourId}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={cn(
-                        "min-h-[100px] p-1.5 border-b border-r relative group",
-                        snapshot.isDraggingOver && "bg-primary/10 ring-2 ring-primary",
-                        unavailableSlot && "bg-slate-200 opacity-50"
-                      )}
-                    >
-                      {unavailableSlot ? (
-                        <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-600 font-semibold">
-                          Indisponible
-                        </div>
-                      ) : (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-1 right-1 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                            onClick={() => onNewAppointment(dayString, `${hour}:00`)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-
-                          <div className="space-y-1.5">
-                            {appointmentsInSlot.map((rdv, index) => (
-                              <Draggable key={rdv.id} draggableId={rdv.id} index={index}>
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    {...provided.dragHandleProps}
-                                    style={{ ...provided.draggableProps.style }}
-                                    className={cn(snapshot.isDragging && "shadow-2xl scale-105")}
-                                  >
-                                    <AppointmentCard 
-                                      rdv={rdv} 
-                                      patientName={getPatientName(rdv.patient_id)} 
-                                      onEdit={onEditAppointment}
-                                      onCancel={onCancelAppointment}
-                                    />
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
+                return (
+                  <Droppable key={dayHourId} droppableId={dayHourId}>
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={cn(
+                          "p-0.5 md:p-1 border-b border-r relative group",
+                          snapshot.isDraggingOver && "bg-primary/10 ring-2 ring-primary",
+                          unavailableSlot && "bg-slate-200 opacity-50"
+                        )}
+                      >
+                        {unavailableSlot ? (
+                          <div className="absolute inset-0 flex items-center justify-center text-[10px] text-slate-600 font-semibold">
+                            -
                           </div>
-                        </>
-                      )}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              );
-            })}
-          </React.Fragment>
-        ))}
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-0 right-0 w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              onClick={() => onNewAppointment(dayString, `${hour}:00`)}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+
+                            <div className="space-y-0.5">
+                              {appointmentsInSlot.map((rdv, index) => (
+                                <Draggable key={rdv.id} draggableId={rdv.id} index={index}>
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      style={{ ...provided.draggableProps.style }}
+                                      className={cn(snapshot.isDragging && "shadow-2xl scale-105")}
+                                    >
+                                      <AppointmentCard 
+                                        rdv={rdv} 
+                                        patientName={getPatientName(rdv.patient_id)} 
+                                        onEdit={onEditAppointment}
+                                        onCancel={onCancelAppointment}
+                                      />
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                        {provided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </Card>
   );
