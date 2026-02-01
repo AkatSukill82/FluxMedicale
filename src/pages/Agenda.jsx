@@ -154,169 +154,114 @@ export default function Agenda() {
 
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
-      <div className="space-y-6">
+      <div className="h-full flex flex-col overflow-hidden">
         <AppointmentNotifications />
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Agenda</h1>
-            <p className="text-muted-foreground mt-1">
+        
+        {/* Header compact */}
+        <div className="flex-shrink-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 md:gap-4 pb-3">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Agenda</h1>
+            <span className="text-sm text-muted-foreground">
               {format(weekStart, 'MMMM yyyy', { locale: fr })}
-            </p>
+            </span>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentDate(subWeeks(currentDate, 1))}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-             <Button
-              variant="outline"
-              onClick={() => setCurrentDate(addWeeks(currentDate, 1))}
-              className="flex items-center gap-2"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentDate(subWeeks(currentDate, 1))}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentDate(addWeeks(currentDate, 1))}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
             
-            <Button 
-              variant="outline"
-              onClick={() => setShowRecurringSlots(true)}
-            >
-              <Clock className="w-4 h-4 mr-2" />
-              Créneaux récurrents
-            </Button>
-            
-            <Button 
-              variant="outline"
-              onClick={() => setShowUnavailability(!showUnavailability)}
-            >
-              Indisponibilités
-            </Button>
+            <Select value={filterPraticien} onValueChange={setFilterPraticien}>
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <SelectValue placeholder="Praticien" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                {agendaData?.users?.map(user => (
+                  <SelectItem key={user.email} value={user.email}>
+                    {user.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <Button 
-              variant="outline"
-              onClick={() => setShowReminders(true)}
-            >
-              Rappels
-            </Button>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[120px] h-8 text-xs">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="Planifié">Planifié</SelectItem>
+                <SelectItem value="Confirmé">Confirmé</SelectItem>
+                <SelectItem value="Annulé">Annulé</SelectItem>
+              </SelectContent>
+            </Select>
 
-            <Button 
-              variant="outline"
-              onClick={() => setShowAvailability(!showAvailability)}
-            >
-              Disponibilités
-            </Button>
-
-            <Button 
-              variant="outline"
-              onClick={() => setShowTeleconsultation(true)}
-              className="gap-2"
-            >
-              <Video className="w-4 h-4" />
-              Téléconsultation
-            </Button>
-
-            <Button 
-              variant="outline"
-              onClick={() => setShowGoogleSync(true)}
-              className="gap-2"
-            >
-              <Calendar className="w-4 h-4" />
-              Google Calendar
-            </Button>
+            <div className="hidden lg:flex items-center gap-1">
+              <Button variant="outline" size="sm" onClick={() => setShowRecurringSlots(true)}>
+                <Clock className="w-3 h-3 mr-1" />
+                Créneaux
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowGoogleSync(true)}>
+                <Calendar className="w-3 h-3 mr-1" />
+                Sync
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowTeleconsultation(true)}>
+                <Video className="w-3 h-3" />
+              </Button>
+            </div>
             
             <Button 
               onClick={() => handleNewAppointment()}
+              size="sm"
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nouveau RDV
+              <Plus className="w-4 h-4 md:mr-1" />
+              <span className="hidden md:inline">RDV</span>
             </Button>
-          </div>
-        </div>
-
-        {/* Filters Bar */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="flex-1">
-                <Label className="text-sm mb-2 block">Filtrer par praticien</Label>
-                <Select value={filterPraticien} onValueChange={setFilterPraticien}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les praticiens</SelectItem>
-                    {agendaData?.users?.map(user => (
-                      <SelectItem key={user.email} value={user.email}>
-                        {user.full_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex-1">
-                <Label className="text-sm mb-2 block">Filtrer par statut</Label>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tous les statuts</SelectItem>
-                    <SelectItem value="Planifié">Planifié</SelectItem>
-                    <SelectItem value="Confirmé">Confirmé</SelectItem>
-                    <SelectItem value="En cours">En cours</SelectItem>
-                    <SelectItem value="Terminé">Terminé</SelectItem>
-                    <SelectItem value="Annulé">Annulé</SelectItem>
-                    <SelectItem value="Report">Reporté</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end">
-                <Button 
-                  variant="outline" 
-                  onClick={() => { 
-                    setFilterPraticien('all'); 
-                    setFilterStatus('all'); 
-                  }}
-                >
-                  Réinitialiser
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            {filteredRendezVous.length} rendez-vous affichés
           </div>
         </div>
 
         {showUnavailability && (
-          <Card className="mb-4">
-            <CardContent className="pt-6">
+          <Card className="flex-shrink-0 mb-2">
+            <CardContent className="p-3">
               <UnavailabilityManager />
             </CardContent>
           </Card>
         )}
 
         {showAvailability && (
-          <DoctorAvailabilityView currentDate={currentDate} />
+          <div className="flex-shrink-0 mb-2">
+            <DoctorAvailabilityView currentDate={currentDate} />
+          </div>
         )}
 
-        <AnimatePresence mode="wait">
-           <motion.div
-             key={currentDate.toString()}
-             initial={{ opacity: 0, x: 20 }}
-             animate={{ opacity: 1, x: 0 }}
-             exit={{ opacity: 0, x: -20 }}
-             transition={{ duration: 0.3 }}
-           >
+        {/* Calendrier - prend tout l'espace restant */}
+        <div className="flex-1 min-h-0 overflow-hidden md:overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentDate.toString()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-full"
+            >
               {isLoading ? (
-                <div className="flex items-center justify-center h-[500px] w-full">
+                <div className="flex items-center justify-center h-full w-full">
                   <Loader2 className="w-12 h-12 animate-spin text-primary" />
                 </div>
               ) : (
@@ -331,7 +276,8 @@ export default function Agenda() {
                 />
               )}
             </motion.div>
-        </AnimatePresence>
+          </AnimatePresence>
+        </div>
 
         <AnimatePresence>
           {showForm && (
