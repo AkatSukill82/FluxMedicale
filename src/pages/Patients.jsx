@@ -10,7 +10,8 @@ import {
   X, 
   CreditCard,
   Pill,
-  FileText
+  FileText,
+  Globe
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -35,6 +36,7 @@ import PrescriptionModal from '../components/prescriptions/PrescriptionModal';
 import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
+import SumehrEditor from '../components/sumehr/SumehrEditor';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -57,6 +59,7 @@ export default function Patients() {
   const [showQuickBilling, setShowQuickBilling] = useState(false);
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
+  const [showSumehrEditor, setShowSumehrEditor] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -321,9 +324,12 @@ export default function Patients() {
                 <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="gap-2">
-                  👤 Admin
+                <TabsTrigger value="hubs" className="gap-2">
+                  <Globe className="w-4 h-4" /> Hubs
                 </TabsTrigger>
+                <TabsTrigger value="admin" className="gap-2">
+                   👤 Admin
+                 </TabsTrigger>
               </TabsList>
             </div>
           </Tabs>
@@ -351,6 +357,9 @@ export default function Patients() {
               )}
               <TabsContent value="billing" className="m-0">
                 <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
+              </TabsContent>
+              <TabsContent value="hubs" className="m-0">
+                <HubsTab patient={patient} onOpenSumehr={() => setShowSumehrEditor(true)} />
               </TabsContent>
               <TabsContent value="admin" className="m-0">
                 <FicheAdministrativeTab patient={patient} />
@@ -398,6 +407,13 @@ export default function Patients() {
           patient={patient}
           isOpen={showQuickVaccination}
           onClose={() => setShowQuickVaccination(false)}
+        />
+      )}
+
+      {showSumehrEditor && (
+        <SumehrEditor
+          patient={patient}
+          onClose={() => setShowSumehrEditor(false)}
         />
       )}
     </div>
