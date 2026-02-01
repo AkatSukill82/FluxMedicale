@@ -25,27 +25,17 @@ import {
   LogOut,
   User as UserIcon,
   Stethoscope,
-  FileText,
   Users,
   ChevronsLeft,
   ChevronsRight,
   MessageSquare,
-  ClipboardList,
-  Pill,
   Package,
-  HeartPulse,
-  Brain,
   Upload,
   BarChart3,
-  Zap,
-  Wifi,
   WifiOff,
   Cloud,
   Home,
   Phone,
-  TestTube,
-  Settings,
-
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -110,15 +100,9 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.patients'), path: 'Patients', icon: Users },
         { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
         { title: 'Messagerie', path: 'Inbox', icon: MessageSquare },
-        { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
-        { title: 'Laboratoire', path: 'Laboratoire', icon: TestTube },
-        { title: 'Suivi', path: 'SuiviPatient', icon: HeartPulse },
         { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
         { title: 'Garde', path: 'Garde', icon: Phone },
-        { title: 'Automatisation', path: 'Automatisation', icon: Zap },
         { title: 'Stocks', path: 'Stock', icon: Package },
-        { title: 'Rapports', path: 'RapportsMedicaux', icon: ClipboardList },
-        { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
         { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
       ];
   
