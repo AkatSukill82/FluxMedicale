@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -28,9 +28,16 @@ import {
   Ambulance,
   Send,
   History,
-  Users
+  Users,
+  Search,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  BarChart3,
+  TrendingUp,
+  X
 } from 'lucide-react';
-import { format, isToday, isFuture, isPast, startOfDay, endOfDay } from 'date-fns';
+import { format, isToday, isFuture, isPast, startOfDay, endOfDay, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 
