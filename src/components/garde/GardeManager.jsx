@@ -63,6 +63,10 @@ export default function GardeManager() {
   const [showNewAppel, setShowNewAppel] = useState(false);
   const [selectedGarde, setSelectedGarde] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [searchHistorique, setSearchHistorique] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [filterPeriod, setFilterPeriod] = useState('all');
 
   const [newGarde, setNewGarde] = useState({
     type_garde: 'semaine_nuit',
