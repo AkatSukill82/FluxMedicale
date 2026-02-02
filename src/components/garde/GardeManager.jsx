@@ -30,14 +30,9 @@ import {
   History,
   Users
 } from 'lucide-react';
-import { format, isToday, isFuture, isPast, startOfDay, endOfDay, setMonth, setYear } from 'date-fns';
+import { format, isToday, isFuture, isPast, startOfDay, endOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
-
-const MONTHS = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-];
 
 const GARDE_TYPES = {
   semaine_nuit: { label: 'Semaine nuit', color: 'bg-blue-100 text-blue-700', hours: '20h-8h' },
@@ -61,9 +56,6 @@ export default function GardeManager() {
   const [showNewAppel, setShowNewAppel] = useState(false);
   const [selectedGarde, setSelectedGarde] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [calendarMonth, setCalendarMonth] = useState(new Date());
-  const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [showYearPicker, setShowYearPicker] = useState(false);
 
   const [newGarde, setNewGarde] = useState({
     type_garde: 'semaine_nuit',
@@ -270,91 +262,23 @@ export default function GardeManager() {
 
             {/* Calendrier */}
             <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-center gap-2">
-                  <Button
-                    variant="ghost"
-                    className="text-lg font-semibold hover:bg-slate-100 px-3 py-1 h-auto"
-                    onClick={() => { setShowMonthPicker(!showMonthPicker); setShowYearPicker(false); }}
-                  >
-                    {MONTHS[calendarMonth.getMonth()]}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-lg font-semibold hover:bg-slate-100 px-3 py-1 h-auto"
-                    onClick={() => { setShowYearPicker(!showYearPicker); setShowMonthPicker(false); }}
-                  >
-                    {calendarMonth.getFullYear()}
-                  </Button>
-                </div>
+              <CardHeader>
+                <CardTitle className="text-lg">Calendrier</CardTitle>
               </CardHeader>
               <CardContent>
-                {showMonthPicker ? (
-                  <div className="grid grid-cols-3 gap-2 p-4">
-                    {MONTHS.map((month, idx) => (
-                      <Button
-                        key={month}
-                        variant={calendarMonth.getMonth() === idx ? "default" : "outline"}
-                        size="sm"
-                        className="text-sm"
-                        onClick={() => {
-                          setCalendarMonth(setMonth(calendarMonth, idx));
-                          setShowMonthPicker(false);
-                        }}
-                      >
-                        {month.slice(0, 3)}
-                      </Button>
-                    ))}
-                  </div>
-                ) : showYearPicker ? (
-                  <div className="grid grid-cols-4 gap-2 p-4">
-                    {Array.from({ length: 12 }, (_, i) => calendarMonth.getFullYear() - 5 + i).map(year => (
-                      <Button
-                        key={year}
-                        variant={calendarMonth.getFullYear() === year ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setCalendarMonth(setYear(calendarMonth, year));
-                          setShowYearPicker(false);
-                        }}
-                      >
-                        {year}
-                      </Button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      month={calendarMonth}
-                      onMonthChange={setCalendarMonth}
-                      locale={fr}
-                      showOutsideDays={true}
-                      classNames={{
-                        months: "w-full",
-                        month: "w-full space-y-4",
-                        caption: "hidden",
-                        table: "w-full border-collapse",
-                        head_row: "flex w-full",
-                        head_cell: "flex-1 text-muted-foreground font-normal text-sm text-center py-2",
-                        row: "flex w-full",
-                        cell: "flex-1 text-center p-0 relative",
-                        day: "h-12 w-full text-sm font-normal hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
-                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-                        day_today: "bg-accent text-accent-foreground font-semibold",
-                        day_outside: "text-muted-foreground opacity-50",
-                      }}
-                      modifiers={{
-                        garde: gardes.map(g => new Date(g.date_debut))
-                      }}
-                      modifiersStyles={{
-                        garde: { backgroundColor: '#dbeafe', borderRadius: '6px' }
-                      }}
-                    />
-                  </div>
-                )}
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  locale={fr}
+                  className="rounded-md border"
+                  modifiers={{
+                    garde: gardes.map(g => new Date(g.date_debut))
+                  }}
+                  modifiersStyles={{
+                    garde: { backgroundColor: '#dbeafe', borderRadius: '50%' }
+                  }}
+                />
               </CardContent>
             </Card>
           </div>
