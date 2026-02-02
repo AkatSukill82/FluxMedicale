@@ -269,28 +269,28 @@ export default function GardeManager() {
             </Card>
 
             {/* Calendrier */}
-            <Card className="flex flex-col">
+            <Card>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-center gap-2">
                   <Button
                     variant="ghost"
                     className="text-lg font-semibold hover:bg-slate-100 px-3 py-1 h-auto"
-                    onClick={() => setShowMonthPicker(!showMonthPicker)}
+                    onClick={() => { setShowMonthPicker(!showMonthPicker); setShowYearPicker(false); }}
                   >
                     {MONTHS[calendarMonth.getMonth()]}
                   </Button>
                   <Button
                     variant="ghost"
                     className="text-lg font-semibold hover:bg-slate-100 px-3 py-1 h-auto"
-                    onClick={() => setShowYearPicker(!showYearPicker)}
+                    onClick={() => { setShowYearPicker(!showYearPicker); setShowMonthPicker(false); }}
                   >
                     {calendarMonth.getFullYear()}
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
+              <CardContent>
                 {showMonthPicker ? (
-                  <div className="grid grid-cols-3 gap-2 p-2">
+                  <div className="grid grid-cols-3 gap-2 p-4">
                     {MONTHS.map((month, idx) => (
                       <Button
                         key={month}
@@ -307,7 +307,7 @@ export default function GardeManager() {
                     ))}
                   </div>
                 ) : showYearPicker ? (
-                  <div className="grid grid-cols-4 gap-2 p-2">
+                  <div className="grid grid-cols-4 gap-2 p-4">
                     {Array.from({ length: 12 }, (_, i) => calendarMonth.getFullYear() - 5 + i).map(year => (
                       <Button
                         key={year}
@@ -323,7 +323,7 @@ export default function GardeManager() {
                     ))}
                   </div>
                 ) : (
-                  <div className="w-full [&_.rdp]:w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-caption]:hidden [&_.rdp-table]:w-full [&_.rdp-head_th]:w-[14.28%] [&_.rdp-head_th]:text-center [&_.rdp-cell]:w-[14.28%] [&_.rdp-cell]:text-center [&_.rdp-day]:w-full [&_.rdp-day]:h-12 [&_.rdp-day]:text-base [&_.rdp-button]:w-full [&_.rdp-button]:h-full">
+                  <div className="flex justify-center">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
@@ -331,12 +331,26 @@ export default function GardeManager() {
                       month={calendarMonth}
                       onMonthChange={setCalendarMonth}
                       locale={fr}
-                      className="rounded-md border p-0"
+                      showOutsideDays={true}
+                      classNames={{
+                        months: "w-full",
+                        month: "w-full space-y-4",
+                        caption: "hidden",
+                        table: "w-full border-collapse",
+                        head_row: "flex w-full",
+                        head_cell: "flex-1 text-muted-foreground font-normal text-sm text-center py-2",
+                        row: "flex w-full",
+                        cell: "flex-1 text-center p-0 relative",
+                        day: "h-12 w-full text-sm font-normal hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
+                        day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                        day_today: "bg-accent text-accent-foreground font-semibold",
+                        day_outside: "text-muted-foreground opacity-50",
+                      }}
                       modifiers={{
                         garde: gardes.map(g => new Date(g.date_debut))
                       }}
                       modifiersStyles={{
-                        garde: { backgroundColor: '#dbeafe', borderRadius: '50%' }
+                        garde: { backgroundColor: '#dbeafe', borderRadius: '6px' }
                       }}
                     />
                   </div>
