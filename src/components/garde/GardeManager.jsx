@@ -640,41 +640,184 @@ export default function GardeManager() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="statistiques" className="mt-4">
-          <div className="grid md:grid-cols-4 gap-4">
+        <TabsContent value="statistiques" className="mt-4 space-y-6">
+          {/* Filtres pour statistiques */}
+          <div className="flex flex-col sm:flex-row gap-2 justify-end">
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les types</SelectItem>
+                {Object.entries(GARDE_TYPES).map(([key, val]) => (
+                  <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Période" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes périodes</SelectItem>
+                <SelectItem value="week">7 derniers jours</SelectItem>
+                <SelectItem value="month">30 derniers jours</SelectItem>
+                <SelectItem value="quarter">3 derniers mois</SelectItem>
+                <SelectItem value="year">12 derniers mois</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Cartes statistiques principales */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold text-blue-600">
-                  {gardes.length}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-blue-600">{statsFiltered.total}</div>
+                    <p className="text-sm text-muted-foreground">Gardes totales</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <CalendarIcon className="w-6 h-6 text-blue-600" />
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">Gardes totales</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold text-green-600">
-                  {gardes.reduce((sum, g) => sum + (g.nb_appels || 0), 0)}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-green-600">{statsFiltered.appels}</div>
+                    <p className="text-sm text-muted-foreground">Appels traités</p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <Phone className="w-6 h-6 text-green-600" />
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">Appels traités</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold text-orange-600">
-                  {gardes.reduce((sum, g) => sum + (g.nb_visites || 0), 0)}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-orange-600">{statsFiltered.visites}</div>
+                    <p className="text-sm text-muted-foreground">Visites domicile</p>
+                  </div>
+                  <div className="p-3 bg-orange-100 rounded-full">
+                    <Home className="w-6 h-6 text-orange-600" />
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">Visites à domicile</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6">
-                <div className="text-3xl font-bold text-purple-600">
-                  {gardes.reduce((sum, g) => sum + (g.nb_consultations || 0), 0)}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-purple-600">{statsFiltered.consultations}</div>
+                    <p className="text-sm text-muted-foreground">Consultations</p>
+                  </div>
+                  <div className="p-3 bg-purple-100 rounded-full">
+                    <Building className="w-6 h-6 text-purple-600" />
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">Consultations</p>
               </CardContent>
             </Card>
           </div>
+
+          {/* Statistiques détaillées */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Répartition par type de garde */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Répartition par type
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {statsFiltered.byType.filter(t => t.count > 0).map(item => (
+                    <div key={item.type} className="flex items-center gap-3">
+                      <Badge className={item.color}>{item.label}</Badge>
+                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 rounded-full transition-all"
+                          style={{ width: `${statsFiltered.total > 0 ? (item.count / statsFiltered.total) * 100 : 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium w-8 text-right">{item.count}</span>
+                    </div>
+                  ))}
+                  {statsFiltered.byType.filter(t => t.count > 0).length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">Aucune donnée</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Répartition par niveau d'urgence */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Appels par urgence
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {statsFiltered.byUrgence.filter(u => u.count > 0).map(item => (
+                    <div key={item.level} className="flex items-center gap-3">
+                      <Badge className={item.color}>{item.label}</Badge>
+                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-orange-500 rounded-full transition-all"
+                          style={{ width: `${statsFiltered.appels > 0 ? (item.count / statsFiltered.appels) * 100 : 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-medium w-8 text-right">{item.count}</span>
+                    </div>
+                  ))}
+                  {statsFiltered.byUrgence.filter(u => u.count > 0).length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">Aucun appel</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Moyenne par garde */}
+          {statsFiltered.total > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Moyennes par garde</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {(statsFiltered.appels / statsFiltered.total).toFixed(1)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Appels / garde</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {(statsFiltered.visites / statsFiltered.total).toFixed(1)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Visites / garde</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {(statsFiltered.consultations / statsFiltered.total).toFixed(1)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Consult. / garde</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
