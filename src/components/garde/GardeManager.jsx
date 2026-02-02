@@ -511,58 +511,131 @@ export default function GardeManager() {
 
         <TabsContent value="historique" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Historique des gardes</CardTitle>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <CardTitle>Historique des gardes</CardTitle>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Barre de recherche */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Rechercher..."
+                      value={searchHistorique}
+                      onChange={(e) => setSearchHistorique(e.target.value)}
+                      className="pl-9 w-full sm:w-[200px]"
+                    />
+                    {searchHistorique && (
+                      <button 
+                        onClick={() => setSearchHistorique('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-100 rounded"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Filtre par type */}
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tous les types</SelectItem>
+                      {Object.entries(GARDE_TYPES).map(([key, val]) => (
+                        <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Filtre par période */}
+                  <Select value={filterPeriod} onValueChange={setFilterPeriod}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Toutes</SelectItem>
+                      <SelectItem value="week">7 derniers jours</SelectItem>
+                      <SelectItem value="month">30 derniers jours</SelectItem>
+                      <SelectItem value="quarter">3 derniers mois</SelectItem>
+                      <SelectItem value="year">12 derniers mois</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-3">
-                  {gardesPassees.map(garde => (
-                    <div key={garde.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <Badge className={GARDE_TYPES[garde.type_garde]?.color}>
-                            {GARDE_TYPES[garde.type_garde]?.label}
-                          </Badge>
-                          <span className="font-medium">
-                            {format(new Date(garde.date_debut), 'd MMMM yyyy', { locale: fr })}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>📞 {garde.nb_appels || 0} appels</span>
-                          <span>🏠 {garde.nb_visites || 0} visites</span>
-                          <span>🏥 {garde.nb_consultations || 0} consult.</span>
-                        </div>
-                      </div>
-                      
-                      {garde.appels?.length > 0 && (
-                        <div className="mt-3 pt-3 border-t">
-                          <p className="text-sm font-medium mb-2">Détail des appels:</p>
-                          <div className="space-y-2">
-                            {garde.appels.slice(0, 3).map((appel, idx) => (
-                              <div key={idx} className="flex items-center gap-3 text-sm">
-                                <span className="text-muted-foreground">
-                                  {format(new Date(appel.heure), 'HH:mm')}
-                                </span>
-                                <Badge variant="outline" className={URGENCE_LEVELS[appel.urgence_level]?.color}>
-                                  {URGENCE_LEVELS[appel.urgence_level]?.label}
-                                </Badge>
-                                <span>{appel.patient_nom}</span>
-                                <span className="text-muted-foreground">- {appel.motif}</span>
-                              </div>
-                            ))}
-                            {garde.appels.length > 3 && (
-                              <p className="text-xs text-muted-foreground">
-                                +{garde.appels.length - 3} autres appels
-                              </p>
-                            )}
+              {gardesPassees.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Aucune garde trouvée</p>
+                  {(searchHistorique || filterType !== 'all' || filterPeriod !== 'all') && (
+                    <Button 
+                      variant="link" 
+                      onClick={() => { setSearchHistorique(''); setFilterType('all'); setFilterPeriod('all'); }}
+                    >
+                      Réinitialiser les filtres
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-3">
+                    {gardesPassees.map(garde => (
+                      <div key={garde.id} className="p-4 border rounded-lg hover:bg-slate-50 transition-colors">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-3">
+                            <Badge className={GARDE_TYPES[garde.type_garde]?.color}>
+                              {GARDE_TYPES[garde.type_garde]?.label}
+                            </Badge>
+                            <span className="font-medium">
+                              {format(new Date(garde.date_debut), 'd MMMM yyyy', { locale: fr })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>📞 {garde.nb_appels || 0}</span>
+                            <span>🏠 {garde.nb_visites || 0}</span>
+                            <span>🏥 {garde.nb_consultations || 0}</span>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+                        
+                        {garde.zone_garde && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <MapPin className="w-4 h-4" />
+                            {garde.zone_garde}
+                          </div>
+                        )}
+                        
+                        {garde.appels?.length > 0 && (
+                          <div className="mt-3 pt-3 border-t">
+                            <p className="text-sm font-medium mb-2">Détail des appels:</p>
+                            <div className="space-y-2">
+                              {garde.appels.slice(0, 3).map((appel, idx) => (
+                                <div key={idx} className="flex flex-wrap items-center gap-2 text-sm">
+                                  <span className="text-muted-foreground">
+                                    {format(new Date(appel.heure), 'HH:mm')}
+                                  </span>
+                                  <Badge variant="outline" className={URGENCE_LEVELS[appel.urgence_level]?.color}>
+                                    {URGENCE_LEVELS[appel.urgence_level]?.label}
+                                  </Badge>
+                                  <span className="font-medium">{appel.patient_nom}</span>
+                                  <span className="text-muted-foreground truncate">- {appel.motif}</span>
+                                </div>
+                              ))}
+                              {garde.appels.length > 3 && (
+                                <p className="text-xs text-muted-foreground">
+                                  +{garde.appels.length - 3} autres appels
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
