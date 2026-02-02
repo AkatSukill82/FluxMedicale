@@ -105,6 +105,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: 'Garde', path: 'Garde', icon: Phone },
         { title: 'Stocks', path: 'Stock', icon: Package },
         { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
+        { title: 'Documentation', path: 'Documentation', icon: BookOpen },
       ];
   
   const adminNavItems = [
