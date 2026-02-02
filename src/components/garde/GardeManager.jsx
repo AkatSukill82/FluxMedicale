@@ -323,21 +323,23 @@ export default function GardeManager() {
                     ))}
                   </div>
                 ) : (
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    month={calendarMonth}
-                    onMonthChange={setCalendarMonth}
-                    locale={fr}
-                    className="rounded-md border w-full flex-1 [&_.rdp]:w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-table]:w-full [&_.rdp-head_th]:w-[14.28%] [&_.rdp-cell]:w-[14.28%] [&_.rdp-day]:w-full [&_.rdp-day]:h-10"
-                    modifiers={{
-                      garde: gardes.map(g => new Date(g.date_debut))
-                    }}
-                    modifiersStyles={{
-                      garde: { backgroundColor: '#dbeafe', borderRadius: '50%' }
-                    }}
-                  />
+                  <div className="w-full [&_.rdp]:w-full [&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-caption]:hidden [&_.rdp-table]:w-full [&_.rdp-head_th]:w-[14.28%] [&_.rdp-head_th]:text-center [&_.rdp-cell]:w-[14.28%] [&_.rdp-cell]:text-center [&_.rdp-day]:w-full [&_.rdp-day]:h-12 [&_.rdp-day]:text-base [&_.rdp-button]:w-full [&_.rdp-button]:h-full">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      month={calendarMonth}
+                      onMonthChange={setCalendarMonth}
+                      locale={fr}
+                      className="rounded-md border p-0"
+                      modifiers={{
+                        garde: gardes.map(g => new Date(g.date_debut))
+                      }}
+                      modifiersStyles={{
+                        garde: { backgroundColor: '#dbeafe', borderRadius: '50%' }
+                      }}
+                    />
+                  </div>
                 )}
               </CardContent>
             </Card>
