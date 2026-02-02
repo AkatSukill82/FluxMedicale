@@ -341,65 +341,171 @@ export default function GardeManager() {
         </TabsList>
 
         <TabsContent value="planning" className="mt-4">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Prochaines gardes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Prochaines gardes</CardTitle>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Calendrier interactif */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Calendrier des gardes</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="font-medium min-w-[140px] text-center">
+                      {format(calendarMonth, 'MMMM yyyy', { locale: fr })}
+                    </span>
+                    <Button variant="outline" size="icon" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
-                {prochainesGardes.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-8">Aucune garde planifiée</p>
-                ) : (
-                  <div className="space-y-3">
-                    {prochainesGardes.map(garde => (
-                      <div key={garde.id} className="p-3 border rounded-lg hover:bg-slate-50">
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge className={GARDE_TYPES[garde.type_garde]?.color}>
-                            {GARDE_TYPES[garde.type_garde]?.label}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {GARDE_TYPES[garde.type_garde]?.hours}
-                          </span>
+                {/* Jours de la semaine */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
+                    <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Grille du calendrier */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map(({ date, gardes: dayGardes, appels }) => {
+                    const isCurrentMonth = isSameMonth(date, calendarMonth);
+                    const isSelected = isSameDay(date, selectedDate);
+                    const hasGarde = dayGardes.length > 0;
+                    const isCurrentDay = isToday(date);
+                    
+                    return (
+                      <button
+                        key={date.toISOString()}
+                        onClick={() => setSelectedDate(date)}
+                        className={`
+                          relative p-1 min-h-[70px] md:min-h-[80px] rounded-lg border transition-all text-left
+                          ${!isCurrentMonth ? 'opacity-40' : ''}
+                          ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-slate-50'}
+                          ${isCurrentDay ? 'border-blue-400' : 'border-slate-200'}
+                        `}
+                      >
+                        <div className={`text-xs font-medium ${isCurrentDay ? 'text-blue-600' : ''}`}>
+                          {format(date, 'd')}
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <CalendarIcon className="w-4 h-4 text-slate-400" />
-                          {format(new Date(garde.date_debut), 'EEEE d MMMM', { locale: fr })}
-                        </div>
-                        {garde.zone_garde && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                            <MapPin className="w-4 h-4" />
-                            {garde.zone_garde}
+                        {hasGarde && (
+                          <div className="mt-1 space-y-1">
+                            {dayGardes.slice(0, 2).map(g => (
+                              <div 
+                                key={g.id} 
+                                className={`text-[10px] px-1 py-0.5 rounded truncate ${GARDE_TYPES[g.type_garde]?.color}`}
+                              >
+                                <span className="hidden sm:inline">{GARDE_TYPES[g.type_garde]?.label}</span>
+                                <span className="sm:hidden">{GARDE_TYPES[g.type_garde]?.label.slice(0, 3)}</span>
+                              </div>
+                            ))}
+                            {appels > 0 && (
+                              <div className="text-[10px] text-muted-foreground">
+                                📞 {appels}
+                              </div>
+                            )}
                           </div>
                         )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </button>
+                    );
+                  })}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Calendrier */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Calendrier</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  locale={fr}
-                  className="rounded-md border"
-                  modifiers={{
-                    garde: gardes.map(g => new Date(g.date_debut))
-                  }}
-                  modifiersStyles={{
-                    garde: { backgroundColor: '#dbeafe', borderRadius: '50%' }
-                  }}
-                />
-              </CardContent>
-            </Card>
+            {/* Panneau latéral - Détails du jour sélectionné et prochaines gardes */}
+            <div className="space-y-4">
+              {/* Détails du jour sélectionné */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">
+                    {format(selectedDate, 'EEEE d MMMM', { locale: fr })}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedDayGardes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground py-4 text-center">Aucune garde ce jour</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedDayGardes.map(garde => (
+                        <div key={garde.id} className="p-3 border rounded-lg bg-slate-50">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge className={GARDE_TYPES[garde.type_garde]?.color}>
+                              {GARDE_TYPES[garde.type_garde]?.label}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {GARDE_TYPES[garde.type_garde]?.hours}
+                            </span>
+                          </div>
+                          {garde.zone_garde && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                              <MapPin className="w-3 h-3" />
+                              {garde.zone_garde}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-3 text-xs">
+                            <span>📞 {garde.nb_appels || 0}</span>
+                            <span>🏠 {garde.nb_visites || 0}</span>
+                            <span>🏥 {garde.nb_consultations || 0}</span>
+                          </div>
+                          {garde.appels?.length > 0 && (
+                            <div className="mt-2 pt-2 border-t space-y-1">
+                              {garde.appels.slice(0, 3).map((appel, idx) => (
+                                <div key={idx} className="flex items-center gap-2 text-xs">
+                                  <span className="text-muted-foreground">{format(new Date(appel.heure), 'HH:mm')}</span>
+                                  <Badge variant="outline" className={`text-[10px] ${URGENCE_LEVELS[appel.urgence_level]?.color}`}>
+                                    {URGENCE_LEVELS[appel.urgence_level]?.label}
+                                  </Badge>
+                                  <span className="truncate">{appel.patient_nom}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Prochaines gardes */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Prochaines gardes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {prochainesGardes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucune garde planifiée</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {prochainesGardes.slice(0, 4).map(garde => (
+                        <button
+                          key={garde.id}
+                          onClick={() => { setSelectedDate(new Date(garde.date_debut)); setCalendarMonth(new Date(garde.date_debut)); }}
+                          className="w-full p-2 border rounded-lg hover:bg-slate-50 text-left transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <Badge className={`text-[10px] ${GARDE_TYPES[garde.type_garde]?.color}`}>
+                              {GARDE_TYPES[garde.type_garde]?.label}
+                            </Badge>
+                            <span className="text-[10px] text-muted-foreground">
+                              {GARDE_TYPES[garde.type_garde]?.hours}
+                            </span>
+                          </div>
+                          <div className="text-xs mt-1">
+                            {format(new Date(garde.date_debut), 'EEE d MMM', { locale: fr })}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
