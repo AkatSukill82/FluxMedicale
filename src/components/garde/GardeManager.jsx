@@ -154,10 +154,118 @@ export default function GardeManager() {
     .filter(g => new Date(g.date_debut) > new Date() && g.status === 'planifiee')
     .slice(0, 5);
 
-  // Gardes passées
-  const gardesPassees = gardes
-    .filter(g => new Date(g.date_fin) < new Date())
-    .slice(0, 10);
+  // Gardes passées avec filtres
+  const gardesPassees = useMemo(() => {
+    let filtered = gardes.filter(g => new Date(g.date_fin) < new Date());
+    
+    // Filtre par recherche
+    if (searchHistorique) {
+      const search = searchHistorique.toLowerCase();
+      filtered = filtered.filter(g => 
+        g.zone_garde?.toLowerCase().includes(search) ||
+        g.cercle_nom?.toLowerCase().includes(search) ||
+        g.appels?.some(a => a.patient_nom?.toLowerCase().includes(search) || a.motif?.toLowerCase().includes(search))
+      );
+    }
+    
+    // Filtre par type
+    if (filterType !== 'all') {
+      filtered = filtered.filter(g => g.type_garde === filterType);
+    }
+    
+    // Filtre par période
+    if (filterPeriod !== 'all') {
+      const now = new Date();
+      let startDate;
+      if (filterPeriod === 'week') startDate = new Date(now.setDate(now.getDate() - 7));
+      else if (filterPeriod === 'month') startDate = new Date(now.setMonth(now.getMonth() - 1));
+      else if (filterPeriod === 'quarter') startDate = new Date(now.setMonth(now.getMonth() - 3));
+      else if (filterPeriod === 'year') startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+      
+      if (startDate) {
+        filtered = filtered.filter(g => new Date(g.date_debut) >= startDate);
+      }
+    }
+    
+    return filtered.slice(0, 50);
+  }, [gardes, searchHistorique, filterType, filterPeriod]);
+
+  // Statistiques filtrées
+  const statsFiltered = useMemo(() => {
+    let filtered = gardes;
+    
+    if (filterPeriod !== 'all') {
+      const now = new Date();
+      let startDate;
+      if (filterPeriod === 'week') startDate = new Date(now.setDate(now.getDate() - 7));
+      else if (filterPeriod === 'month') startDate = new Date(now.setMonth(now.getMonth() - 1));
+      else if (filterPeriod === 'quarter') startDate = new Date(now.setMonth(now.getMonth() - 3));
+      else if (filterPeriod === 'year') startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+      
+      if (startDate) {
+        filtered = filtered.filter(g => new Date(g.date_debut) >= startDate);
+      }
+    }
+    
+    if (filterType !== 'all') {
+      filtered = filtered.filter(g => g.type_garde === filterType);
+    }
+    
+    return {
+      total: filtered.length,
+      appels: filtered.reduce((sum, g) => sum + (g.nb_appels || 0), 0),
+      visites: filtered.reduce((sum, g) => sum + (g.nb_visites || 0), 0),
+      consultations: filtered.reduce((sum, g) => sum + (g.nb_consultations || 0), 0),
+      byType: Object.entries(GARDE_TYPES).map(([key, val]) => ({
+        type: key,
+        label: val.label,
+        count: filtered.filter(g => g.type_garde === key).length,
+        color: val.color
+      })),
+      byUrgence: Object.entries(URGENCE_LEVELS).map(([key, val]) => ({
+        level: key,
+        label: val.label,
+        count: filtered.reduce((sum, g) => sum + (g.appels?.filter(a => a.urgence_level === key).length || 0), 0),
+        color: val.color
+      }))
+    };
+  }, [gardes, filterType, filterPeriod]);
+
+  // Jours du calendrier avec gardes
+  const calendarDays = useMemo(() => {
+    const start = startOfMonth(calendarMonth);
+    const end = endOfMonth(calendarMonth);
+    const days = eachDayOfInterval({ start, end });
+    
+    // Ajouter les jours du mois précédent pour compléter la première semaine
+    const firstDayOfWeek = getDay(start);
+    const daysToAddBefore = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+    for (let i = daysToAddBefore; i > 0; i--) {
+      const day = new Date(start);
+      day.setDate(day.getDate() - i);
+      days.unshift(day);
+    }
+    
+    // Ajouter les jours du mois suivant pour compléter la dernière semaine
+    const lastDayOfWeek = getDay(end);
+    const daysToAddAfter = lastDayOfWeek === 0 ? 0 : 7 - lastDayOfWeek;
+    for (let i = 1; i <= daysToAddAfter; i++) {
+      const day = new Date(end);
+      day.setDate(day.getDate() + i);
+      days.push(day);
+    }
+    
+    return days.map(day => {
+      const dayGardes = gardes.filter(g => isSameDay(new Date(g.date_debut), day));
+      const dayAppels = dayGardes.reduce((sum, g) => sum + (g.appels?.length || 0), 0);
+      return { date: day, gardes: dayGardes, appels: dayAppels };
+    });
+  }, [calendarMonth, gardes]);
+
+  // Garde sélectionnée pour affichage détaillé
+  const selectedDayGardes = useMemo(() => {
+    return gardes.filter(g => isSameDay(new Date(g.date_debut), selectedDate));
+  }, [gardes, selectedDate]);
 
   return (
     <div className="space-y-6">
