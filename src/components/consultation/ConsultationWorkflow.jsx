@@ -40,6 +40,7 @@ import VoiceDictation from './VoiceDictation';
 import ImageAttachments from './ImageAttachments';
 import ConsultationTemplates from './ConsultationTemplates';
 import ConsultationReportGenerator from './ConsultationReportGenerator';
+import AINotesGenerator from './AINotesGenerator';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -571,6 +572,26 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 2: Examen */}
           {currentStep === 1 && (
             <div className="space-y-6 max-w-3xl mx-auto">
+              {/* Assistant IA pour génération de notes */}
+              <AINotesGenerator
+                motif={consultationData.motif}
+                symptoms={consultationData.anamnese}
+                vitalSigns={vitalSigns}
+                patientInfo={{
+                  age: patient?.birthDate ? Math.floor((new Date() - new Date(patient.birthDate)) / (365.25 * 24 * 60 * 60 * 1000)) : null,
+                  gender: patient?.gender,
+                  allergies: patient?.allergies,
+                  antecedents: patient?.antecedents_medicaux,
+                  medicaments: patient?.medicaments_actuels
+                }}
+                onGenerated={(field, content) => {
+                  setConsultationData(prev => ({
+                    ...prev,
+                    [field]: prev[field] ? prev[field] + '\n\n' + content : content
+                  }));
+                }}
+              />
+
               {/* Constantes vitales */}
               <VitalSignsInput
                 data={vitalSigns}
