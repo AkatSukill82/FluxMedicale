@@ -22,7 +22,8 @@ import {
   AlertCircle,
   Save,
   X,
-  Pencil
+  Pencil,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
@@ -40,7 +41,7 @@ import VoiceDictation from './VoiceDictation';
 import ImageAttachments from './ImageAttachments';
 import ConsultationTemplates from './ConsultationTemplates';
 import ConsultationReportGenerator from './ConsultationReportGenerator';
-import AINotesGenerator from './AINotesGenerator';
+import AIConsultationAssistant from './AIConsultationAssistant';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -82,6 +83,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [showVoiceDictation, setShowVoiceDictation] = useState(false);
   const [activeVoiceField, setActiveVoiceField] = useState(null);
   const [showReportGenerator, setShowReportGenerator] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
@@ -572,25 +574,17 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 2: Examen */}
           {currentStep === 1 && (
             <div className="space-y-6 max-w-3xl mx-auto">
-              {/* Assistant IA pour génération de notes */}
-              <AINotesGenerator
-                motif={consultationData.motif}
-                symptoms={consultationData.anamnese}
-                vitalSigns={vitalSigns}
-                patientInfo={{
-                  age: patient?.birthDate ? Math.floor((new Date() - new Date(patient.birthDate)) / (365.25 * 24 * 60 * 60 * 1000)) : null,
-                  gender: patient?.gender,
-                  allergies: patient?.allergies,
-                  antecedents: patient?.antecedents_medicaux,
-                  medicaments: patient?.medicaments_actuels
-                }}
-                onGenerated={(field, content) => {
-                  setConsultationData(prev => ({
-                    ...prev,
-                    [field]: prev[field] ? prev[field] + '\n\n' + content : content
-                  }));
-                }}
-              />
+              {/* Bouton Assistant IA */}
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAIAssistant(true)}
+                  className="gap-2 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Assistant IA - Générer notes
+                </Button>
+              </div>
 
               {/* Constantes vitales */}
               <VitalSignsInput
@@ -1201,6 +1195,19 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           vitalSigns={vitalSigns}
           diagnosisCodes={diagnosisCodes}
           prescriptions={selectedMedications}
+        />
+      )}
+
+      {/* Modal Assistant IA */}
+      {showAIAssistant && (
+        <AIConsultationAssistant
+          isOpen={showAIAssistant}
+          onClose={() => setShowAIAssistant(false)}
+          patient={patient}
+          currentData={consultationData}
+          onApply={(field, value) => {
+            setConsultationData({...consultationData, [field]: value});
+          }}
         />
       )}
 
