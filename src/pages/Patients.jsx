@@ -11,7 +11,8 @@ import {
   CreditCard,
   Pill,
   FileText,
-  Globe
+  Globe,
+  CreditCard as EIDIcon
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -37,7 +38,8 @@ import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
 import SumehrEditor from '../components/sumehr/SumehrEditor';
-import DocumentTemplatesManager from '../components/documents/DocumentTemplatesManager';
+import EIDReaderButton from '../components/patients/EIDReaderButton';
+import MedicalDocumentGenerator from '../components/documents/MedicalDocumentGenerator';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -61,7 +63,7 @@ export default function Patients() {
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
   const [showSumehrEditor, setShowSumehrEditor] = useState(false);
-  const [showDocTemplates, setShowDocTemplates] = useState(false);
+  const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -129,8 +131,17 @@ export default function Patients() {
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Tous les patients</h2>
-          <Badge variant="outline">{allPatients.length} patients</Badge>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold">Tous les patients</h2>
+            <Badge variant="outline">{allPatients.length} patients</Badge>
+          </div>
+          <EIDReaderButton
+            onPatientFound={(p) => navigate(createPageUrl(`Patients?patient=${p.id}`))}
+            onPatientCreated={(p) => {
+              if (p) navigate(createPageUrl(`Patients?patient=${p.id}`));
+            }}
+            className="bg-blue-600 hover:bg-blue-700"
+          />
         </div>
         
         {isLoadingList ? (
@@ -257,13 +268,13 @@ export default function Patients() {
             </>
           )}
           <Button
-            onClick={() => setShowDocTemplates(true)}
+            onClick={() => setShowDocumentGenerator(true)}
             className="w-full justify-start gap-2"
             size="sm"
             variant="outline"
           >
             <FileText className="w-4 h-4" />
-            Documents / Certificats
+            Générer document
           </Button>
         </div>
 
@@ -428,10 +439,10 @@ export default function Patients() {
         />
       )}
 
-      {showDocTemplates && (
-        <DocumentTemplatesManager
-          isOpen={showDocTemplates}
-          onClose={() => setShowDocTemplates(false)}
+      {showDocumentGenerator && (
+        <MedicalDocumentGenerator
+          isOpen={showDocumentGenerator}
+          onClose={() => setShowDocumentGenerator(false)}
           patient={patient}
         />
       )}
