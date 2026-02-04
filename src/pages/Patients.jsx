@@ -37,6 +37,7 @@ import QuickBilling from '../components/facturation/QuickBilling';
 import QuickPrescription from '../components/prescriptions/QuickPrescription';
 import QuickVaccination from '../components/vaccinations/QuickVaccination';
 import SumehrEditor from '../components/sumehr/SumehrEditor';
+import DocumentTemplatesManager from '../components/documents/DocumentTemplatesManager';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -60,6 +61,7 @@ export default function Patients() {
   const [showQuickPrescription, setShowQuickPrescription] = useState(false);
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
   const [showSumehrEditor, setShowSumehrEditor] = useState(false);
+  const [showDocTemplates, setShowDocTemplates] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -254,6 +256,15 @@ export default function Patients() {
               </Button>
             </>
           )}
+          <Button
+            onClick={() => setShowDocTemplates(true)}
+            className="w-full justify-start gap-2"
+            size="sm"
+            variant="outline"
+          >
+            <FileText className="w-4 h-4" />
+            Documents / Certificats
+          </Button>
         </div>
 
         {/* Notifications */}
@@ -414,6 +425,14 @@ export default function Patients() {
         <SumehrEditor
           patient={patient}
           onClose={() => setShowSumehrEditor(false)}
+        />
+      )}
+
+      {showDocTemplates && (
+        <DocumentTemplatesManager
+          isOpen={showDocTemplates}
+          onClose={() => setShowDocTemplates(false)}
+          patient={patient}
         />
       )}
     </div>
