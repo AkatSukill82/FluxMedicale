@@ -84,36 +84,51 @@ export default function EIDReaderButton({
               Lecteur eID non détecté
             </DialogTitle>
             <DialogDescription>
-              Pour utiliser la lecture de carte eID, vous devez installer le logiciel eID belge.
+              Pour lire les données de la carte eID depuis le navigateur, un middleware spécifique est nécessaire.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            <Card className="p-4 bg-amber-50 border-amber-200">
+              <h4 className="font-semibold mb-2 text-amber-800">⚠️ Important</h4>
+              <p className="text-sm text-amber-700 mb-2">
+                Le logiciel eID officiel (eid.belgium.be) ne suffit pas. Pour lire les données de la carte depuis un navigateur, vous devez installer le <strong>eID Web Browser Middleware</strong> de e-Contract.be.
+              </p>
+            </Card>
+
             <Card className="p-4 bg-blue-50 border-blue-200">
-              <h4 className="font-semibold mb-2">Comment installer le lecteur eID ?</h4>
+              <h4 className="font-semibold mb-2">Installation en 4 étapes :</h4>
               <ol className="text-sm space-y-2 list-decimal list-inside">
-                <li>Téléchargez le logiciel eID depuis le site officiel</li>
-                <li>Installez le logiciel sur votre ordinateur</li>
-                <li>Connectez votre lecteur de carte</li>
-                <li>Redémarrez votre navigateur</li>
+                <li>Installez d'abord le logiciel eID officiel (si pas encore fait)</li>
+                <li>Téléchargez le "eID Web Browser Middleware" (lien ci-dessous)</li>
+                <li>Lancez le fichier .jar (nécessite Java) ou .exe</li>
+                <li>L'icône eID apparaît dans la barre des tâches</li>
               </ol>
             </Card>
 
             <div className="flex flex-col gap-2">
               <Button
+                onClick={() => window.open('https://www.e-contract.be/products/eid-browser-middleware', '_blank')}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Télécharger eID Web Browser Middleware
+              </Button>
+              
+              <Button
                 variant="outline"
-                onClick={() => window.open('https://eid.belgium.be/fr/download', '_blank')}
+                onClick={() => window.open('https://eid.belgium.be/fr/telechargements', '_blank')}
                 className="w-full"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Télécharger eID (site officiel)
+                eID officiel (si pas installé)
               </Button>
               
               <Button
                 variant="outline"
                 onClick={async () => {
-                  await detectMiddleware();
-                  if (eidStatus.hasMiddleware || eidStatus.isDetected) {
+                  const status = await detectMiddleware();
+                  if (status.hasMiddleware || status.isDetected) {
                     setShowInstallModal(false);
                   }
                 }}
