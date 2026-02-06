@@ -167,47 +167,33 @@ export default function EIDReaderButton({
               </Button>
             </Card>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const status = await detectMiddleware();
+                  if (status.hasMiddleware || status.isDetected) {
+                    setShowInstallModal(false);
+                  }
+                }}
+                className="flex-1"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Vérifier à nouveau
+              </Button>
+              
               <Button
                 onClick={() => {
                   setShowInstallModal(false);
-                  setShowWizard(true);
+                  if (onPatientCreated) {
+                    onPatientCreated(null);
+                  }
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="flex-1"
               >
-                <HelpCircle className="w-4 h-4 mr-2" />
-                Assistant d'installation guidée
+                <User className="w-4 h-4 mr-2" />
+                Créer manuellement
               </Button>
-              
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    const status = await detectMiddleware();
-                    if (status.hasMiddleware || status.isDetected) {
-                      setShowInstallModal(false);
-                    }
-                  }}
-                  className="flex-1"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Vérifier
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowInstallModal(false);
-                    if (onPatientCreated) {
-                      onPatientCreated(null);
-                    }
-                  }}
-                  className="flex-1"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Manuel
-                </Button>
-              </div>
             </div>
           </div>
         </DialogContent>
@@ -224,16 +210,6 @@ export default function EIDReaderButton({
           onResolved={handleDuplicateResolved}
         />
       )}
-
-      {/* Assistant d'installation guidée */}
-      <EIDInstallationWizard
-        isOpen={showWizard}
-        onClose={() => setShowWizard(false)}
-        onSuccess={() => {
-          setShowWizard(false);
-          detectMiddleware();
-        }}
-      />
     </>
   );
 }
