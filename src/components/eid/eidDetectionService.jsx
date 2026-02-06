@@ -1,49 +1,70 @@
+import { webEidService } from './webEidService';
+
 // Service de détection eID Viewer / Middleware (multi-OS)
+// Supporte Web-eID (moderne) et e-Contract.be (legacy)
 export const eidDetectionService = {
   // État de la détection
   status: {
     isDetected: false,
     hasMiddleware: false,
+    hasWebEid: false,
+    hasEContract: false,
     hasSmartCardService: false,
     platform: null,
-    details: null
+    details: null,
+    preferredMethod: null // 'web-eid' ou 'e-contract'
   },
 
-  // Détecter la middleware eID sur le poste local
+  // Détecter tous les middlewares eID disponibles
   async detectEIDMiddleware() {
-    // Silent detection, no console spam
-    
     const platform = this.detectPlatform();
     this.status.platform = platform;
     this.status.isDetected = false;
     this.status.hasMiddleware = false;
-    this.status.hasSmartCardService = true; // On l'assume, l'API est le vrai test
+    this.status.hasWebEid = false;
+    this.status.hasEContract = false;
+    this.status.hasSmartCardService = true;
+    this.status.preferredMethod = null;
 
+    // Test 1: Vérifier Web-eID (méthode moderne et recommandée)
     try {
-      // Le seul test fiable est d'appeler l'API locale.
-      const response = await fetch('http://localhost:35963/v1/readers', {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(1500) // Timeout court de 1.5s
-      });
-
-      if (response.ok) {
+      const webEidStatus = await webEidService.checkStatus();
+      if (webEidStatus.isAvailable) {
+        this.status.hasWebEid = true;
         this.status.hasMiddleware = true;
-        this.status.details = 'eID Middleware détectée (API locale)';
-      } else {
-        throw new Error(`Local API responded with status: ${response.status}`);
+        this.status.isDetected = true;
+        this.status.preferredMethod = 'web-eid';
+        this.status.details = `Web-eID détecté (v${webEidStatus.libraryVersion || 'unknown'})`;
       }
-
     } catch (error) {
-      // Silently handle expected errors when eID is not installed
-      if (error.message !== 'Failed to fetch') {
-        console.warn('[eID Detection]', error.message);
-      }
-      this.status.hasMiddleware = false;
-      this.status.details = "L'API locale eID n'est pas accessible. Installez eID Viewer ou créez les patients manuellement.";
+      // Web-eID non disponible, continuer avec e-Contract
     }
 
-    this.status.isDetected = this.status.hasMiddleware;
+    // Test 2: Vérifier e-Contract.be (fallback legacy)
+    if (!this.status.hasWebEid) {
+      try {
+        const response = await fetch('http://localhost:35963/v1/readers', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(1500)
+        });
+
+        if (response.ok) {
+          this.status.hasEContract = true;
+          this.status.hasMiddleware = true;
+          this.status.isDetected = true;
+          this.status.preferredMethod = 'e-contract';
+          this.status.details = 'e-Contract.be Middleware détecté';
+        }
+      } catch (error) {
+        // e-Contract non disponible non plus
+      }
+    }
+
+    // Aucun middleware détecté
+    if (!this.status.hasMiddleware) {
+      this.status.details = "Aucun middleware eID détecté. Installez Web-eID (recommandé) ou e-Contract.be.";
+    }
     
     return this.status;
   },
