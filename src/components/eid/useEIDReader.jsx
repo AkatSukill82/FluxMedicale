@@ -218,7 +218,7 @@ export const useEIDReader = () => {
     } finally {
         setIsReading(false);
     }
-  }, [t, detectMiddleware]);
+  }, [t, detectMiddleware, readViaWebEid, readViaEContract]);
 
   return {
     isReading,
@@ -228,3 +228,111 @@ export const useEIDReader = () => {
     detectMiddleware
   };
 };
+
+// Parser le certificat Web-eID pour extraire les données du titulaire
+// Le certificat X.509 contient le nom, prénom et numéro national dans le Subject
+function parseWebEidCertificate(authResult) {
+  try {
+    // authResult contient unverifiedCertificate en base64
+    const certBase64 = authResult.unverifiedCertificate;
+    
+    if (!certBase64) {
+      throw new Error('Certificat non trouvé dans la réponse');
+    }
+    
+    // Décoder le certificat (format DER en base64)
+    const certBinary = atob(certBase64);
+    
+    // Extraire les données du Subject du certificat
+    // Pour la carte eID belge, le CN contient: "Prénom Nom (Numéro National)"
+    // Le serialNumber contient le numéro national
+    
+    // Rechercher le pattern du CN dans le certificat
+    // C'est une simplification - en production on utiliserait une lib ASN.1
+    const data = extractBelgianEidData(certBinary);
+    
+    return data;
+  } catch (error) {
+    console.error('[Web-eID Parser]', error);
+    throw new Error('Impossible de parser le certificat eID');
+  }
+}
+
+// Extraire les données spécifiques à la carte eID belge
+function extractBelgianEidData(certBinary) {
+  // Pattern pour trouver le serialNumber (numéro national belge)
+  // Format: 11 chiffres (YYMMDDXXXCC)
+  const nissPattern = /(\d{11})/g;
+  const matches = certBinary.match(nissPattern);
+  
+  // Chercher un numéro national valide (commence par une date plausible)
+  let nationalNumber = null;
+  if (matches) {
+    for (const match of matches) {
+      // Vérifier si ça ressemble à un NISS belge
+      const year = parseInt(match.substring(0, 2));
+      const month = parseInt(match.substring(2, 4));
+      const day = parseInt(match.substring(4, 6));
+      
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        nationalNumber = match;
+        break;
+      }
+    }
+  }
+  
+  // Extraire le nom - chercher dans le CN
+  // Pattern simplifié pour le CN de la carte belge
+  let firstName = '';
+  let lastName = '';
+  
+  // Chercher le pattern "GN=" (Given Name) et "SN=" (Surname) dans le certificat
+  const gnMatch = certBinary.match(/GN=([^,\/\x00-\x1F]+)/);
+  const snMatch = certBinary.match(/SN=([^,\/\x00-\x1F]+)/);
+  
+  if (gnMatch) firstName = gnMatch[1].trim();
+  if (snMatch) lastName = snMatch[1].trim();
+  
+  // Alternative: chercher le CN qui contient "Prénom NOM"
+  if (!firstName || !lastName) {
+    const cnMatch = certBinary.match(/CN=([^,\/\x00-\x1F]+)/);
+    if (cnMatch) {
+      const parts = cnMatch[1].trim().split(' ');
+      if (parts.length >= 2) {
+        firstName = parts[0];
+        lastName = parts.slice(1).join(' ');
+      }
+    }
+  }
+  
+  // Calculer la date de naissance à partir du NISS
+  let birthDate = null;
+  if (nationalNumber) {
+    const year = parseInt(nationalNumber.substring(0, 2));
+    const month = parseInt(nationalNumber.substring(2, 4));
+    const day = parseInt(nationalNumber.substring(4, 6));
+    
+    // Déterminer le siècle (19xx ou 20xx)
+    const currentYear = new Date().getFullYear() % 100;
+    const century = year > currentYear ? 1900 : 2000;
+    
+    birthDate = `${century + year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+  
+  // Déterminer le genre à partir du NISS (position 7-9: impair = homme, pair = femme)
+  let gender = null;
+  if (nationalNumber) {
+    const seqNumber = parseInt(nationalNumber.substring(6, 9));
+    gender = seqNumber % 2 === 1 ? 'male' : 'female';
+  }
+  
+  return {
+    nationalNumber,
+    firstName,
+    lastName,
+    birthDate,
+    gender,
+    // Pas d'adresse disponible via le certificat (seulement sur la puce)
+    address: null
+  };
+}
