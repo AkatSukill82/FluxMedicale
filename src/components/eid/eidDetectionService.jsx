@@ -100,27 +100,50 @@ export const eidDetectionService = {
     return false;
   },
 
-  // Liens d'installation officiels corrigés
+  // Liens d'installation - Web-eID (recommandé) et alternatives
   getInstallationLinks() {
     const platform = this.detectPlatform();
+    const browser = this.detectBrowser();
     
     return {
-      // Page principale de téléchargement (multilingue)
-      viewer: 'https://eid.belgium.be/fr/telechargements',
+      // Web-eID (RECOMMANDÉ - moderne et officiel)
+      webEid: {
+        main: 'https://web-eid.eu/',
+        windows: 'https://installer.id.ee/media/web-eid/web-eid_2.8.0.913.x64.exe',
+        macos: 'https://installer.id.ee/media/web-eid/web-eid_2.8.0.710.dmg',
+        macosSafari: 'https://apps.apple.com/ee/app/web-eid/id1576665083',
+        linux: 'https://web-eid.eu/',
+        chromeExtension: 'https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic',
+        firefoxExtension: 'https://addons.mozilla.org/firefox/addon/web-eid-webextension/'
+      },
       
-      // Liens directs par plateforme
-      windows: 'https://eid.belgium.be/sites/default/files/software/Belgium_eID_MW_5.1.11.6348_Installer_x64.msi',
-      macos: 'https://eid.belgium.be/sites/default/files/software/eID_Viewer_5.1.11.pkg',
-      linux: 'https://eid.belgium.be/fr/telechargements', // Page avec instructions apt/rpm
+      // e-Contract.be (fallback)
+      eContract: {
+        main: 'https://www.e-contract.be/products/eid-browser-middleware',
+        download: 'https://www.e-contract.be/products/eid-browser-middleware'
+      },
       
-      // Documentation
-      faq: 'https://eid.belgium.be/fr/faq',
-      support: 'https://eid.belgium.be/fr/support',
-      userManual: 'https://eid.belgium.be/sites/default/files/software/user_manual_-_eid_viewer_5.1_-_fr.pdf',
+      // eID officiel belge (prérequis)
+      official: {
+        viewer: 'https://eid.belgium.be/fr/telechargements',
+        windows: 'https://eid.belgium.be/sites/default/files/software/Belgium_eID_MW_5.1.11.6348_Installer_x64.msi',
+        macos: 'https://eid.belgium.be/sites/default/files/software/eID_Viewer_5.1.11.pkg',
+        linux: 'https://eid.belgium.be/fr/telechargements',
+        faq: 'https://eid.belgium.be/fr/faq',
+        support: 'https://eid.belgium.be/fr/support'
+      },
       
-      // Liens alternatifs
-      fedict: 'https://www.fedict.belgium.be/fr/identification-et-authentification/eid',
-      csam: 'https://iamapps.belgium.be/fr/'
+      platform,
+      browser
     };
+  },
+
+  detectBrowser() {
+    const ua = navigator.userAgent;
+    if (ua.includes('Firefox')) return 'firefox';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'safari';
+    if (ua.includes('Edg')) return 'edge';
+    if (ua.includes('Chrome')) return 'chrome';
+    return 'unknown';
   }
 };

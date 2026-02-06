@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { eidDetectionService } from './eidDetectionService';
+import { webEidService } from './webEidService';
 import { nissValidator } from './nissValidator';
 import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
@@ -12,9 +13,12 @@ export const useEIDReader = () => {
   const [eidStatus, setEidStatus] = useState({
     isDetected: false,
     hasMiddleware: false,
+    hasWebEid: false,
+    hasEContract: false,
     hasSmartCardService: false,
     platform: null,
-    details: null
+    details: null,
+    preferredMethod: null
   });
 
   const detectMiddleware = useCallback(async () => {
