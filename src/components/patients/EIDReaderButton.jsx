@@ -195,9 +195,31 @@ export default function EIDReaderButton({
                 Créer manuellement
               </Button>
             </div>
+
+            <Button
+              variant="link"
+              onClick={() => {
+                setShowInstallModal(false);
+                setShowWizard(true);
+              }}
+              className="w-full text-blue-600"
+            >
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Besoin d'aide ? Lancer l'assistant d'installation
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Assistant d'installation */}
+      <EIDInstallationWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onSuccess={() => {
+          setShowWizard(false);
+          detectMiddleware();
+        }}
+      />
 
       {/* Modal de résolution des doublons */}
       {duplicateData && (
