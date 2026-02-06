@@ -29,8 +29,8 @@ export default function EIDReaderButton({
   const [duplicateData, setDuplicateData] = useState(null);
 
   const handleReadEID = async () => {
-    // Si le middleware n'est pas détecté, montrer le modal d'installation
-    if (!eidStatus.hasMiddleware && !eidStatus.isDetected) {
+    // Si aucun middleware n'est détecté, montrer le modal d'installation
+    if (!eidStatus.hasMiddleware && !eidStatus.hasWebEid && !eidStatus.hasEContract) {
       setShowInstallModal(true);
       return;
     }
