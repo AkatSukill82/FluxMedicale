@@ -34,19 +34,23 @@ export const useEIDReader = () => {
   // Lire via Web-eID (authentification - retourne certificat avec données)
   const readViaWebEid = useCallback(async () => {
     try {
-      // Générer un nonce aléatoire pour l'authentification
-      const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+      // Utiliser la méthode readCardData du service Web-eID
+      const cardData = await webEidService.readCardData({ lang: 'fr' });
       
-      // Authentifier - cela ouvre le dialogue Web-eID
-      const authResult = await webEidService.authenticate(nonce, { lang: 'fr' });
+      if (!cardData.success) {
+        throw new Error('Échec de la lecture des données');
+      }
       
-      // Le token d'authentification contient le certificat avec les données du titulaire
-      // On doit parser le certificat pour extraire les données
-      const certData = parseWebEidCertificate(authResult);
-      
-      return certData;
+      return {
+        nationalNumber: cardData.nationalNumber,
+        firstName: cardData.firstName,
+        lastName: cardData.lastName,
+        birthDate: cardData.birthDate,
+        gender: cardData.gender,
+        address: null // L'adresse n'est pas dans le certificat
+      };
     } catch (error) {
-      throw new Error(`Web-eID: ${error.message || error.code || 'Erreur inconnue'}`);
+      throw new Error(error.message || 'Erreur Web-eID');
     }
   }, []);
 
