@@ -11,11 +11,13 @@ import {
   XCircle,
   ExternalLink,
   RefreshCw,
-  User
+  User,
+  HelpCircle
 } from 'lucide-react';
 import { useEIDReader } from '../eid/useEIDReader';
 import { createPageUrl } from '@/utils';
 import DuplicateResolutionDialog from '../eid/DuplicateResolutionDialog';
+import EIDInstallationWizard from '../eid/EIDInstallationWizard';
 
 export default function EIDReaderButton({ 
   onPatientFound, 
