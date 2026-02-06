@@ -1,355 +1,408 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Activity,
-  CheckCircle,
-  XCircle,
+import { 
+  CreditCard, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle, 
+  Loader2,
   RefreshCw,
+  Monitor,
+  Globe,
+  Shield,
   Download,
-  Terminal,
-  Zap,
-  ExternalLink
+  ExternalLink,
+  Bug,
+  Copy
 } from 'lucide-react';
-import { eidDetectionService } from '../components/eid/eidDetectionService';
-import { eidAgentService } from '../components/eid/eidAgentService';
 import { toast } from 'sonner';
+import { webEidService } from '@/components/eid/webEidService';
+import { eidDetectionService } from '@/components/eid/eidDetectionService';
 
-export default function EIDTestPage() {
-  const [eidViewerStatus, setEidViewerStatus] = useState(null);
-  const [agentStatus, setAgentStatus] = useState(null);
-  const [isTesting, setIsTesting] = useState(false);
-  const [lastCard, setLastCard] = useState(null);
+export default function EIDTest() {
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+  const [rawData, setRawData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    runAllTests();
+    checkStatus();
   }, []);
 
-  const runAllTests = async () => {
-    await testEIDViewer();
-    await testAgent();
+  const checkStatus = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await eidDetectionService.detectEIDMiddleware();
+      setStatus(result);
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
   };
 
-  const testEIDViewer = async () => {
-    setIsTesting(true);
-    toast.info('Test eID Viewer en cours...');
-    
-    const status = await eidDetectionService.detectEIDMiddleware();
-    setEidViewerStatus(status);
-    
-    if (status.isDetected) {
-      toast.success('✅ eID Viewer détecté');
-    } else {
-      toast.error('❌ eID Viewer non détecté');
+  const testWebEidStatus = async () => {
+    setLoading(true);
+    setError(null);
+    setRawData(null);
+    try {
+      const webeidStatus = await webEidService.checkStatus();
+      setRawData({
+        type: 'Web-eID Status',
+        data: webeidStatus
+      });
+      toast.success('Statut Web-eID récupéré');
+    } catch (e) {
+      setError(e.message);
+      toast.error(e.message);
     }
-    
-    setIsTesting(false);
+    setLoading(false);
   };
 
-  const testAgent = async () => {
-    setIsTesting(true);
-    toast.info('Test Agent eID en cours...');
+  const testReadCard = async () => {
+    setLoading(true);
+    setError(null);
+    setTestResult(null);
+    setRawData(null);
     
-    const status = await eidAgentService.checkStatus();
-    setAgentStatus(status);
-    
-    if (status.isRunning) {
-      toast.success('✅ Agent eID actif');
-    } else {
-      toast.error('❌ Agent eID inactif');
+    try {
+      toast.info('Préparation de la lecture...');
+      
+      // Test via Web-eID
+      if (status?.hasWebEid) {
+        const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+        
+        toast.info('Authentification en cours - entrez votre PIN...');
+        const authResult = await webEidService.authenticate(nonce, { lang: 'fr' });
+        
+        // Afficher le résultat brut
+        setRawData({
+          type: 'Web-eID Authentication Response',
+          data: {
+            algorithm: authResult.algorithm,
+            format: authResult.format,
+            certificateLength: authResult.unverifiedCertificate?.length,
+            signatureLength: authResult.signature?.length,
+            // Afficher les premiers caractères du certificat pour debug
+            certificatePreview: authResult.unverifiedCertificate?.substring(0, 100) + '...'
+          }
+        });
+        
+        // Tenter de parser le certificat
+        if (authResult.unverifiedCertificate) {
+          const parsed = webEidService.parseAsn1.parseCertificate(authResult.unverifiedCertificate);
+          
+          setTestResult({
+            success: true,
+            method: 'Web-eID',
+            parsedData: parsed,
+            niss: parsed?.serialNumber,
+            firstName: parsed?.givenName,
+            lastName: parsed?.surname,
+            commonName: parsed?.commonName
+          });
+          
+          if (parsed?.serialNumber) {
+            toast.success(`Carte lue ! NISS: ${parsed.serialNumber}`);
+          } else {
+            toast.warning('Certificat lu mais NISS non trouvé');
+          }
+        }
+      } 
+      // Test via e-Contract
+      else if (status?.hasEContract) {
+        toast.info('Lecture via e-Contract...');
+        const response = await fetch('http://localhost:35963/v1/card-data', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(15000)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setRawData({
+            type: 'e-Contract Card Data',
+            data: data
+          });
+          setTestResult({
+            success: true,
+            method: 'e-Contract',
+            parsedData: data
+          });
+          toast.success('Carte lue via e-Contract');
+        } else {
+          throw new Error(`e-Contract: ${response.status}`);
+        }
+      } else {
+        throw new Error('Aucun middleware eID disponible');
+      }
+    } catch (e) {
+      console.error('[EID Test]', e);
+      setError(e.message || 'Erreur inconnue');
+      setTestResult({
+        success: false,
+        error: e.message,
+        code: e.code
+      });
+      toast.error(e.message);
     }
     
-    setIsTesting(false);
+    setLoading(false);
   };
 
-  const testSimulateInsertion = async () => {
-    toast.info('Simulation insertion carte...');
+  const testReadCardDirect = async () => {
+    setLoading(true);
+    setError(null);
+    setTestResult(null);
     
-    const success = await eidAgentService.simulateInsertion();
-    
-    if (success) {
-      toast.success('✅ Simulation déclenchée');
-      // Récupérer la dernière carte après 1s
-      setTimeout(async () => {
-        const card = await eidAgentService.getLastCard();
-        setLastCard(card);
-      }, 1000);
-    } else {
-      toast.error('❌ Simulation échouée - Agent en mode production ?');
+    try {
+      toast.info('Lecture directe via readCardData...');
+      const cardData = await webEidService.readCardData({ lang: 'fr' });
+      
+      setTestResult({
+        success: cardData.success,
+        method: 'Web-eID readCardData',
+        data: cardData
+      });
+      
+      setRawData({
+        type: 'readCardData Result',
+        data: cardData
+      });
+      
+      if (cardData.nationalNumber) {
+        toast.success(`Données lues ! NISS: ${cardData.nationalNumber}`);
+      } else {
+        toast.warning('Données incomplètes');
+      }
+    } catch (e) {
+      setError(e.message);
+      setTestResult({ success: false, error: e.message });
+      toast.error(e.message);
     }
+    
+    setLoading(false);
   };
+
+  const copyToClipboard = (data) => {
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    toast.success('Copié dans le presse-papier');
+  };
+
+  const links = eidDetectionService.getInstallationLinks();
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
-      {/* En-tête */}
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Tests eID & Agent Local</h1>
-        <p className="text-slate-600">
-          Page de diagnostic pour vérifier l'installation eID Viewer et l'agent local
-        </p>
-      </div>
-
-      {/* Boutons actions */}
-      <div className="flex gap-3">
-        <Button
-          onClick={testEIDViewer}
-          disabled={isTesting}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {isTesting ? (
-            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <CheckCircle className="w-4 h-4 mr-2" />
-          )}
-          Tester eID Viewer
-        </Button>
-        
-        <Button
-          onClick={testAgent}
-          disabled={isTesting}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          {isTesting ? (
-            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Activity className="w-4 h-4 mr-2" />
-          )}
-          Tester Agent eID
-        </Button>
-
-        <Button
-          onClick={testSimulateInsertion}
-          disabled={!agentStatus?.isRunning}
-          variant="outline"
-        >
-          <Zap className="w-4 h-4 mr-2" />
-          Simuler insertion
-        </Button>
-
-        <Button
-          onClick={runAllTests}
-          disabled={isTesting}
-          variant="outline"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Tout re-tester
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Bug className="w-6 h-6" />
+            Test de lecture eID
+          </h1>
+          <p className="text-muted-foreground">
+            Diagnostic et test de la lecture de carte d'identité électronique
+          </p>
+        </div>
+        <Button variant="outline" onClick={checkStatus} disabled={loading}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Rafraîchir
         </Button>
       </div>
 
-      {/* Résultats eID Viewer */}
-      {eidViewerStatus && (
-        <Card className={eidViewerStatus.isDetected ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {eidViewerStatus.isDetected ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
-              )}
-              eID Viewer
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="font-medium">Statut:</span>{' '}
-                <Badge className={eidViewerStatus.isDetected ? 'bg-green-600' : 'bg-red-600'}>
-                  {eidViewerStatus.isDetected ? 'Détecté' : 'Non détecté'}
-                </Badge>
-              </div>
-              <div>
-                <span className="font-medium">Middleware:</span>{' '}
-                {eidViewerStatus.hasMiddleware ? '✅' : '❌'}
-              </div>
-              <div>
-                <span className="font-medium">Service Smart Card:</span>{' '}
-                {eidViewerStatus.hasSmartCardService ? '✅' : '❌'}
-              </div>
-              <div>
-                <span className="font-medium">Plateforme:</span>{' '}
-                {eidViewerStatus.platform || 'Inconnue'}
-              </div>
-            </div>
-
-            {!eidViewerStatus.isDetected && (
-              <Alert className="bg-orange-50 border-orange-200 mt-3">
-                <AlertDescription className="text-orange-900">
-                  <strong>Action requise:</strong> Installez eID Viewer/Middleware depuis{' '}
-                  <a 
-                    href="https://eid.belgium.be/fr/telechargements" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    eid.belgium.be
-                  </a>
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Résultats Agent eID */}
-      {agentStatus && (
-        <Card className={agentStatus.isRunning ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {agentStatus.isRunning ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
-              )}
-              Agent eID Local
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="font-medium">Statut:</span>{' '}
-                <Badge className={agentStatus.isRunning ? 'bg-green-600' : 'bg-red-600'}>
-                  {agentStatus.isRunning ? 'Actif' : 'Inactif'}
-                </Badge>
-              </div>
-              <div>
-                <span className="font-medium">Version:</span>{' '}
-                {agentStatus.version || 'N/A'}
-              </div>
-              <div>
-                <span className="font-medium">PC/SC disponible:</span>{' '}
-                {agentStatus.pcscAvailable ? '✅' : '❌'}
-              </div>
-              <div>
-                <span className="font-medium">Lecteurs détectés:</span>{' '}
-                {agentStatus.readerCount}
-              </div>
-            </div>
-
-            {agentStatus.isRunning && (
-              <div className="text-xs text-green-700 bg-green-100 p-2 rounded">
-                ✅ Agent opérationnel - WebSocket: ws://127.0.0.1:27272/events
-              </div>
-            )}
-
-            {!agentStatus.isRunning && (
-              <Alert className="bg-red-50 border-red-200 mt-3">
-                <AlertDescription className="text-red-900">
-                  <strong>Agent non détecté:</strong> L'agent local eID-listener n'est pas en cours d'exécution.
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Dernière carte lue */}
-      {lastCard && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Terminal className="w-5 h-5 text-blue-600" />
-              Dernière carte lue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm space-y-1">
-              <div><span className="font-medium">NISS:</span> {lastCard.niss}</div>
-              <div><span className="font-medium">Horodatage:</span> {new Date(lastCard.time).toLocaleString('fr-BE')}</div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Instructions installation agent */}
+      {/* Statut du système */}
       <Card>
         <CardHeader>
-          <CardTitle>Installation de l'agent eID-listener</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Monitor className="w-5 h-5" />
+            Statut du système
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert className="bg-slate-50 border-slate-200">
-            <Terminal className="w-4 h-4" />
-            <AlertDescription>
-              <strong>Agent local requis:</strong> Pour l'auto-ouverture à l'insertion de carte, vous devez installer l'agent eID-listener.
-            </AlertDescription>
-          </Alert>
-
-          <div className="space-y-3 text-sm">
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">🪟 Windows</h4>
-              <div className="bg-slate-900 text-slate-100 p-3 rounded font-mono text-xs">
-                # Télécharger eid-listener-setup.exe<br />
-                # Installer en tant qu'administrateur<br />
-                # Le service démarre automatiquement au démarrage<br />
-                sc query "eID Listener Service"
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 rounded-lg border">
+              <div className="text-sm text-muted-foreground">Plateforme</div>
+              <div className="font-medium capitalize">{status?.platform || '...'}</div>
+            </div>
+            <div className="p-3 rounded-lg border">
+              <div className="text-sm text-muted-foreground">Navigateur</div>
+              <div className="font-medium capitalize">{links.browser}</div>
+            </div>
+            <div className="p-3 rounded-lg border">
+              <div className="text-sm text-muted-foreground">Web-eID</div>
+              <div className="flex items-center gap-1">
+                {status?.hasWebEid ? (
+                  <><CheckCircle className="w-4 h-4 text-green-500" /> Disponible</>
+                ) : (
+                  <><XCircle className="w-4 h-4 text-red-500" /> Non détecté</>
+                )}
               </div>
             </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">🍎 macOS</h4>
-              <div className="bg-slate-900 text-slate-100 p-3 rounded font-mono text-xs">
-                brew install eid-listener<br />
-                brew services start eid-listener<br />
-                # Ou télécharger le .pkg depuis le site
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-slate-900 mb-2">🐧 Linux</h4>
-              <div className="bg-slate-900 text-slate-100 p-3 rounded font-mono text-xs">
-                sudo apt install eid-listener<br />
-                sudo systemctl enable eid-listener<br />
-                sudo systemctl start eid-listener<br />
-                systemctl status eid-listener
+            <div className="p-3 rounded-lg border">
+              <div className="text-sm text-muted-foreground">e-Contract</div>
+              <div className="flex items-center gap-1">
+                {status?.hasEContract ? (
+                  <><CheckCircle className="w-4 h-4 text-green-500" /> Disponible</>
+                ) : (
+                  <><XCircle className="w-4 h-4 text-gray-400" /> Non détecté</>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t">
-            <h4 className="font-semibold text-slate-900 mb-2">Endpoints agent:</h4>
-            <ul className="text-sm space-y-1 text-slate-700">
-              <li>• <code className="bg-slate-100 px-2 py-1 rounded">GET http://127.0.0.1:27272/status</code> - Vérifier le statut</li>
-              <li>• <code className="bg-slate-100 px-2 py-1 rounded">GET http://127.0.0.1:27272/last-card</code> - Dernière carte lue</li>
-              <li>• <code className="bg-slate-100 px-2 py-1 rounded">WS ws://127.0.0.1:27272/events</code> - Événements en temps réel</li>
-              <li>• <code className="bg-slate-100 px-2 py-1 rounded">POST http://127.0.0.1:27272/simulate</code> - Simuler insertion (mode dev)</li>
-            </ul>
-          </div>
-
-          <Alert className="bg-blue-50 border-blue-200">
-            <Activity className="w-4 h-4 text-blue-600" />
-            <AlertDescription className="text-blue-900">
-              <strong>Sécurité:</strong> L'agent fonctionne uniquement en localhost (127.0.0.1), aucune donnée n'est envoyée vers l'extérieur.
-              Toutes les lectures sont auditées dans le journal de l'application.
-            </AlertDescription>
-          </Alert>
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => window.open('https://github.com/yourusername/eid-listener', '_blank')}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Télécharger l'agent
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.open('https://github.com/yourusername/eid-listener/blob/main/README.md', '_blank')}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Documentation complète
-            </Button>
-          </div>
+          {status?.details && (
+            <div className={`p-3 rounded-lg ${status.hasMiddleware ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'}`}>
+              {status.details}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Note CSP */}
-      <Alert className="bg-purple-50 border-purple-200">
-        <AlertDescription className="text-purple-900 text-sm">
-          <strong>Note technique:</strong> L'app autorise <code>http://127.0.0.1:27272</code> dans sa Content Security Policy (connect-src).
-          Le WebSocket et les endpoints HTTP sont réservés au localhost uniquement.
-        </AlertDescription>
-      </Alert>
+      {/* Tests */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="w-5 h-5" />
+            Tests de lecture
+          </CardTitle>
+          <CardDescription>
+            Insérez votre carte eID et lancez un test
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={testWebEidStatus} disabled={loading}>
+              <Shield className="w-4 h-4 mr-2" />
+              1. Test Statut Web-eID
+            </Button>
+            <Button onClick={testReadCard} disabled={loading || !status?.hasMiddleware}>
+              <CreditCard className="w-4 h-4 mr-2" />
+              2. Test Authentification
+            </Button>
+            <Button onClick={testReadCardDirect} disabled={loading || !status?.hasWebEid} variant="secondary">
+              <CreditCard className="w-4 h-4 mr-2" />
+              3. Lecture Directe
+            </Button>
+          </div>
+
+          {loading && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Opération en cours...
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 bg-red-50 text-red-800 rounded-lg">
+              <div className="font-medium flex items-center gap-2">
+                <XCircle className="w-4 h-4" />
+                Erreur
+              </div>
+              <div className="mt-1 text-sm">{error}</div>
+            </div>
+          )}
+
+          {testResult && (
+            <div className={`p-4 rounded-lg ${testResult.success ? 'bg-green-50' : 'bg-red-50'}`}>
+              <div className="flex items-center justify-between">
+                <div className="font-medium flex items-center gap-2">
+                  {testResult.success ? (
+                    <><CheckCircle className="w-4 h-4 text-green-600" /> Succès</>
+                  ) : (
+                    <><XCircle className="w-4 h-4 text-red-600" /> Échec</>
+                  )}
+                  {testResult.method && <Badge variant="outline">{testResult.method}</Badge>}
+                </div>
+              </div>
+              
+              {testResult.success && testResult.parsedData && (
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="text-muted-foreground">NISS:</span> <strong>{testResult.niss || testResult.parsedData.serialNumber || 'Non trouvé'}</strong></div>
+                  <div><span className="text-muted-foreground">Prénom:</span> {testResult.firstName || testResult.parsedData.givenName || 'Non trouvé'}</div>
+                  <div><span className="text-muted-foreground">Nom:</span> {testResult.lastName || testResult.parsedData.surname || 'Non trouvé'}</div>
+                  <div><span className="text-muted-foreground">CN:</span> {testResult.commonName || testResult.parsedData.commonName || 'Non trouvé'}</div>
+                </div>
+              )}
+
+              {testResult.data && (
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div><span className="text-muted-foreground">NISS:</span> <strong>{testResult.data.nationalNumber || 'Non trouvé'}</strong></div>
+                  <div><span className="text-muted-foreground">Prénom:</span> {testResult.data.firstName || 'Non trouvé'}</div>
+                  <div><span className="text-muted-foreground">Nom:</span> {testResult.data.lastName || 'Non trouvé'}</div>
+                  <div><span className="text-muted-foreground">Date naissance:</span> {testResult.data.birthDate || 'Non trouvée'}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Données brutes (debug) */}
+      {rawData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Bug className="w-5 h-5" />
+                Données brutes: {rawData.type}
+              </span>
+              <Button size="sm" variant="ghost" onClick={() => copyToClipboard(rawData.data)}>
+                <Copy className="w-4 h-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="p-3 bg-slate-100 rounded-lg text-xs overflow-auto max-h-64">
+              {JSON.stringify(rawData.data, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Liens d'installation */}
+      {!status?.hasMiddleware && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              Installation requise
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-medium mb-2">1. eID Viewer officiel (prérequis)</h3>
+                <Button variant="outline" className="w-full" asChild>
+                  <a href={links.official.viewer} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Télécharger eID Viewer
+                  </a>
+                </Button>
+              </div>
+              
+              <div className="p-4 border rounded-lg bg-blue-50">
+                <h3 className="font-medium mb-2">2. Web-eID (recommandé)</h3>
+                <div className="space-y-2">
+                  <Button className="w-full" asChild>
+                    <a href={status?.platform === 'windows' ? links.webEid.windows : links.webEid.macos} target="_blank" rel="noopener noreferrer">
+                      <Download className="w-4 h-4 mr-2" />
+                      Application Web-eID
+                    </a>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <a href={links.browser === 'firefox' ? links.webEid.firefoxExtension : links.webEid.chromeExtension} target="_blank" rel="noopener noreferrer">
+                      <Globe className="w-4 h-4 mr-2" />
+                      Extension navigateur
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
