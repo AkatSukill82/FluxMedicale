@@ -31,6 +31,39 @@ export const useEIDReader = () => {
     detectMiddleware();
   }, [detectMiddleware]);
 
+  // Lire via Web-eID (authentification - retourne certificat avec données)
+  const readViaWebEid = useCallback(async () => {
+    try {
+      // Générer un nonce aléatoire pour l'authentification
+      const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+      
+      // Authentifier - cela ouvre le dialogue Web-eID
+      const authResult = await webEidService.authenticate(nonce, { lang: 'fr' });
+      
+      // Le token d'authentification contient le certificat avec les données du titulaire
+      // On doit parser le certificat pour extraire les données
+      const certData = parseWebEidCertificate(authResult);
+      
+      return certData;
+    } catch (error) {
+      throw new Error(`Web-eID: ${error.message || error.code || 'Erreur inconnue'}`);
+    }
+  }, []);
+
+  // Lire via e-Contract.be (API locale legacy)
+  const readViaEContract = useCallback(async () => {
+    const response = await fetch('http://localhost:35963/v1/card-data', {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(15000)
+    });
+
+    if (!response.ok) {
+      throw new Error('e-Contract API failed');
+    }
+    return await response.json();
+  }, []);
+
   const readEID = useCallback(async () => {
     setIsReading(true);
     setError(null);
@@ -38,32 +71,39 @@ export const useEIDReader = () => {
 
     try {
       const currentUser = await base44.auth.me();
+      
+      // Re-détecter pour avoir le statut à jour
+      const currentStatus = await eidDetectionService.detectEIDMiddleware();
+      setEidStatus(currentStatus);
 
       let eidData;
-      try {
-        const response = await fetch('http://localhost:35963/v1/card-data', {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' },
-          signal: AbortSignal.timeout(15000)
-        });
-
-        if (!response.ok) {
-          throw new Error('Local API for eID reading failed');
+      
+      // Essayer Web-eID d'abord (recommandé), puis e-Contract
+      if (currentStatus.hasWebEid) {
+        try {
+          toast.info("Authentification Web-eID en cours...");
+          eidData = await readViaWebEid();
+        } catch (webEidError) {
+          console.warn('[eID Reader] Web-eID failed:', webEidError.message);
+          // Si Web-eID échoue et e-Contract est dispo, essayer e-Contract
+          if (currentStatus.hasEContract) {
+            toast.info("Tentative via e-Contract...");
+            eidData = await readViaEContract();
+          } else {
+            throw webEidError;
+          }
         }
-        eidData = await response.json();
-      } catch (apiError) {
-        // Silently log the error, don't spam console
-        if (apiError.message !== 'Failed to fetch') {
-          console.warn('[eID Reader]', apiError.message);
-        }
+      } else if (currentStatus.hasEContract) {
+        eidData = await readViaEContract();
+      } else {
         const errorMsg = t('errors.eidApiUnavailable');
         setError(errorMsg);
         toast.dismiss();
         toast.error(errorMsg, {
-          description: "Le logiciel eID n'est pas installé ou ne fonctionne pas. Installez-le ou créez le patient manuellement.",
+          description: "Installez Web-eID (recommandé) ou e-Contract.be pour lire les cartes eID.",
           duration: 5000
         });
-        return { status: 'ERROR', error: errorMsg };
+        return { status: 'NO_MIDDLEWARE', error: errorMsg };
       }
 
       const rawNiss = eidData.nationalNumber;
