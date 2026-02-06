@@ -156,6 +156,9 @@ export const webEidService = {
     error: null
   },
 
+  // Parser ASN.1 exposé
+  parseAsn1,
+
   // Vérifier si Web-eID est disponible
   async checkStatus() {
     try {
@@ -193,6 +196,89 @@ export const webEidService = {
     };
     
     return await webeid.authenticate(nonce, authOptions);
+  },
+  
+  // Lire les données de la carte via getCertificate (plus simple que authenticate)
+  async readCardData(options = {}) {
+    const webeid = await loadWebEid();
+    
+    // Utiliser getSigningCertificate qui ne requiert pas de PIN pour le certificat d'authentification
+    // mais authenticate donne accès au certificat d'auth qui contient les données personnelles
+    const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+    
+    try {
+      const result = await webeid.authenticate(nonce, {
+        lang: options.lang || 'fr'
+      });
+      
+      // Parser le certificat pour extraire les données
+      if (result.unverifiedCertificate) {
+        const certData = parseAsn1.parseCertificate(result.unverifiedCertificate);
+        
+        if (certData) {
+          return {
+            success: true,
+            rawCertificate: result.unverifiedCertificate,
+            nationalNumber: certData.serialNumber,
+            firstName: certData.givenName,
+            lastName: certData.surname,
+            commonName: certData.commonName,
+            // Parser la date de naissance du NISS
+            ...this.parseNISS(certData.serialNumber)
+          };
+        }
+      }
+      
+      throw new Error('Impossible d\'extraire les données du certificat');
+    } catch (error) {
+      // Gérer les erreurs spécifiques Web-eID
+      const errorMsg = this.getErrorMessage(error);
+      throw new Error(errorMsg);
+    }
+  },
+  
+  // Parser le NISS pour extraire date de naissance et genre
+  parseNISS(niss) {
+    if (!niss || niss.length !== 11) return {};
+    
+    const year = parseInt(niss.substring(0, 2));
+    const month = parseInt(niss.substring(2, 4));
+    const day = parseInt(niss.substring(4, 6));
+    const seq = parseInt(niss.substring(6, 9));
+    
+    // Déterminer le siècle
+    const currentYear = new Date().getFullYear() % 100;
+    const century = year > currentYear ? 1900 : 2000;
+    
+    return {
+      birthDate: `${century + year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      gender: seq % 2 === 1 ? 'male' : 'female'
+    };
+  },
+  
+  // Messages d'erreur explicites
+  getErrorMessage(error) {
+    const code = error.code || error.message || '';
+    
+    const errorMessages = {
+      'ERR_WEBEID_USER_CANCELLED': 'Opération annulée par l\'utilisateur',
+      'ERR_WEBEID_NATIVE_UNAVAILABLE': 'Application Web-eID native non installée. Téléchargez-la depuis web-eid.eu',
+      'ERR_WEBEID_EXTENSION_UNAVAILABLE': 'Extension Web-eID non installée dans votre navigateur',
+      'ERR_WEBEID_VERSION_MISMATCH': 'Version incompatible de Web-eID. Mettez à jour l\'application et l\'extension',
+      'ERR_WEBEID_CARD_NOT_FOUND': 'Aucune carte eID détectée. Insérez votre carte dans le lecteur',
+      'ERR_WEBEID_WRONG_PIN': 'Code PIN incorrect',
+      'ERR_WEBEID_PIN_BLOCKED': 'Code PIN bloqué. Utilisez votre code PUK pour débloquer',
+      'ERR_WEBEID_TIMEOUT': 'Délai d\'attente dépassé. Réessayez',
+      'user_cancelled': 'Opération annulée par l\'utilisateur'
+    };
+    
+    for (const [key, msg] of Object.entries(errorMessages)) {
+      if (code.includes(key) || (error.message && error.message.includes(key))) {
+        return msg;
+      }
+    }
+    
+    return error.message || 'Erreur lors de la lecture de la carte eID';
   },
 
   // Obtenir le certificat de signature
