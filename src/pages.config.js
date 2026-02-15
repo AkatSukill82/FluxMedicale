@@ -91,6 +91,7 @@ import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
 import EHealthCertificats from './pages/EHealthCertificats';
+import MyCareNet from './pages/MyCareNet';
 import __Layout from './Layout.jsx';
 
 
@@ -139,6 +140,7 @@ export const PAGES = {
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
     "EHealthCertificats": EHealthCertificats,
+    "MyCareNet": MyCareNet,
 }
 
 export const pagesConfig = {
