@@ -57,6 +57,7 @@ import Cabinets from './pages/Cabinets';
 import ChapitreIV from './pages/ChapitreIV';
 import Dashboard from './pages/Dashboard';
 import Documentation from './pages/Documentation';
+import EHealthCertificats from './pages/EHealthCertificats';
 import EIDTest from './pages/EIDTest';
 import EPrescriptions from './pages/EPrescriptions';
 import Facturation from './pages/Facturation';
@@ -70,6 +71,7 @@ import Inbox from './pages/Inbox';
 import Laboratoire from './pages/Laboratoire';
 import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
 import ModulesEHealth from './pages/ModulesEHealth';
+import MyCareNet from './pages/MyCareNet';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import Prescriptions from './pages/Prescriptions';
@@ -90,8 +92,7 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import EHealthCertificats from './pages/EHealthCertificats';
-import MyCareNet from './pages/MyCareNet';
+import Medicaments from './pages/Medicaments';
 import __Layout from './Layout.jsx';
 
 
@@ -106,6 +107,7 @@ export const PAGES = {
     "ChapitreIV": ChapitreIV,
     "Dashboard": Dashboard,
     "Documentation": Documentation,
+    "EHealthCertificats": EHealthCertificats,
     "EIDTest": EIDTest,
     "EPrescriptions": EPrescriptions,
     "Facturation": Facturation,
@@ -119,6 +121,7 @@ export const PAGES = {
     "Laboratoire": Laboratoire,
     "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
     "ModulesEHealth": ModulesEHealth,
+    "MyCareNet": MyCareNet,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "Prescriptions": Prescriptions,
@@ -139,8 +142,7 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "EHealthCertificats": EHealthCertificats,
-    "MyCareNet": MyCareNet,
+    "Medicaments": Medicaments,
 }
 
 export const pagesConfig = {
