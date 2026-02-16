@@ -6,11 +6,17 @@ import {
   cachePatients,
   cacheConsultations,
   cachePrescriptions,
+  cacheRendezVous,
+  cacheMedicalHistory,
+  cacheVaccinations,
+  cacheDrugs,
+  cacheNomenclature,
   getPendingActions,
   markActionSynced,
   markActionFailed,
   clearSyncedActions,
   getOfflineStats,
+  getExtendedOfflineStats,
   getCacheMeta,
   setCacheMeta
 } from './OfflineService';
@@ -76,22 +82,58 @@ export function useSyncManager() {
 
     setIsSyncing(true);
     const startTime = Date.now();
+    let totalItems = 0;
 
     try {
       // Télécharger les patients
       toast.loading('Téléchargement des patients...', { id: 'download-progress' });
       const patients = await base44.entities.Patient.list('-created_date', options.patientLimit || 200);
       await cachePatients(patients);
+      totalItems += patients.length;
 
       // Télécharger les consultations récentes
       toast.loading('Téléchargement des consultations...', { id: 'download-progress' });
       const consultations = await base44.entities.Consultation.list('-date_consultation', options.consultationLimit || 500);
       await cacheConsultations(consultations);
+      totalItems += consultations.length;
 
       // Télécharger les prescriptions récentes
       toast.loading('Téléchargement des prescriptions...', { id: 'download-progress' });
       const prescriptions = await base44.entities.Prescription.list('-date_prescription', options.prescriptionLimit || 300);
       await cachePrescriptions(prescriptions);
+      totalItems += prescriptions.length;
+
+      // Télécharger les rendez-vous des 7 prochains jours
+      toast.loading('Téléchargement des rendez-vous...', { id: 'download-progress' });
+      try {
+        const rdvList = await base44.entities.RendezVous.list('-date', 100);
+        await cacheRendezVous(rdvList);
+        totalItems += rdvList.length;
+      } catch (e) { console.warn('RDV cache error:', e); }
+
+      // Télécharger les antécédents médicaux
+      toast.loading('Téléchargement des antécédents...', { id: 'download-progress' });
+      try {
+        const history = await base44.entities.MedicalHistory.list('-created_date', 500);
+        await cacheMedicalHistory(history);
+        totalItems += history.length;
+      } catch (e) { console.warn('History cache error:', e); }
+
+      // Télécharger les vaccinations
+      toast.loading('Téléchargement des vaccinations...', { id: 'download-progress' });
+      try {
+        const vaccinations = await base44.entities.Vaccination.list('-vaccination_date', 300);
+        await cacheVaccinations(vaccinations);
+        totalItems += vaccinations.length;
+      } catch (e) { console.warn('Vaccinations cache error:', e); }
+
+      // Télécharger le référentiel de nomenclature
+      toast.loading('Téléchargement de la nomenclature...', { id: 'download-progress' });
+      try {
+        const nomenCodes = await base44.entities.NomenclatureAuto.list('code', 1000);
+        await cacheNomenclature(nomenCodes);
+        totalItems += nomenCodes.length;
+      } catch (e) { console.warn('Nomenclature cache error:', e); }
 
       // Mettre à jour la date de sync
       const now = new Date().toISOString();
@@ -101,7 +143,7 @@ export function useSyncManager() {
       const duration = ((Date.now() - startTime) / 1000).toFixed(1);
       toast.success('Données téléchargées', {
         id: 'download-progress',
-        description: `${patients.length} patients, ${consultations.length} consultations en ${duration}s`
+        description: `${totalItems} éléments en ${duration}s`
       });
 
       return true;
