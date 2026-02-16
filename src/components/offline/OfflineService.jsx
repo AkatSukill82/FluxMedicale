@@ -1,12 +1,17 @@
 // Service de gestion du mode hors-ligne avec IndexedDB
 const DB_NAME = 'medical_app_offline_db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 // Stores dans IndexedDB
 const STORES = {
   PATIENTS: 'patients',
   CONSULTATIONS: 'consultations',
   PRESCRIPTIONS: 'prescriptions',
+  RENDEZVOUS: 'rendezvous',
+  MEDICAL_HISTORY: 'medical_history',
+  VACCINATIONS: 'vaccinations',
+  DRUGS: 'drugs',
+  NOMENCLATURE: 'nomenclature',
   PENDING_ACTIONS: 'pending_actions',
   CACHE_META: 'cache_meta'
 };
@@ -57,6 +62,38 @@ export async function initOfflineDB() {
       // Store pour les métadonnées du cache
       if (!database.objectStoreNames.contains(STORES.CACHE_META)) {
         database.createObjectStore(STORES.CACHE_META, { keyPath: 'key' });
+      }
+
+      // Store pour les rendez-vous
+      if (!database.objectStoreNames.contains(STORES.RENDEZVOUS)) {
+        const rdvStore = database.createObjectStore(STORES.RENDEZVOUS, { keyPath: 'id' });
+        rdvStore.createIndex('patient_id', 'patient_id', { unique: false });
+        rdvStore.createIndex('date', 'date', { unique: false });
+      }
+
+      // Store pour les antécédents médicaux
+      if (!database.objectStoreNames.contains(STORES.MEDICAL_HISTORY)) {
+        const histStore = database.createObjectStore(STORES.MEDICAL_HISTORY, { keyPath: 'id' });
+        histStore.createIndex('patient_id', 'patient_id', { unique: false });
+      }
+
+      // Store pour les vaccinations
+      if (!database.objectStoreNames.contains(STORES.VACCINATIONS)) {
+        const vaccStore = database.createObjectStore(STORES.VACCINATIONS, { keyPath: 'id' });
+        vaccStore.createIndex('patient_id', 'patient_id', { unique: false });
+      }
+
+      // Store pour les médicaments (référentiel)
+      if (!database.objectStoreNames.contains(STORES.DRUGS)) {
+        const drugStore = database.createObjectStore(STORES.DRUGS, { keyPath: 'id' });
+        drugStore.createIndex('name', 'name', { unique: false });
+        drugStore.createIndex('cnk', 'cnk', { unique: false });
+      }
+
+      // Store pour la nomenclature (référentiel)
+      if (!database.objectStoreNames.contains(STORES.NOMENCLATURE)) {
+        const nomenStore = database.createObjectStore(STORES.NOMENCLATURE, { keyPath: 'id' });
+        nomenStore.createIndex('code', 'code', { unique: false });
       }
     };
   });
@@ -414,12 +451,246 @@ export async function getOfflineStats() {
 export async function clearAllCache() {
   const database = await getDB();
   
-  const stores = [STORES.PATIENTS, STORES.CONSULTATIONS, STORES.PRESCRIPTIONS];
+  const stores = [
+    STORES.PATIENTS, 
+    STORES.CONSULTATIONS, 
+    STORES.PRESCRIPTIONS,
+    STORES.RENDEZVOUS,
+    STORES.MEDICAL_HISTORY,
+    STORES.VACCINATIONS
+  ];
   
   for (const storeName of stores) {
-    const tx = database.transaction(storeName, 'readwrite');
-    await tx.objectStore(storeName).clear();
+    try {
+      const tx = database.transaction(storeName, 'readwrite');
+      await tx.objectStore(storeName).clear();
+    } catch (e) {
+      console.warn(`Could not clear store ${storeName}:`, e);
+    }
   }
 
   return true;
+}
+
+// ========== RENDEZ-VOUS ==========
+
+export async function cacheRendezVous(rdvList) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.RENDEZVOUS, 'readwrite');
+  const store = tx.objectStore(STORES.RENDEZVOUS);
+
+  for (const rdv of rdvList) {
+    await store.put({
+      ...rdv,
+      cachedAt: new Date().toISOString()
+    });
+  }
+  return true;
+}
+
+export async function getCachedRendezVous(date) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.RENDEZVOUS, 'readonly');
+  const store = tx.objectStore(STORES.RENDEZVOUS);
+  const index = store.index('date');
+  
+  return new Promise((resolve, reject) => {
+    const request = date ? index.getAll(date) : store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function getCachedRendezVousForPatient(patientId) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.RENDEZVOUS, 'readonly');
+  const store = tx.objectStore(STORES.RENDEZVOUS);
+  const index = store.index('patient_id');
+  
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(patientId);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// ========== ANTÉCÉDENTS MÉDICAUX ==========
+
+export async function cacheMedicalHistory(historyList) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.MEDICAL_HISTORY, 'readwrite');
+  const store = tx.objectStore(STORES.MEDICAL_HISTORY);
+
+  for (const item of historyList) {
+    await store.put({
+      ...item,
+      cachedAt: new Date().toISOString()
+    });
+  }
+  return true;
+}
+
+export async function getCachedMedicalHistory(patientId) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.MEDICAL_HISTORY, 'readonly');
+  const store = tx.objectStore(STORES.MEDICAL_HISTORY);
+  const index = store.index('patient_id');
+  
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(patientId);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// ========== VACCINATIONS ==========
+
+export async function cacheVaccinations(vaccinations) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.VACCINATIONS, 'readwrite');
+  const store = tx.objectStore(STORES.VACCINATIONS);
+
+  for (const vacc of vaccinations) {
+    await store.put({
+      ...vacc,
+      cachedAt: new Date().toISOString()
+    });
+  }
+  return true;
+}
+
+export async function getCachedVaccinations(patientId) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.VACCINATIONS, 'readonly');
+  const store = tx.objectStore(STORES.VACCINATIONS);
+  const index = store.index('patient_id');
+  
+  return new Promise((resolve, reject) => {
+    const request = index.getAll(patientId);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// ========== RÉFÉRENTIELS (Médicaments, Nomenclature) ==========
+
+export async function cacheDrugs(drugs) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.DRUGS, 'readwrite');
+  const store = tx.objectStore(STORES.DRUGS);
+
+  for (const drug of drugs) {
+    await store.put(drug);
+  }
+  return true;
+}
+
+export async function searchCachedDrugs(query) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.DRUGS, 'readonly');
+  const store = tx.objectStore(STORES.DRUGS);
+  
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const lowerQuery = query.toLowerCase();
+      const results = request.result.filter(d => 
+        d.name?.toLowerCase().includes(lowerQuery) ||
+        d.cnk?.includes(query)
+      );
+      resolve(results.slice(0, 50));
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function cacheNomenclature(codes) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.NOMENCLATURE, 'readwrite');
+  const store = tx.objectStore(STORES.NOMENCLATURE);
+
+  for (const code of codes) {
+    await store.put(code);
+  }
+  return true;
+}
+
+export async function searchCachedNomenclature(query) {
+  const database = await getDB();
+  const tx = database.transaction(STORES.NOMENCLATURE, 'readonly');
+  const store = tx.objectStore(STORES.NOMENCLATURE);
+  
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const lowerQuery = query.toLowerCase();
+      const results = request.result.filter(n => 
+        n.code?.includes(query) ||
+        n.description_fr?.toLowerCase().includes(lowerQuery)
+      );
+      resolve(results.slice(0, 50));
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// ========== STATS ÉTENDUES ==========
+
+export async function getExtendedOfflineStats() {
+  const database = await getDB();
+  
+  const stats = await getOfflineStats();
+  
+  // Ajouter les stats des nouveaux stores
+  const additionalStats = await Promise.all([
+    new Promise((resolve) => {
+      try {
+        const tx = database.transaction(STORES.RENDEZVOUS, 'readonly');
+        const request = tx.objectStore(STORES.RENDEZVOUS).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(0);
+      } catch { resolve(0); }
+    }),
+    new Promise((resolve) => {
+      try {
+        const tx = database.transaction(STORES.MEDICAL_HISTORY, 'readonly');
+        const request = tx.objectStore(STORES.MEDICAL_HISTORY).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(0);
+      } catch { resolve(0); }
+    }),
+    new Promise((resolve) => {
+      try {
+        const tx = database.transaction(STORES.VACCINATIONS, 'readonly');
+        const request = tx.objectStore(STORES.VACCINATIONS).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(0);
+      } catch { resolve(0); }
+    }),
+    new Promise((resolve) => {
+      try {
+        const tx = database.transaction(STORES.DRUGS, 'readonly');
+        const request = tx.objectStore(STORES.DRUGS).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(0);
+      } catch { resolve(0); }
+    }),
+    new Promise((resolve) => {
+      try {
+        const tx = database.transaction(STORES.NOMENCLATURE, 'readonly');
+        const request = tx.objectStore(STORES.NOMENCLATURE).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(0);
+      } catch { resolve(0); }
+    })
+  ]);
+
+  return {
+    ...stats,
+    rendezVousCount: additionalStats[0],
+    medicalHistoryCount: additionalStats[1],
+    vaccinationsCount: additionalStats[2],
+    drugsCount: additionalStats[3],
+    nomenclatureCount: additionalStats[4]
+  };
 }
