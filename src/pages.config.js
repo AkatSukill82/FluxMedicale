@@ -93,6 +93,7 @@ import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
 import Medicaments from './pages/Medicaments';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -143,6 +144,7 @@ export const PAGES = {
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
     "Medicaments": Medicaments,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
