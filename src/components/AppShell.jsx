@@ -37,6 +37,7 @@ import {
   Home,
   Phone,
   BookOpen,
+  Pill,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -104,6 +105,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
         { title: 'Garde', path: 'Garde', icon: Phone },
         { title: 'Stocks', path: 'Stock', icon: Package },
+        { title: 'Médicaments', path: 'Medicaments', icon: Pill },
         { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
         { title: 'Documentation', path: 'Documentation', icon: BookOpen },
       ];
