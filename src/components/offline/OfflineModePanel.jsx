@@ -33,7 +33,7 @@ import {
   Settings
 } from 'lucide-react';
 import { useSyncManager } from './useSyncManager';
-import { getOfflineStats, clearAllCache } from './OfflineService';
+import { getExtendedOfflineStats, clearAllCache } from './OfflineService';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -65,7 +65,7 @@ export default function OfflineModePanel({ isOpen, onClose }) {
   }, [isOpen]);
 
   const loadStats = async () => {
-    const offlineStats = await getOfflineStats();
+    const offlineStats = await getExtendedOfflineStats();
     setStats(offlineStats);
   };
 
@@ -191,7 +191,7 @@ export default function OfflineModePanel({ isOpen, onClose }) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="text-center p-3 bg-slate-50 rounded-lg">
                     <Users className="w-5 h-5 mx-auto text-blue-600 mb-1" />
                     <p className="text-2xl font-bold">{stats.patientsCount}</p>
@@ -206,6 +206,21 @@ export default function OfflineModePanel({ isOpen, onClose }) {
                     <Pill className="w-5 h-5 mx-auto text-purple-600 mb-1" />
                     <p className="text-2xl font-bold">{stats.prescriptionsCount}</p>
                     <p className="text-xs text-muted-foreground">Prescriptions</p>
+                  </div>
+                  <div className="text-center p-3 bg-slate-50 rounded-lg">
+                    <Clock className="w-5 h-5 mx-auto text-orange-600 mb-1" />
+                    <p className="text-2xl font-bold">{stats.rendezVousCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">RDV</p>
+                  </div>
+                  <div className="text-center p-3 bg-slate-50 rounded-lg">
+                    <FileText className="w-5 h-5 mx-auto text-red-600 mb-1" />
+                    <p className="text-2xl font-bold">{stats.medicalHistoryCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">Antécédents</p>
+                  </div>
+                  <div className="text-center p-3 bg-slate-50 rounded-lg">
+                    <CheckCircle className="w-5 h-5 mx-auto text-teal-600 mb-1" />
+                    <p className="text-2xl font-bold">{stats.nomenclatureCount || 0}</p>
+                    <p className="text-xs text-muted-foreground">Codes INAMI</p>
                   </div>
                 </div>
 
@@ -294,6 +309,18 @@ export default function OfflineModePanel({ isOpen, onClose }) {
               <li>• Les consultations créées hors-ligne seront synchronisées automatiquement</li>
               <li>• Les prescriptions Recip-e nécessitent une connexion pour être envoyées</li>
               <li>• Vérifiez le nombre d'éléments en attente avant de partir</li>
+            </ul>
+          </div>
+
+          {/* Services NON disponibles hors-ligne */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <h4 className="font-medium text-red-800 mb-2">⚠️ Services non disponibles hors-ligne</h4>
+            <ul className="text-sm text-red-700 space-y-1">
+              <li>• eHealth / MyCareNet (assurabilité, eFact, eAttest)</li>
+              <li>• Recip-e (envoi des prescriptions électroniques)</li>
+              <li>• Vitalink / RSW / CoZo (Hubs régionaux)</li>
+              <li>• Lecture carte eID (nécessite middleware en ligne)</li>
+              <li>• Vaccinnet+ et autres services fédéraux</li>
             </ul>
           </div>
         </div>
