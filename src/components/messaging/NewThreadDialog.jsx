@@ -35,6 +35,40 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+function UserRow({ user, selected, onToggle, getInitials, isCabinetMember = false }) {
+  return (
+    <div
+      onClick={onToggle}
+      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+        selected 
+          ? 'bg-blue-50 border border-blue-200' 
+          : 'hover:bg-slate-50'
+      }`}
+    >
+      <Checkbox checked={selected} />
+      <Avatar className="w-8 h-8">
+        <AvatarFallback className={`text-xs ${isCabinetMember ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200'}`}>
+          {getInitials(user.full_name)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-sm truncate">{user.full_name}</p>
+        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+      </div>
+      <div className="flex items-center gap-1">
+        {isCabinetMember && (
+          <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+            Cabinet
+          </Badge>
+        )}
+        <Badge variant="outline" className="text-xs">
+          {user.role === 'admin' ? 'Médecin' : 'Staff'}
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
 export default function NewThreadDialog({ 
   open, 
   onOpenChange, 
