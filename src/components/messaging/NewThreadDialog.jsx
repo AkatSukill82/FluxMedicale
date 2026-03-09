@@ -30,7 +30,8 @@ import {
   Search,
   AlertCircle,
   Loader2,
-  X
+  X,
+  Building2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -53,6 +54,11 @@ export default function NewThreadDialog({
     queryKey: ['patientsForMessaging'],
     queryFn: () => base44.entities.Patient.list('-created_date', 100),
     enabled: threadType === 'patient' && !patientContext
+  });
+
+  const { data: cabinets = [] } = useQuery({
+    queryKey: ['cabinetsForMessaging'],
+    queryFn: () => base44.entities.Cabinet.filter({ actif: true })
   });
 
   const createMutation = useMutation({
@@ -105,6 +111,9 @@ export default function NewThreadDialog({
     );
   };
 
+  // Find cabinets the current user belongs to
+  const myCabinets = cabinets.filter(c => c.medecins?.includes(currentUser?.email));
+  
   const filteredUsers = users.filter(u => {
     if (u.email === currentUser?.email) return false;
     if (!searchQuery) return true;
@@ -113,6 +122,22 @@ export default function NewThreadDialog({
       u.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
   });
+
+  // Group users: cabinet colleagues first, then others
+  const cabinetColleagueEmails = new Set(
+    myCabinets.flatMap(c => (c.medecins || []).filter(e => e !== currentUser?.email))
+  );
+  
+  const cabinetColleagues = filteredUsers.filter(u => cabinetColleagueEmails.has(u.email));
+  const otherUsers = filteredUsers.filter(u => !cabinetColleagueEmails.has(u.email));
+
+  const selectAllCabinetMembers = (cabinet) => {
+    const members = (cabinet.medecins || []).filter(e => e !== currentUser?.email);
+    setSelectedUsers(prev => {
+      const newSet = new Set([...prev, ...members]);
+      return [...newSet];
+    });
+  };
 
   const getInitials = (name) => {
     if (!name) return '?';
@@ -239,32 +264,60 @@ export default function NewThreadDialog({
           )}
 
           {/* Liste des utilisateurs */}
-          <ScrollArea className="h-48 border rounded-lg">
+          <ScrollArea className="h-60 border rounded-lg">
             <div className="p-2 space-y-1">
-              {filteredUsers.map(user => (
-                <div
-                  key={user.email}
-                  onClick={() => toggleUser(user.email)}
-                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                    selectedUsers.includes(user.email) 
-                      ? 'bg-blue-50 border border-blue-200' 
-                      : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <Checkbox checked={selectedUsers.includes(user.email)} />
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="text-xs bg-slate-200">
-                      {getInitials(user.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{user.full_name}</p>
-                    <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    {user.role === 'admin' ? 'Médecin' : 'Staff'}
-                  </Badge>
-                </div>
+              {/* Cabinet colleagues section */}
+              {cabinetColleagues.length > 0 && (
+                <>
+                  {myCabinets.map(cabinet => {
+                    const membersInList = cabinetColleagues.filter(u => 
+                      cabinet.medecins?.includes(u.email)
+                    );
+                    if (membersInList.length === 0) return null;
+                    return (
+                      <div key={cabinet.id}>
+                        <div className="flex items-center justify-between px-2 py-1.5 mt-1">
+                          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            <Building2 className="w-3.5 h-3.5" />
+                            {cabinet.nom}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => selectAllCabinetMembers(cabinet)}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            Tout sélectionner
+                          </button>
+                        </div>
+                        {membersInList.map(user => (
+                          <UserRow 
+                            key={user.email} 
+                            user={user} 
+                            selected={selectedUsers.includes(user.email)}
+                            onToggle={() => toggleUser(user.email)}
+                            getInitials={getInitials}
+                            isCabinetMember
+                          />
+                        ))}
+                      </div>
+                    );
+                  })}
+                  {otherUsers.length > 0 && (
+                    <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Autres utilisateurs
+                    </div>
+                  )}
+                </>
+              )}
+              {/* Other users */}
+              {(cabinetColleagues.length === 0 ? filteredUsers : otherUsers).map(user => (
+                <UserRow 
+                  key={user.email} 
+                  user={user} 
+                  selected={selectedUsers.includes(user.email)}
+                  onToggle={() => toggleUser(user.email)}
+                  getInitials={getInitials}
+                />
               ))}
               {filteredUsers.length === 0 && (
                 <p className="text-center text-sm text-slate-500 py-4">
