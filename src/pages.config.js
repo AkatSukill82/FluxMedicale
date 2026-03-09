@@ -70,8 +70,10 @@ import Import from './pages/Import';
 import Inbox from './pages/Inbox';
 import Laboratoire from './pages/Laboratoire';
 import LiaisonMedecinSecretaire from './pages/LiaisonMedecinSecretaire';
+import Medicaments from './pages/Medicaments';
 import ModulesEHealth from './pages/ModulesEHealth';
 import MyCareNet from './pages/MyCareNet';
+import Notifications from './pages/Notifications';
 import Patients from './pages/Patients';
 import PrescriptionRenewals from './pages/PrescriptionRenewals';
 import Prescriptions from './pages/Prescriptions';
@@ -92,8 +94,6 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
-import Medicaments from './pages/Medicaments';
-import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -121,8 +121,10 @@ export const PAGES = {
     "Inbox": Inbox,
     "Laboratoire": Laboratoire,
     "LiaisonMedecinSecretaire": LiaisonMedecinSecretaire,
+    "Medicaments": Medicaments,
     "ModulesEHealth": ModulesEHealth,
     "MyCareNet": MyCareNet,
+    "Notifications": Notifications,
     "Patients": Patients,
     "PrescriptionRenewals": PrescriptionRenewals,
     "Prescriptions": Prescriptions,
@@ -143,8 +145,6 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
-    "Medicaments": Medicaments,
-    "Notifications": Notifications,
 }
 
 export const pagesConfig = {

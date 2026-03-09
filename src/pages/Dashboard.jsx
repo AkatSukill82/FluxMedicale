@@ -18,7 +18,8 @@ import {
   Sun,
   Sunrise,
   Moon,
-  Settings2
+  Settings2,
+  MessageSquare
 } from 'lucide-react';
 import { useI18n } from '../components/i18n/i18nContext';
 import { useEIDReader } from '../components/eid/useEIDReader';
@@ -198,6 +199,23 @@ export default function Dashboard() {
           <span className="text-xs font-medium">Prescriptions</span>
         </Button>
       </div>
+
+      {/* Accès rapide Messagerie */}
+      <Card 
+        className="shadow-sm cursor-pointer hover:shadow-md transition-shadow border-blue-100 bg-blue-50/30"
+        onClick={() => navigate(createPageUrl('Inbox'))}
+      >
+        <CardContent className="p-4 flex items-center gap-4">
+          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <MessageSquare className="w-5 h-5 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-slate-800">Messagerie sécurisée</p>
+            <p className="text-sm text-slate-500">Échangez avec vos confrères</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </CardContent>
+      </Card>
 
       {/* Configurable Widgets Section */}
       <div className="flex items-center justify-between">
