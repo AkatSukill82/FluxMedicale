@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { format, subMonths, startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import ClinicalStatistics from '../components/statistics/ClinicalStatistics';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -52,12 +53,13 @@ export default function Statistiques() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['statisticsData', dateRange, selectedPraticien],
     queryFn: async () => {
-      const [consultations, prescriptions, users] = await Promise.all([
+      const [consultations, prescriptions, users, patients] = await Promise.all([
         base44.entities.Consultation.list('-date_consultation', 1000),
         base44.entities.Prescription.list('-date_prescription', 1000),
-        base44.entities.User.list().catch(() => [])
+        base44.entities.User.list().catch(() => []),
+        base44.entities.Patient.list('-created_date', 2000).catch(() => [])
       ]);
-      return { consultations, prescriptions, users: users.filter(u => u.role === 'admin') };
+      return { consultations, prescriptions, users: users.filter(u => u.role === 'admin' || u.role === 'editor'), patients };
     }
   });
 
@@ -352,6 +354,10 @@ export default function Statistiques() {
             <Pill className="w-4 h-4" />
             Prescriptions
           </TabsTrigger>
+          <TabsTrigger value="clinique" className="gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Clinique
+          </TabsTrigger>
         </TabsList>
 
         {/* Consultations Tab */}
@@ -594,6 +600,15 @@ export default function Statistiques() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Clinical Statistics Tab */}
+        <TabsContent value="clinique" className="space-y-6">
+          <ClinicalStatistics
+            consultations={filteredConsultations}
+            prescriptions={filteredPrescriptions}
+            patients={data?.patients || []}
+          />
         </TabsContent>
       </Tabs>
     </div>
