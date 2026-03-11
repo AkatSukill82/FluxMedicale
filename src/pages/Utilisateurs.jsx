@@ -201,42 +201,55 @@ export default function Utilisateurs() {
         </CardContent>
       </Card>
 
-      {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Statistiques par rôle */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Total Utilisateurs</p>
+                <p className="text-sm font-medium text-slate-600">Total</p>
                 <p className="text-2xl font-bold text-slate-900">{users.length}</p>
               </div>
-              <Users className="w-8 h-8 text-blue-600" />
+              <Users className="w-7 h-7 text-slate-500" />
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border-red-100">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Médecins</p>
+                <p className="text-sm font-medium text-red-700">Admins</p>
                 <p className="text-2xl font-bold text-slate-900">
                   {users.filter(u => u.role === 'admin').length}
                 </p>
               </div>
-              <Stethoscope className="w-8 h-8 text-green-600" />
+              <Crown className="w-7 h-7 text-red-500" />
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border-blue-100">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-600">Secrétaires</p>
+                <p className="text-sm font-medium text-blue-700">Éditeurs</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {users.filter(u => u.role === 'editor').length}
+                </p>
+              </div>
+              <Pencil className="w-7 h-7 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-green-100">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-green-700">Lecteurs</p>
                 <p className="text-2xl font-bold text-slate-900">
                   {users.filter(u => u.role === 'user').length}
                 </p>
               </div>
-              <Shield className="w-8 h-8 text-orange-600" />
+              <Eye className="w-7 h-7 text-green-500" />
             </div>
           </CardContent>
         </Card>
@@ -358,7 +371,7 @@ export default function Utilisateurs() {
           <DialogHeader>
             <DialogTitle>Inviter un utilisateur</DialogTitle>
             <DialogDescription>
-              Invitez un nouveau médecin ou secrétaire à rejoindre FluxMed
+              Envoyez une invitation par email avec le rôle approprié
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -372,60 +385,43 @@ export default function Utilisateurs() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Nom complet *</Label>
-              <Input
-                placeholder="Dr. Jean Dupont"
-                value={inviteForm.full_name}
-                onChange={(e) => setInviteForm({...inviteForm, full_name: e.target.value})}
-              />
-            </div>
-            <div className="space-y-2">
               <Label>Rôle *</Label>
               <Select value={inviteForm.role} onValueChange={(v) => setInviteForm({...inviteForm, role: v})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Médecin (accès complet)</SelectItem>
-                  <SelectItem value="user">Secrétaire (accès limité)</SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-red-600" />
+                      Admin — Accès complet
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="editor">
+                    <div className="flex items-center gap-2">
+                      <Pencil className="w-4 h-4 text-blue-600" />
+                      Éditeur — Accès clinique
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="user">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-green-600" />
+                      Lecteur — Lecture seule
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {inviteForm.role === 'admin' && (
-              <>
-                <div className="space-y-2">
-                  <Label>Spécialité</Label>
-                  <Input
-                    placeholder="Médecine générale"
-                    value={inviteForm.specialite}
-                    onChange={(e) => setInviteForm({...inviteForm, specialite: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Numéro INAMI</Label>
-                  <Input
-                    placeholder="1-12345-67-890"
-                    value={inviteForm.numero_inami}
-                    onChange={(e) => setInviteForm({...inviteForm, numero_inami: e.target.value})}
-                  />
-                </div>
-              </>
-            )}
-            <div className="space-y-2">
-              <Label>Téléphone cabinet</Label>
-              <Input
-                placeholder="+32 2 123 45 67"
-                value={inviteForm.telephone_cabinet}
-                onChange={(e) => setInviteForm({...inviteForm, telephone_cabinet: e.target.value})}
-              />
+            <div className="p-3 bg-slate-50 rounded-lg text-sm text-slate-600">
+              {ROLE_DESCRIPTIONS[inviteForm.role]}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={handleInvite}>
-              Envoyer l'invitation
+            <Button onClick={handleInvite} disabled={inviteMutation.isPending}>
+              {inviteMutation.isPending ? 'Envoi...' : 'Envoyer l\'invitation'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -435,19 +431,53 @@ export default function Utilisateurs() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Modifier le rôle</DialogTitle>
+            <DialogTitle>Modifier le rôle de {selectedUser?.full_name}</DialogTitle>
             <DialogDescription>
-              Modifier le rôle de {selectedUser?.full_name}
+              Changez le niveau d'accès de cet utilisateur
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-slate-600 mb-4">
-              Rôle actuel : <strong>{selectedUser?.role === 'admin' ? 'MÉDECIN' : 'SECRÉTAIRE'}</strong>
-            </p>
-            <p className="text-sm text-slate-600">
-              Nouveau rôle : <strong>{selectedUser?.role === 'admin' ? 'SECRÉTAIRE' : 'MÉDECIN'}</strong>
-            </p>
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Rôle actuel</Label>
+              <div>{getRoleBadge(selectedUser?.role)}</div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nouveau rôle</Label>
+              <Select value={editRole} onValueChange={setEditRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-red-600" />
+                      Admin
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="editor">
+                    <div className="flex items-center gap-2">
+                      <Pencil className="w-4 h-4 text-blue-600" />
+                      Éditeur
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="user">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-green-600" />
+                      Lecteur
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {editRole && (
+              <div className="p-3 bg-slate-50 rounded-lg text-sm text-slate-600">
+                {ROLE_DESCRIPTIONS[editRole]}
+              </div>
+            )}
+
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
                 ⚠️ Cette action modifiera immédiatement les permissions d'accès de l'utilisateur.
               </p>
@@ -457,7 +487,10 @@ export default function Utilisateurs() {
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
               Annuler
             </Button>
-            <Button onClick={confirmRoleChange} disabled={updateRoleMutation.isPending}>
+            <Button 
+              onClick={confirmRoleChange} 
+              disabled={updateRoleMutation.isPending || editRole === selectedUser?.role}
+            >
               {updateRoleMutation.isPending ? 'Modification...' : 'Confirmer'}
             </Button>
           </DialogFooter>
