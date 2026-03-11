@@ -28,6 +28,7 @@ import GoogleCalendarSync from "../components/agenda/GoogleCalendarSync";
 
 export default function Agenda() {
   const queryClient = useQueryClient();
+  const isOnline = useOnlineStatus();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewType, setViewType] = useState("week");
   const [showForm, setShowForm] = useState(false);
@@ -43,15 +44,23 @@ export default function Agenda() {
   const [filterStatus, setFilterStatus] = useState('all');
 
   const { data: agendaData, isLoading } = useQuery({
-    queryKey: ['agendaData'],
+    queryKey: ['agendaData', isOnline ? 'online' : 'offline'],
     queryFn: async () => {
-      const [rendezVous, patients, users, slots] = await Promise.all([
-        base44.entities.RendezVous.list("-date"),
-        base44.entities.Patient.list(),
-        base44.auth.me().then(() => base44.entities.User?.list?.() || []).catch(() => []),
-        base44.entities.CalendarSlot.list().catch(() => [])
+      if (isOnline) {
+        const [rendezVous, patients, users, slots] = await Promise.all([
+          base44.entities.RendezVous.list("-date"),
+          base44.entities.Patient.list(),
+          base44.auth.me().then(() => base44.entities.User?.list?.() || []).catch(() => []),
+          base44.entities.CalendarSlot.list().catch(() => [])
+        ]);
+        return { rendezVous, patients, users: users.filter(u => u.role === 'admin'), slots };
+      }
+      // Offline: load from cache
+      const [rendezVous, patients] = await Promise.all([
+        getCachedRendezVous(),
+        getCachedPatients()
       ]);
-      return { rendezVous, patients, users: users.filter(u => u.role === 'admin'), slots };
+      return { rendezVous, patients, users: [], slots: [] };
     }
   });
 
