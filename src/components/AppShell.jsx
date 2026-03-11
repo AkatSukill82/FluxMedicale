@@ -78,8 +78,15 @@ export default function AppShell({ children, currentPageName }) {
     try {
       const userData = await base44.auth.me();
       setUser(userData);
+      // Cache user for offline use
+      localStorage.setItem('fluxmed_cached_user', JSON.stringify(userData));
     } catch (error) {
       console.error('Erreur chargement utilisateur:', error);
+      // Fallback to cached user when offline
+      try {
+        const cachedUser = JSON.parse(localStorage.getItem('fluxmed_cached_user') || 'null');
+        if (cachedUser) setUser(cachedUser);
+      } catch {}
     }
   };
 
