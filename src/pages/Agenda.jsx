@@ -12,6 +12,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DragDropContext } from "@hello-pangea/dnd";
 import { toast } from "sonner";
 import { handleError, handleSuccess } from '../components/utils/ErrorHandler';
+import { useOnlineStatus } from '../components/OfflineIndicator';
+import { getCachedRendezVous, getCachedPatients } from '../components/offline/OfflineService';
+import OfflineBanner from '../components/offline/OfflineBanner';
 
 import WeeklyCalendar from "../components/agenda/WeeklyCalendar";
 import AppointmentForm from "../components/agenda/AppointmentForm";
