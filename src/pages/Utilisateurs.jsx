@@ -38,15 +38,16 @@ import {
   Shield, 
   Mail,
   Phone,
-  MapPin,
-  Clock,
   Stethoscope,
-  Edit,
   Trash2,
-  UserCog
+  UserCog,
+  Eye,
+  Pencil,
+  Crown
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, ROLE_COLORS } from '../components/auth/RBACGuard';
 
 export default function Utilisateurs() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,13 +56,10 @@ export default function Utilisateurs() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   
+  const [editRole, setEditRole] = useState('');
   const [inviteForm, setInviteForm] = useState({
     email: "",
-    full_name: "",
-    role: "user",
-    specialite: "",
-    numero_inami: "",
-    telephone_cabinet: ""
+    role: "user"
   });
 
   const queryClient = useQueryClient();
@@ -85,9 +83,25 @@ export default function Utilisateurs() {
       queryClient.invalidateQueries(['users']);
       toast.success('Rôle modifié avec succès');
       setShowEditDialog(false);
+      setSelectedUser(null);
     },
     onError: () => {
       toast.error('Erreur lors de la modification du rôle');
+    }
+  });
+
+  const inviteMutation = useMutation({
+    mutationFn: async ({ email, role }) => {
+      return await base44.users.inviteUser(email, role);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['users']);
+      toast.success('Invitation envoyée avec succès');
+      setShowInviteDialog(false);
+      setInviteForm({ email: '', role: 'user' });
+    },
+    onError: (err) => {
+      toast.error('Erreur : ' + (err?.message || 'Impossible d\'envoyer l\'invitation'));
     }
   });
 
@@ -111,14 +125,16 @@ export default function Utilisateurs() {
   );
 
   const handleInvite = () => {
-    // Note: Base44 ne permet pas de créer des utilisateurs directement via l'API
-    // Il faut utiliser la fonction d'invitation de la plateforme
-    toast.info('Pour inviter un utilisateur, utilisez la fonction d\'invitation dans les paramètres du compte Base44');
-    setShowInviteDialog(false);
+    if (!inviteForm.email) {
+      toast.error('Veuillez saisir un email');
+      return;
+    }
+    inviteMutation.mutate({ email: inviteForm.email, role: inviteForm.role });
   };
 
   const handleEditRole = (user) => {
     setSelectedUser(user);
+    setEditRole(user.role || 'user');
     setShowEditDialog(true);
   };
 
@@ -128,11 +144,10 @@ export default function Utilisateurs() {
   };
 
   const confirmRoleChange = () => {
-    if (selectedUser) {
-      const newRole = selectedUser.role === 'admin' ? 'user' : 'admin';
+    if (selectedUser && editRole) {
       updateRoleMutation.mutate({ 
         userId: selectedUser.id, 
-        newRole 
+        newRole: editRole
       });
     }
   };
@@ -143,10 +158,15 @@ export default function Utilisateurs() {
   };
 
   const getRoleBadge = (role) => {
-    if (role === 'admin') {
-      return <Badge className="bg-blue-100 text-blue-800">MÉDECIN</Badge>;
-    }
-    return <Badge className="bg-green-100 text-green-800">SECRÉTAIRE</Badge>;
+    const colors = ROLE_COLORS[role] || ROLE_COLORS[ROLES.VIEWER];
+    const icons = { admin: Crown, editor: Pencil, user: Eye };
+    const Icon = icons[role] || Eye;
+    return (
+      <Badge className={`${colors.bg} ${colors.text} gap-1`}>
+        <Icon className="w-3 h-3" />
+        {ROLE_LABELS[role] || role}
+      </Badge>
+    );
   };
 
   return (
