@@ -39,7 +39,16 @@ export default function Dashboard() {
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => base44.auth.me(),
+    queryFn: async () => {
+      try {
+        const u = await base44.auth.me();
+        localStorage.setItem('fluxmed_cached_user', JSON.stringify(u));
+        return u;
+      } catch {
+        const cached = JSON.parse(localStorage.getItem('fluxmed_cached_user') || 'null');
+        return cached;
+      }
+    },
   });
 
   const { data: patients = [] } = useOfflinePatients('-created_date', 50);
