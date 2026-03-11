@@ -12,9 +12,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
 import ConsultationEditModal from './ConsultationEditModal';
 import InvoiceEditModal from '../facturation/InvoiceEditModal';
+import { useOfflineConsultations, useOfflinePrescriptions } from '../offline/useOfflineData';
+import { useOnlineStatus } from '../OfflineIndicator';
 
 export default function MedicalHistory({ patient }) {
   const location = useLocation();
+  const isOnline = useOnlineStatus();
   const urlParams = new URLSearchParams(location.search);
   const filterDate = urlParams.get('date');
   
@@ -22,15 +25,9 @@ export default function MedicalHistory({ patient }) {
   const highlightRef = useRef(null);
   const [editingConsultation, setEditingConsultation] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
-  const { data: consultations = [], isLoading: isLoadingConsultations } = useQuery({
-    queryKey: ['consultations', patient.id],
-    queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation', 100)
-  });
+  const { data: consultations = [], isLoading: isLoadingConsultations } = useOfflineConsultations(patient?.id);
 
-  const { data: prescriptions = [], isLoading: isLoadingPrescriptions } = useQuery({
-    queryKey: ['prescriptions', patient.id],
-    queryFn: () => base44.entities.Prescription.filter({ patient_id: patient.id }, '-created_date', 100)
-  });
+  const { data: prescriptions = [], isLoading: isLoadingPrescriptions } = useOfflinePrescriptions(patient?.id);
 
   const { data: vitalSigns = [], isLoading: isLoadingVitals } = useQuery({
     queryKey: ['vitalSigns', patient.id],
