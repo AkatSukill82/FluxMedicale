@@ -81,9 +81,12 @@ export default function Dashboard() {
   const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
   const GreetingIcon = hour < 12 ? Sunrise : hour < 18 ? Sun : Moon;
 
+  // Filter today's appointments (cache may return all dates)
+  const filteredTodayAppointments = todayAppointments.filter(rdv => rdv.date === today && rdv.statut !== 'Annulé');
+
   // Next appointment
   const now = new Date();
-  const nextAppointment = todayAppointments.find(rdv => {
+  const nextAppointment = filteredTodayAppointments.find(rdv => {
     const [h, m] = (rdv.heure_debut || '00:00').split(':');
     const rdvTime = new Date();
     rdvTime.setHours(parseInt(h), parseInt(m), 0);
