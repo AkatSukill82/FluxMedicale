@@ -115,7 +115,14 @@ export default function ConsultationTab({ patient }) {
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold text-primary">{consult.motif || "Consultation générale"}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-primary">{consult.motif || "Consultation générale"}</p>
+                        {consult.isOffline && (
+                          <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
+                            <WifiOff className="w-3 h-3 mr-1" /> Local
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                         <Clock className="w-3 h-3" />
                         <span>
