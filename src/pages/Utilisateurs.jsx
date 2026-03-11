@@ -175,7 +175,7 @@ export default function Utilisateurs() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Gestion des Utilisateurs</h1>
-          <p className="text-slate-600">Gérez les accès médecins et secrétaires</p>
+          <p className="text-slate-600">Gérez les accès : Admin, Éditeur et Lecteur</p>
         </div>
         <Button 
           className="bg-blue-600 hover:bg-blue-700 shadow-lg"
