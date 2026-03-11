@@ -55,7 +55,13 @@ export default function Patients() {
   const permissions = usePermissions(currentUser);
   
   React.useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
+    base44.auth.me().then(setCurrentUser).catch(() => {
+      // Offline: use cached user info if available
+      try {
+        const cachedUser = JSON.parse(localStorage.getItem('fluxmed_cached_user') || 'null');
+        if (cachedUser) setCurrentUser(cachedUser);
+      } catch {}
+    });
   }, []);
   
   const [activeTab, setActiveTab] = useState('consultation');
