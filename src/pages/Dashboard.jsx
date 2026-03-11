@@ -42,19 +42,10 @@ export default function Dashboard() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: patients = [] } = useQuery({
-    queryKey: ['patients'],
-    queryFn: () => base44.entities.Patient.list('-created_date', 50),
-  });
+  const { data: patients = [] } = useOfflinePatients('-created_date', 50);
 
-  const { data: todayAppointments = [], isLoading: loadingRdv } = useQuery({
-    queryKey: ['todayAppointments'],
-    queryFn: async () => {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const all = await base44.entities.RendezVous.list('heure_debut', 50);
-      return all.filter(rdv => rdv.date === today && rdv.statut !== 'Annulé');
-    },
-  });
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const { data: todayAppointments = [], isLoading: loadingRdv } = useOfflineRendezVous(today);
 
   const handleSearch = (e) => {
     e.preventDefault();
