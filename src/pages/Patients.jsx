@@ -116,11 +116,7 @@ export default function Patients() {
     navigate(createPageUrl('Dashboard'));
   };
 
-  const { data: allPatients = [], isLoading: isLoadingList } = useQuery({
-    queryKey: ['allPatients'],
-    queryFn: () => base44.entities.Patient.list('-created_date', 500),
-    enabled: !patientId
-  });
+  const { data: allPatients = [], isLoading: isLoadingList } = useOfflinePatients('-created_date', 500);
 
   if (!patientId) {
     return (
