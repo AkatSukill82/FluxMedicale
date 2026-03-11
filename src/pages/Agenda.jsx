@@ -167,6 +167,7 @@ export default function Agenda() {
   return (
     <DragDropContext onDragEnd={handleOnDragEnd}>
       <div className="h-full flex flex-col overflow-hidden">
+        <OfflineBanner />
         <AppointmentNotifications />
         
         {/* Header compact */}
