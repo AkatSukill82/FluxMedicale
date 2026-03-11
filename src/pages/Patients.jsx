@@ -121,6 +121,7 @@ export default function Patients() {
   if (!patientId) {
     return (
       <div className="p-6 space-y-6">
+        <OfflineBanner />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold">Tous les patients</h2>
