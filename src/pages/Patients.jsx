@@ -20,6 +20,8 @@ import { createPageUrl } from '@/utils';
 import { useEIDReader } from '../components/eid/useEIDReader';
 import { toast } from 'sonner';
 import { usePermissions, PERMISSIONS } from '../components/auth/RBACGuard';
+import { useOfflinePatients, useOfflinePatient } from '../components/offline/useOfflineData';
+import OfflineBanner from '../components/offline/OfflineBanner';
 
 // Import tabs
 import ConsultationTab from '../components/patients/tabs/ConsultationTab';
