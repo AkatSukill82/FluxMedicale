@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Clock, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Clock, Plus, WifiOff } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import CareGoalsPanel from '../../clinical/CareGoalsPanel';
@@ -13,16 +14,13 @@ import TherapeuticGoalsPanel from '../../clinical/TherapeuticGoalsPanel';
 import PediatricGrowthCharts from '../../clinical/PediatricGrowthCharts';
 import PrescriptionRenewalPanel from '../../prescriptions/PrescriptionRenewalPanel';
 import { differenceInYears } from 'date-fns';
+import { useOfflineConsultations } from '../../offline/useOfflineData';
 
 export default function ConsultationTab({ patient }) {
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const { data: consultations = [], isLoading } = useQuery({
-    queryKey: ['consultations', patient.id],
-    queryFn: () => base44.entities.Consultation.filter({ patient_id: patient.id }, '-date_consultation'),
-    enabled: !!patient?.id
-  });
+  const { data: consultations = [], isLoading, meta } = useOfflineConsultations(patient?.id);
 
   if (isLoading) {
     return <div className="flex justify-center p-8"><Loader2 className="animate-spin" /></div>;
