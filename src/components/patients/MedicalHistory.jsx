@@ -30,8 +30,9 @@ export default function MedicalHistory({ patient }) {
   const { data: prescriptions = [], isLoading: isLoadingPrescriptions } = useOfflinePrescriptions(patient?.id);
 
   const { data: vitalSigns = [], isLoading: isLoadingVitals } = useQuery({
-    queryKey: ['vitalSigns', patient.id],
+    queryKey: ['vitalSigns', patient.id, isOnline ? 'online' : 'offline'],
     queryFn: async () => {
+      if (!isOnline) return [];
       try {
         return await base44.entities.VitalSigns.filter({ patient_id: patient.id }, '-measurement_time', 50);
       } catch {
@@ -41,8 +42,11 @@ export default function MedicalHistory({ patient }) {
   });
 
   const { data: invoices = [] } = useQuery({
-    queryKey: ['patientInvoices', patient.id],
-    queryFn: () => base44.entities.Invoice.filter({ patient_id: patient.id }, '-invoice_date', 100)
+    queryKey: ['patientInvoices', patient.id, isOnline ? 'online' : 'offline'],
+    queryFn: async () => {
+      if (!isOnline) return [];
+      return await base44.entities.Invoice.filter({ patient_id: patient.id }, '-invoice_date', 100);
+    }
   });
 
   // Scroll to highlighted item when date filter is set
