@@ -27,6 +27,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DashboardWidgetManager, { useDashboardWidgets } from '../components/dashboard/DashboardWidgetManager';
 import { AVAILABLE_WIDGETS } from '../components/dashboard/widgetConfig';
+import { useOfflinePatients, useOfflineRendezVous } from '../components/offline/useOfflineData';
+import OfflineBanner from '../components/offline/OfflineBanner';
 
 export default function Dashboard() {
   const { t } = useI18n();
