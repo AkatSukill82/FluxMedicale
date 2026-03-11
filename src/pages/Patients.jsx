@@ -69,14 +69,7 @@ export default function Patients() {
   
   const { readEID, isReading } = useEIDReader();
 
-  const { data: patient, isLoading } = useQuery({
-    queryKey: ['patient', patientId],
-    queryFn: async () => {
-      const patients = await base44.entities.Patient.list();
-      return patients.find(p => p.id === patientId);
-    },
-    enabled: !!patientId
-  });
+  const { data: patient, isLoading } = useOfflinePatient(patientId);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
