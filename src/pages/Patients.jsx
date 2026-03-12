@@ -113,6 +113,7 @@ export default function Patients() {
     if (result && (result.status === 'MATCH' || result.status === 'CREATED')) {
       navigate(createPageUrl(`Patients?patient=${result.patient.id}`));
     }
+    // NO_MIDDLEWARE and ERROR are handled gracefully by useEIDReader with toasts
   };
 
   const handleClose = () => {
