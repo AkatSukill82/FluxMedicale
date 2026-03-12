@@ -17,19 +17,22 @@ import {
   XCircle,
   Loader2,
   Sparkles,
-  Eye
+  Eye,
+  ScanLine
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import DocumentEditor from '../../documents/DocumentEditor';
 import AIDocumentAnalyzer from '../../documents/AIDocumentAnalyzer';
 import PatientDocumentsManager from '../../documents/PatientDocumentsManager';
+import DocumentScanner from '../../documents/DocumentScanner';
 
 export default function DocumentsTab({ patient }) {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
-  const [analyzingDocument, setAnalyzingDocument] = useState(null); // Added new state for AI analysis
+  const [analyzingDocument, setAnalyzingDocument] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   const { data: documents = [], isLoading, refetch } = useQuery({
     queryKey: ['documents', patient.id],
@@ -110,6 +113,14 @@ export default function DocumentsTab({ patient }) {
 
   return (
     <div className="space-y-8">
+      {/* Actions rapides documents */}
+      <div className="flex justify-end">
+        <Button onClick={() => setShowScanner(true)} variant="outline" className="gap-2">
+          <ScanLine className="w-4 h-4" />
+          Scanner un document
+        </Button>
+      </div>
+
       {/* Section fichiers uploadés */}
       <PatientDocumentsManager patient={patient} />
 
@@ -303,6 +314,16 @@ export default function DocumentsTab({ patient }) {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Scanner de document */}
+      {showScanner && (
+        <DocumentScanner
+          isOpen={showScanner}
+          onClose={() => setShowScanner(false)}
+          patient={patient}
+          onSaved={refetch}
+        />
       )}
 
       {/* Éditeur de document */}
