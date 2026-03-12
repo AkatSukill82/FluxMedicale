@@ -17,14 +17,27 @@ const loadWebEid = async () => {
     const script = document.createElement('script');
     script.src = 'https://web-eid.eu/lib/web-eid.umd.js';
     script.async = true;
+    
+    // Timeout de 5s pour le chargement du script
+    const timeout = setTimeout(() => {
+      webeidPromise = null;
+      reject(new Error('Timeout: impossible de charger la librairie Web-eID'));
+    }, 5000);
+    
     script.onload = () => {
+      clearTimeout(timeout);
       if (window.webeid) {
         resolve(window.webeid);
       } else {
+        webeidPromise = null;
         reject(new Error('Web-eID library failed to initialize'));
       }
     };
-    script.onerror = () => reject(new Error('Failed to load Web-eID library'));
+    script.onerror = () => {
+      clearTimeout(timeout);
+      webeidPromise = null;
+      reject(new Error('Impossible de charger la librairie Web-eID'));
+    };
     document.head.appendChild(script);
   });
   
