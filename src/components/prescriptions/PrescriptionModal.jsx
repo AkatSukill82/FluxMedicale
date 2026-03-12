@@ -22,6 +22,7 @@ import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
 import DrugSearch from '../drugs/DrugSearch';
 import MedicationSearch from '../medications/MedicationSearch';
+import RealTimeInteractionAlert from './RealTimeInteractionAlert';
 
 export default function PrescriptionModal({ patient, isOpen, onClose }) {
   const { t } = useI18n();
@@ -153,6 +154,15 @@ export default function PrescriptionModal({ patient, isOpen, onClose }) {
                 selectedMedications={medications}
               />
             </div>
+
+            {/* Alertes interactions en temps réel */}
+            {medications.length > 0 && (
+              <RealTimeInteractionAlert
+                prescribedDrugs={medications}
+                patientCurrentMeds={patient?.medicaments_actuels || ''}
+                patientAllergies={patient?.allergies || ''}
+              />
+            )}
 
             {/* Medications list */}
             <div className="space-y-4">

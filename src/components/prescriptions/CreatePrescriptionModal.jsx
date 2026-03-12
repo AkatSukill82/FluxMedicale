@@ -50,6 +50,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { addDays, format } from 'date-fns';
+import RealTimeInteractionAlert from './RealTimeInteractionAlert';
 
 const COMMON_MEDICATIONS = [
   { name: 'Paracétamol 1g', posologie: '1 à 3x/jour', duree: '5' },
@@ -345,6 +346,15 @@ export default function CreatePrescriptionModal({ isOpen, onClose, onSuccess, pr
               Ajouter ce médicament
             </Button>
           </div>
+
+          {/* Alertes interactions en temps réel */}
+          {medicaments.length > 0 && (
+            <RealTimeInteractionAlert
+              prescribedDrugs={medicaments}
+              patientCurrentMeds={selectedPatient?.medicaments_actuels || ''}
+              patientAllergies={selectedPatient?.allergies || ''}
+            />
+          )}
 
           {/* Liste des médicaments ajoutés */}
           {medicaments.length > 0 && (
