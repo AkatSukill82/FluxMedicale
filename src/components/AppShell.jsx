@@ -39,6 +39,7 @@ import {
   BookOpen,
   Pill,
   Bell,
+  ClipboardList,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -117,6 +118,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: 'Stocks', path: 'Stock', icon: Package },
         { title: 'Médicaments', path: 'Medicaments', icon: Pill },
         { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
+        { title: 'Protocoles', path: 'Protocoles', icon: ClipboardList },
         { title: 'Documentation', path: 'Documentation', icon: BookOpen },
         { title: 'Notifications', path: 'Notifications', icon: Bell },
       ];
