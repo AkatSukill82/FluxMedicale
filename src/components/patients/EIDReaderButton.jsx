@@ -2,22 +2,21 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   CreditCard, 
   Loader2, 
   CheckCircle, 
   AlertTriangle, 
-  XCircle,
   ExternalLink,
   RefreshCw,
   User,
-  HelpCircle
+  HelpCircle,
+  Keyboard
 } from 'lucide-react';
 import { useEIDReader } from '../eid/useEIDReader';
-import { createPageUrl } from '@/utils';
 import DuplicateResolutionDialog from '../eid/DuplicateResolutionDialog';
 import EIDInstallationWizard from '../eid/EIDInstallationWizard';
+import ManualNISSEntry from '../eid/ManualNISSEntry';
 
 export default function EIDReaderButton({ 
   onPatientFound, 
@@ -29,6 +28,7 @@ export default function EIDReaderButton({
   const { isReading, error, eidStatus, readEID, detectMiddleware } = useEIDReader();
   const [showInstallModal, setShowInstallModal] = useState(false);
   const [showWizard, setShowWizard] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [duplicateData, setDuplicateData] = useState(null);
 
   const handleReadEID = async () => {
@@ -46,6 +46,9 @@ export default function EIDReaderButton({
       onPatientCreated(result.patient);
     } else if (result?.status === 'DUPLICATES') {
       setDuplicateData(result);
+    } else if (result?.status === 'NO_MIDDLEWARE' || result?.status === 'ERROR') {
+      // Si erreur de middleware, proposer saisie manuelle
+      setShowInstallModal(true);
     }
   };
 
@@ -58,27 +61,45 @@ export default function EIDReaderButton({
 
   return (
     <>
-      <Button
-        onClick={handleReadEID}
-        disabled={isReading}
-        variant={variant}
-        size={size}
-        className={className}
-      >
-        {isReading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Lecture eID...
-          </>
-        ) : (
-          <>
-            <CreditCard className="w-4 h-4 mr-2" />
-            Lire carte eID
-          </>
-        )}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          onClick={handleReadEID}
+          disabled={isReading}
+          variant={variant}
+          size={size}
+          className={className}
+        >
+          {isReading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Lecture eID...
+            </>
+          ) : (
+            <>
+              <CreditCard className="w-4 h-4 mr-2" />
+              Lire eID
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={() => setShowManualEntry(true)}
+          variant="outline"
+          size={size}
+        >
+          <Keyboard className="w-4 h-4 mr-2" />
+          NISS
+        </Button>
+      </div>
 
-      {/* Modal d'installation */}
+      {/* Modal saisie manuelle NISS */}
+      <ManualNISSEntry
+        isOpen={showManualEntry}
+        onClose={() => setShowManualEntry(false)}
+        onPatientFound={onPatientFound}
+        onPatientCreated={onPatientCreated}
+      />
+
+      {/* Modal d'installation / fallback */}
       <Dialog open={showInstallModal} onOpenChange={setShowInstallModal}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
@@ -87,11 +108,32 @@ export default function EIDReaderButton({
               Lecteur eID non détecté
             </DialogTitle>
             <DialogDescription>
-              Pour lire les données de la carte eID depuis le navigateur, installez Web-eID (recommandé).
+              Pour lire les données de la carte eID depuis le navigateur, installez Web-eID (recommandé) ou utilisez la saisie manuelle du NISS.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Saisie manuelle — option prioritaire */}
+            <Card className="p-4 bg-blue-50 border-blue-200">
+              <div className="flex items-center gap-2 mb-2">
+                <Keyboard className="w-5 h-5 text-blue-600" />
+                <h4 className="font-semibold text-blue-800">Saisie manuelle du NISS</h4>
+              </div>
+              <p className="text-sm text-blue-700 mb-3">
+                Entrez le numéro national du patient pour ouvrir ou créer son dossier sans lecteur de carte.
+              </p>
+              <Button
+                onClick={() => {
+                  setShowInstallModal(false);
+                  setShowManualEntry(true);
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Keyboard className="w-4 h-4 mr-2" />
+                Saisir le NISS manuellement
+              </Button>
+            </Card>
+
             {/* Web-eID - Recommandé */}
             <Card className="p-4 bg-green-50 border-green-200">
               <div className="flex items-center gap-2 mb-2">
@@ -99,12 +141,12 @@ export default function EIDReaderButton({
                 <h4 className="font-semibold text-green-800">Web-eID (Recommandé)</h4>
               </div>
               <p className="text-sm text-green-700 mb-3">
-                Solution moderne et officielle, supportée par le gouvernement belge. Fonctionne avec Chrome, Firefox, Edge et Safari.
+                Solution moderne et officielle. Fonctionne avec Chrome, Firefox, Edge et Safari.
               </p>
               <ol className="text-sm space-y-1 list-decimal list-inside mb-3 text-green-700">
                 <li>Téléchargez et installez Web-eID</li>
                 <li>Activez l'extension dans votre navigateur</li>
-                <li>Insérez votre carte eID et cliquez sur "Lire"</li>
+                <li>Insérez votre carte eID et cliquez sur "Lire eID"</li>
               </ol>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -147,23 +189,6 @@ export default function EIDReaderButton({
               >
                 <ExternalLink className="w-3 h-3 mr-1" />
                 e-Contract.be Middleware
-              </Button>
-            </Card>
-
-            {/* Prérequis */}
-            <Card className="p-4 bg-blue-50 border-blue-200">
-              <h4 className="font-semibold mb-2 text-blue-800">Prérequis</h4>
-              <p className="text-sm text-blue-700 mb-2">
-                Le logiciel eID officiel doit être installé sur votre ordinateur.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => window.open('https://eid.belgium.be/fr/telechargements', '_blank')}
-                className="border-blue-300 text-blue-700 hover:bg-blue-100"
-              >
-                <ExternalLink className="w-3 h-3 mr-1" />
-                Télécharger eID Viewer
               </Button>
             </Card>
 
