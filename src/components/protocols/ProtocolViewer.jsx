@@ -52,7 +52,7 @@ export default function ProtocolViewer({ protocol, isOpen, onClose, onApplyToCon
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-6 py-4" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+        <div className="flex-1 overflow-y-auto min-h-0 px-6 py-4">
           <div className="space-y-4">
             {protocol.steps.map((step, idx) => (
               <ProtocolStepRenderer
@@ -65,7 +65,7 @@ export default function ProtocolViewer({ protocol, isOpen, onClose, onApplyToCon
               />
             ))}
           </div>
-        </ScrollArea>
+        </div>
 
         <div className="px-6 py-4 border-t bg-slate-50 flex items-center justify-between">
           <Button variant="outline" onClick={onClose}>
