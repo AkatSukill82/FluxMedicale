@@ -32,6 +32,7 @@ import DocumentsTab from '../components/patients/tabs/DocumentsTab';
 import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
+import ProtocolesTab from '../components/patients/tabs/ProtocolesTab';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -344,10 +345,13 @@ export default function Patients() {
                 <TabsTrigger value="billing" className="gap-2">
                   💰 Facturation
                 </TabsTrigger>
-                <TabsTrigger value="hubs" className="gap-2">
-                  <Globe className="w-4 h-4" /> Hubs
+                <TabsTrigger value="protocoles" className="gap-2">
+                  📋 Protocoles
                 </TabsTrigger>
-                <TabsTrigger value="admin" className="gap-2">
+                <TabsTrigger value="hubs" className="gap-2">
+                   <Globe className="w-4 h-4" /> Hubs
+                 </TabsTrigger>
+                 <TabsTrigger value="admin" className="gap-2">
                    👤 Admin
                  </TabsTrigger>
               </TabsList>
@@ -377,6 +381,9 @@ export default function Patients() {
               )}
               <TabsContent value="billing" className="m-0">
                 <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
+              </TabsContent>
+              <TabsContent value="protocoles" className="m-0">
+                <ProtocolesTab patient={patient} />
               </TabsContent>
               <TabsContent value="hubs" className="m-0">
                 <HubsTab patient={patient} onOpenSumehr={() => setShowSumehrEditor(true)} />
