@@ -16,6 +16,7 @@ import { Plus, TrendingUp, Scale, Ruler, Heart, Thermometer, Activity } from 'lu
 import { format, differenceInMonths, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import GrowthSummaryPanel from '../clinical/GrowthSummaryPanel';
 
 // Données de référence OMS pour courbes de croissance (étendues 0-216 mois / 18 ans)
 const WHO_PERCENTILES = {
@@ -393,6 +394,9 @@ export default function GrowthChart({ patient }) {
         </div>
       </CardHeader>
       <CardContent>
+        {/* Bilan de croissance global */}
+        <GrowthSummaryPanel patient={patient} measurements={measurements} />
+
         {/* Résumé des dernières mesures avec comparaison */}
         {latestMeasurement && (
           <div className="space-y-4 mb-6">
