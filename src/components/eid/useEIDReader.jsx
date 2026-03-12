@@ -76,9 +76,14 @@ export const useEIDReader = () => {
     try {
       const currentUser = await base44.auth.me();
       
-      // Re-détecter pour avoir le statut à jour
-      const currentStatus = await eidDetectionService.detectEIDMiddleware();
-      setEidStatus(currentStatus);
+      // Détecter rapidement les middlewares disponibles
+      let currentStatus;
+      try {
+        currentStatus = await eidDetectionService.detectEIDMiddleware();
+        setEidStatus(currentStatus);
+      } catch {
+        currentStatus = { hasWebEid: false, hasEContract: false, hasMiddleware: false };
+      }
 
       let eidData;
       
@@ -89,7 +94,6 @@ export const useEIDReader = () => {
           eidData = await readViaWebEid();
         } catch (webEidError) {
           console.warn('[eID Reader] Web-eID failed:', webEidError.message);
-          // Si Web-eID échoue et e-Contract est dispo, essayer e-Contract
           if (currentStatus.hasEContract) {
             toast.info("Tentative via e-Contract...");
             eidData = await readViaEContract();
@@ -100,14 +104,11 @@ export const useEIDReader = () => {
       } else if (currentStatus.hasEContract) {
         eidData = await readViaEContract();
       } else {
-        const errorMsg = t('errors.eidApiUnavailable');
-        setError(errorMsg);
+        // Aucun middleware: retourner proprement pour permettre le fallback manuel
+        setIsReading(false);
         toast.dismiss();
-        toast.error(errorMsg, {
-          description: "Installez Web-eID (recommandé) ou e-Contract.be pour lire les cartes eID.",
-          duration: 5000
-        });
-        return { status: 'NO_MIDDLEWARE', error: errorMsg };
+        toast.info("Lecteur eID non détecté — utilisez la saisie manuelle du NISS.", { duration: 4000 });
+        return { status: 'NO_MIDDLEWARE' };
       }
 
       const rawNiss = eidData.nationalNumber;
