@@ -26,9 +26,13 @@ export const eidDetectionService = {
     this.status.hasSmartCardService = true;
     this.status.preferredMethod = null;
 
-    // Test 1: Vérifier Web-eID (méthode moderne et recommandée)
+    // Test 1: Vérifier Web-eID (méthode moderne et recommandée) avec timeout
     try {
-      const webEidStatus = await webEidService.checkStatus();
+      const webEidCheck = Promise.race([
+        webEidService.checkStatus(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+      ]);
+      const webEidStatus = await webEidCheck;
       if (webEidStatus.isAvailable) {
         this.status.hasWebEid = true;
         this.status.hasMiddleware = true;
@@ -37,6 +41,7 @@ export const eidDetectionService = {
         this.status.details = `Web-eID détecté (v${webEidStatus.libraryVersion || 'unknown'})`;
       }
     } catch (error) {
+      console.log('[eID Detection] Web-eID non disponible:', error.message);
       // Web-eID non disponible, continuer avec e-Contract
     }
 
