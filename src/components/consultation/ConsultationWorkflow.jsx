@@ -42,6 +42,8 @@ import ImageAttachments from './ImageAttachments';
 import ConsultationTemplates from './ConsultationTemplates';
 import ConsultationReportGenerator from './ConsultationReportGenerator';
 import AIConsultationAssistant from './AIConsultationAssistant';
+import ProtocolSelector from '../protocols/ProtocolSelector';
+import ProtocolViewer from '../protocols/ProtocolViewer';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -84,6 +86,8 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [activeVoiceField, setActiveVoiceField] = useState(null);
   const [showReportGenerator, setShowReportGenerator] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showProtocols, setShowProtocols] = useState(false);
+  const [activeProtocol, setActiveProtocol] = useState(null);
   
   const [selectedMedications, setSelectedMedications] = useState([]);
   const [selectedCodes, setSelectedCodes] = useState([]);
@@ -532,7 +536,15 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           {/* Étape 1: Motif */}
           {currentStep === 0 && (
             <div className="space-y-6 max-w-3xl mx-auto">
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowProtocols(true)}
+                  className="gap-2 bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+                >
+                  <Stethoscope className="w-4 h-4" />
+                  Protocole de soins
+                </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => setShowTemplates(true)}
@@ -1207,6 +1219,35 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           currentData={consultationData}
           onApply={(field, value) => {
             setConsultationData({...consultationData, [field]: value});
+          }}
+        />
+      )}
+
+      {/* Modal Protocoles */}
+      {showProtocols && (
+        <ProtocolSelector
+          isOpen={showProtocols}
+          onClose={() => setShowProtocols(false)}
+          onSelect={(protocol) => {
+            setActiveProtocol(protocol);
+            setShowProtocols(false);
+          }}
+        />
+      )}
+
+      {/* Viewer Protocole actif */}
+      {activeProtocol && (
+        <ProtocolViewer
+          protocol={activeProtocol}
+          isOpen={!!activeProtocol}
+          onClose={() => setActiveProtocol(null)}
+          onApplyToConsultation={(prefill) => {
+            setConsultationData(prev => ({
+              ...prev,
+              motif: prefill.motif || prev.motif,
+              diagnostic: prefill.diagnostic || prev.diagnostic
+            }));
+            setActiveProtocol(null);
           }}
         />
       )}
