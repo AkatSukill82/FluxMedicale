@@ -110,12 +110,8 @@ export default function Patients() {
 
   const handleReadEID = async () => {
     const result = await readEID();
-    if (result && result.status === 'MATCH') {
+    if (result && (result.status === 'MATCH' || result.status === 'CREATED')) {
       navigate(createPageUrl(`Patients?patient=${result.patient.id}`));
-    } else if (result && result.status === 'CREATED') {
-      navigate(createPageUrl(`Patients?patient=${result.patient.id}`));
-    } else if (result && result.status === 'ERROR') {
-      toast.error(t('errors.eidRead'));
     }
   };
 
