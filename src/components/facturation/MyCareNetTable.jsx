@@ -42,7 +42,7 @@ export default function MyCareNetTable({ transactions, invoices, currentUser, pa
   };
 
   const handleViewDetails = (transaction) => {
-    alert(`Détails transaction ${transaction.transaction_id}:\n\n${transaction.error_message || 'Succès'}`);
+    setDetailTransaction(transaction);
   };
 
   const handleResend = (transaction) => {
