@@ -41,15 +41,10 @@ export default function GlobalMyCareNetTable({ transactions, invoices, currentUs
     );
   };
 
+  const [detailTransaction, setDetailTransaction] = useState(null);
+
   const handleViewDetails = (transaction) => {
-    const details = `Détails transaction ${transaction.transaction_id}:\n\n` +
-      `Patient: ${transaction.patient_name}\n` +
-      `Type: ${transaction.transaction_type}\n` +
-      `Statut: ${transaction.status}\n` +
-      `Mutuelle: ${transaction.mutuelle_code || 'N/A'}\n\n` +
-      `Message: ${transaction.error_message || 'Succès'}`;
-    
-    alert(details);
+    setDetailTransaction(transaction);
   };
 
   const handleResend = (transaction) => {
