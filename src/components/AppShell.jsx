@@ -116,6 +116,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: 'Garde', path: 'Garde', icon: Phone },
         { title: 'Stocks', path: 'Stock', icon: Package },
         { title: 'Médicaments', path: 'Medicaments', icon: Pill },
+        { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
         { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
         { title: 'Documentation', path: 'Documentation', icon: BookOpen },
         { title: 'Notifications', path: 'Notifications', icon: Bell },
