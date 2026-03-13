@@ -241,6 +241,22 @@ export default function InvoiceDetailsModal({ invoice, patient, isOpen, onClose 
             </Card>
           </div>
 
+          {/* Erreurs mutualité */}
+          {(invoice.status === 'REJECTED' || invoice.status === 'ERROR') && (invoice.oa_error_code || invoice.oa_response) && (
+            <Card className="border-red-200">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-500" />
+                  Motif de rejet de la mutualité
+                </h3>
+                <OAErrorExplainer
+                  errorCode={invoice.oa_error_code}
+                  errorMessage={invoice.oa_response}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           {/* Codes nomenclature */}
           <Card>
             <CardContent className="p-6">
