@@ -85,6 +85,7 @@ export default function MyCareNetTable({ transactions, invoices, currentUser, pa
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Envois aux mutualités (MyCareNet)</CardTitle>
