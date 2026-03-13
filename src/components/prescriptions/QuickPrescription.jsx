@@ -21,9 +21,11 @@ import PrescriptionTemplateSettings from './PrescriptionTemplateSettings';
 import DrugInteractionChecker from '../clinical/DrugInteractionChecker';
 import RecurringPrescriptionForm from './RecurringPrescriptionForm';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Database, History, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Sparkles, Database, History, RefreshCw, AlertTriangle, Shield } from 'lucide-react';
 import { recipE } from '@/functions/recipE';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ChapterIVToggle from '../chapterIV/ChapterIVToggle';
+import ChapterIVRequestForm from '../chapterIV/ChapterIVRequestForm';
 
 // Templates de prescriptions courantes
 const PRESCRIPTION_TEMPLATES = [
@@ -67,6 +69,8 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
   const [showSettings, setShowSettings] = useState(false);
   const [recurringOptions, setRecurringOptions] = useState({});
   const [interactionWarnings, setInteractionWarnings] = useState([]);
+  const [chapterIVFlags, setChapterIVFlags] = useState({});
+  const [showChapterIVForm, setShowChapterIVForm] = useState(null);
 
   // Pré-remplir avec les médicaments initiaux (duplication)
   React.useEffect(() => {
