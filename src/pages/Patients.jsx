@@ -12,7 +12,8 @@ import {
   Pill,
   FileText,
   Globe,
-  CreditCard as EIDIcon
+  CreditCard as EIDIcon,
+  Shield
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -33,6 +34,7 @@ import MedicalHistory from '../components/patients/MedicalHistory';
 import PatientNotifications from '../components/patients/PatientNotifications';
 import SecureDocuments from '../components/patients/SecureDocuments';
 import ProtocolesTab from '../components/patients/tabs/ProtocolesTab';
+import ChapitreIVTab from '../components/patients/tabs/ChapitreIVTab';
 
 // Import modals
 import BillingModal from '../components/facturation/BillingModal';
@@ -340,6 +342,9 @@ export default function Patients() {
                 <TabsTrigger value="protocoles" className="gap-2">
                   📋 Protocoles
                 </TabsTrigger>
+                <TabsTrigger value="chapter4" className="gap-2">
+                  <Shield className="w-4 h-4" /> Chapitre IV
+                </TabsTrigger>
                 <TabsTrigger value="hubs" className="gap-2">
                    <Globe className="w-4 h-4" /> Hubs
                  </TabsTrigger>
@@ -376,6 +381,9 @@ export default function Patients() {
               </TabsContent>
               <TabsContent value="protocoles" className="m-0">
                 <ProtocolesTab patient={patient} />
+              </TabsContent>
+              <TabsContent value="chapter4" className="m-0">
+                <ChapitreIVTab patient={patient} />
               </TabsContent>
               <TabsContent value="hubs" className="m-0">
                 <HubsTab patient={patient} onOpenSumehr={() => setShowSumehrEditor(true)} />
