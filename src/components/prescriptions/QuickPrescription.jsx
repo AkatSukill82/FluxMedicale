@@ -416,6 +416,13 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
                             handleUpdateMedication(index, 'instructions', data.instructions);
                           }}
                         />
+
+                        <ChapterIVToggle
+                          medication={med}
+                          isChapterIV={!!chapterIVFlags[index]}
+                          onToggle={(val) => setChapterIVFlags(prev => ({ ...prev, [index]: val }))}
+                          onOpenForm={() => setShowChapterIVForm(med)}
+                        />
                       </CardContent>
                     </Card>
                   </div>
