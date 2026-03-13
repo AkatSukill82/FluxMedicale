@@ -142,7 +142,16 @@ export default function MyCareNetTable({ transactions, invoices, currentUser, pa
                     {(tx.remainingAmount || 0).toFixed(2)}€
                   </td>
                   <td className="py-3 px-4">
-                    {getStatusBadge(tx.status)}
+                    <div className="space-y-1">
+                      {getStatusBadge(tx.status)}
+                      {(tx.status === 'REJECTED' || tx.status === 'ERROR') && (tx.error_code || tx.error_message) && (
+                        <OAErrorExplainer
+                          errorCode={tx.error_code}
+                          errorMessage={tx.error_message}
+                          compact={true}
+                        />
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center justify-end gap-2">
