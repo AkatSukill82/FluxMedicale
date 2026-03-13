@@ -17,6 +17,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import OAErrorExplainer from './OAErrorExplainer';
+import TransactionDetailDialog from './TransactionDetailDialog';
 
 export default function MyCareNetTable({ transactions, invoices, currentUser, patient, onRefresh }) {
   const [detailTransaction, setDetailTransaction] = useState(null);
