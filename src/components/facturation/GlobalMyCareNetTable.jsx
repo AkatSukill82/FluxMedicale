@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { createPageUrl } from '@/utils';
 import OAErrorExplainer from './OAErrorExplainer';
+import TransactionDetailDialog from './TransactionDetailDialog';
 
 export default function GlobalMyCareNetTable({ transactions, invoices, currentUser, isLoading, onRefresh }) {
   const getStatusBadge = (status) => {
