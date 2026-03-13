@@ -103,6 +103,7 @@ export default function GlobalMyCareNetTable({ transactions, invoices, currentUs
   }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>Envois aux mutualités (MyCareNet) - {transactions.length}</CardTitle>
