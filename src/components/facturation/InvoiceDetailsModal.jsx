@@ -27,6 +27,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
+import OAErrorExplainer from './OAErrorExplainer';
 
 export default function InvoiceDetailsModal({ invoice, patient, isOpen, onClose }) {
   const queryClient = useQueryClient();
