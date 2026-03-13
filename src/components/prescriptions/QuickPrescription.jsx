@@ -24,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sparkles, Database, History, RefreshCw, AlertTriangle, Shield } from 'lucide-react';
 import { recipE } from '@/functions/recipE';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 import ChapterIVToggle from '../chapterIV/ChapterIVToggle';
 import ChapterIVRequestForm from '../chapterIV/ChapterIVRequestForm';
 
