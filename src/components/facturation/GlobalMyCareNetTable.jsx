@@ -228,47 +228,11 @@ export default function GlobalMyCareNetTable({ transactions, invoices, currentUs
       </CardContent>
     </Card>
 
-    {/* Détail transaction */}
-    {detailTransaction && (
-      <Dialog open={!!detailTransaction} onOpenChange={() => setDetailTransaction(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5" />
-              Transaction MyCareNet
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 text-sm">
-            <div className="grid grid-cols-2 gap-3">
-              <div><span className="text-slate-500">Patient:</span> <strong>{detailTransaction.patient_name}</strong></div>
-              <div><span className="text-slate-500">Type:</span> <strong>{detailTransaction.transaction_type}</strong></div>
-              <div><span className="text-slate-500">Mutuelle:</span> <strong>{detailTransaction.mutuelle_code || 'N/A'}</strong></div>
-              <div><span className="text-slate-500">Réf:</span> <span className="font-mono">{detailTransaction.transaction_id || 'N/A'}</span></div>
-              <div><span className="text-slate-500">Statut:</span> {getStatusBadge(detailTransaction.status)}</div>
-              <div><span className="text-slate-500">Date:</span> {detailTransaction.sent_at ? format(new Date(detailTransaction.sent_at), 'dd/MM/yyyy HH:mm', { locale: fr }) : '-'}</div>
-            </div>
-
-            {(detailTransaction.status === 'REJECTED' || detailTransaction.status === 'ERROR') && (
-              <div className="pt-2">
-                <OAErrorExplainer
-                  errorCode={detailTransaction.error_code}
-                  errorMessage={detailTransaction.error_message}
-                />
-              </div>
-            )}
-
-            {detailTransaction.status === 'ACCEPTED' && (
-              <Alert className="bg-green-50 border-green-200">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <AlertDescription className="text-green-800">
-                  Transaction acceptée par la mutualité. Le paiement suivra selon les délais habituels.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    )}
+    <TransactionDetailDialog
+      transaction={detailTransaction}
+      open={!!detailTransaction}
+      onOpenChange={() => setDetailTransaction(null)}
+    />
     </>
   );
 }
