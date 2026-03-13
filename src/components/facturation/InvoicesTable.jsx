@@ -6,8 +6,10 @@ import {
   FileText, 
   Download, 
   Eye, 
-  Copy
+  Copy,
+  AlertCircle
 } from 'lucide-react';
+import OAErrorExplainer from './OAErrorExplainer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
