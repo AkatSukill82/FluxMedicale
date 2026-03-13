@@ -572,6 +572,24 @@ export default function QuickPrescription({ patient, isOpen, onClose, initialMed
             <PrescriptionHistory patient={patient} />
           </TabsContent>
         </Tabs>
+
+        {/* Modal demande Chapitre IV */}
+        {showChapterIVForm && (
+          <ChapterIVRequestForm
+            isOpen={!!showChapterIVForm}
+            onClose={() => setShowChapterIVForm(null)}
+            patient={patient}
+            medication={{
+              product_name: showChapterIVForm.product_name || showChapterIVForm.name,
+              cnk: showChapterIVForm.cnk,
+              chapter_iv: { paragraph: '' }
+            }}
+            onSuccess={() => {
+              toast.success('Demande Chapitre IV créée');
+              setShowChapterIVForm(null);
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
