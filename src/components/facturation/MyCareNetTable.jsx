@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import OAErrorExplainer from './OAErrorExplainer';
 
 export default function MyCareNetTable({ transactions, invoices, currentUser, patient, onRefresh }) {
+  const [detailTransaction, setDetailTransaction] = useState(null);
   const getStatusBadge = (status) => {
     const config = {
       PENDING: { icon: Clock, label: 'En cours', className: 'bg-slate-100 text-slate-800' },
