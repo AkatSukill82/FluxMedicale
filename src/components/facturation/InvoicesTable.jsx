@@ -129,7 +129,16 @@ export default function InvoicesTable({ invoices, currentUser, patient, onRefres
                     {(invoice.total_amount || 0).toFixed(2)}€
                   </td>
                   <td className="py-3 px-4">
-                    {getStatusBadge(invoice.status)}
+                    <div className="space-y-1">
+                      {getStatusBadge(invoice.status)}
+                      {(invoice.status === 'REJECTED' || invoice.status === 'ERROR') && (invoice.oa_error_code || invoice.oa_response) && (
+                        <OAErrorExplainer
+                          errorCode={invoice.oa_error_code}
+                          errorMessage={invoice.oa_response}
+                          compact={true}
+                        />
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center justify-end gap-2">
