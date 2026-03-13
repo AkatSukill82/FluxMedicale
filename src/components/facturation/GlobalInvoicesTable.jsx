@@ -18,6 +18,7 @@ import { createPageUrl } from '@/utils';
 import { useNavigate } from 'react-router-dom';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import AttestationGenerator from './AttestationGenerator';
+import OAErrorExplainer from './OAErrorExplainer';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
