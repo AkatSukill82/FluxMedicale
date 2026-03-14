@@ -42,6 +42,8 @@ import ProtocolViewer from '../protocols/ProtocolViewer';
 import CarePlanStep from './CarePlanStep';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
+import useConsultationDraft from './useConsultationDraft';
+import DraftRecoveryBanner from './DraftRecoveryBanner';
 
 // Motifs de consultation fréquents
 const COMMON_REASONS = [
@@ -104,6 +106,38 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [editingCodeId, setEditingCodeId] = useState(null);
   const [printInvoice, setPrintInvoice] = useState(true);
   const receiptRef = useRef(null);
+
+  // Auto-save draft
+  const { hasDraft, draftData, saveDraft, clearDraft, dismissDraft } = useConsultationDraft(patient?.id);
+
+  const restoreDraft = () => {
+    if (!draftData) return;
+    if (draftData.consultationData) setConsultationData(draftData.consultationData);
+    if (draftData.vitalSigns) setVitalSigns(draftData.vitalSigns);
+    if (draftData.diagnosisCodes) setDiagnosisCodes(draftData.diagnosisCodes);
+    if (draftData.selectedMedications) setSelectedMedications(draftData.selectedMedications);
+    if (draftData.carePlanData) setCarePlanData(draftData.carePlanData);
+    if (draftData.selectedCodes) setSelectedCodes(draftData.selectedCodes);
+    if (typeof draftData.currentStep === 'number') setCurrentStep(draftData.currentStep);
+    dismissDraft();
+    toast.success('Brouillon restauré');
+  };
+
+  // Persist draft on every change (debounced)
+  useEffect(() => {
+    if (!isOpen || !patient?.id) return;
+    // Only save if the user has actually entered something
+    if (!consultationData.motif && selectedMedications.length === 0 && selectedCodes.length === 0) return;
+    saveDraft({
+      consultationData,
+      vitalSigns,
+      diagnosisCodes,
+      selectedMedications,
+      carePlanData,
+      selectedCodes,
+      currentStep
+    });
+  }, [consultationData, vitalSigns, diagnosisCodes, selectedMedications, carePlanData, selectedCodes, currentStep, isOpen, patient?.id]);
 
   // Charger les infos du médecin pour savoir s'il est conventionné
   const { data: currentUser } = useQuery({
@@ -289,12 +323,12 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
       return { consultation, invoice, invoiceLines: selectedCodes };
     },
     onSuccess: (result) => {
+      clearDraft(); // Remove draft on successful save
       queryClient.invalidateQueries({ queryKey: ['consultations'] });
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast.success('Consultation enregistrée avec succès');
       if (printInvoice && selectedCodes.length > 0 && result?.invoice) {
-        // Imprimer uniquement le reçu
         printReceipt(result.invoice, result.invoiceLines);
       }
       onClose();
@@ -501,6 +535,9 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
             </Button>
           </div>
         </DialogHeader>
+
+        {/* Draft recovery banner */}
+        {hasDraft && <DraftRecoveryBanner draftData={draftData} onRestore={restoreDraft} onDiscard={dismissDraft} />}
 
         {/* Stepper */}
         <div className="px-6 py-4 border-b bg-slate-50">
