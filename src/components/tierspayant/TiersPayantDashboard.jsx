@@ -122,7 +122,7 @@ export default function TiersPayantDashboard() {
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -145,6 +145,19 @@ export default function TiersPayantDashboard() {
                 <p className="text-xs text-orange-700">factures brouillon</p>
               </div>
               <FileText className="w-8 h-8 text-orange-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={`bg-gradient-to-br ${stats.overdue > 0 ? 'from-red-100 to-red-200 border-red-300 animate-pulse' : 'from-red-50 to-red-100 border-red-200'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-red-600 font-medium">Impayées &gt;60j</p>
+                <p className="text-2xl font-bold text-red-900">{stats.overdue}</p>
+                <p className="text-xs text-red-700">action requise</p>
+              </div>
+              <AlertTriangle className="w-8 h-8 text-red-400" />
             </div>
           </CardContent>
         </Card>
