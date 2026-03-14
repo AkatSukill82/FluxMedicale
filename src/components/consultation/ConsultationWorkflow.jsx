@@ -289,12 +289,21 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         const totalReimbursed = selectedCodes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
         const totalPatientShare = totalHonorarium - totalReimbursed;
 
+        const patientName = patient?.name?.[0] 
+          ? `${(patient.name[0].given || []).join(' ')} ${patient.name[0].family}`
+          : 'Patient';
+        const patientOaCode = patient?.mutuelle ? patient.mutuelle : '';
+        const patientOaName = patient?.mutuelle || 'Mutuelle inconnue';
+
         invoice = await base44.entities.Invoice.create({
           patient_id: patient.id,
+          patient_name: patientName,
           provider_id: currentUser.email,
           type: 'EATTEST',
           payment_method: 'CARD',
-          status: 'SENT',
+          status: 'PENDING',
+          oa_code: patientOaCode,
+          oa_name: patientOaName,
           total_amount: totalHonorarium,
           patient_contribution: totalPatientShare,
           insurance_contribution: totalReimbursed,
