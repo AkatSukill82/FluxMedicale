@@ -277,7 +277,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         }
       }
 
-      // 3. Créer la facture si codes INAMI
+      // 4. Créer la facture si codes INAMI
       if (selectedCodes.length > 0) {
         const totalHonorarium = selectedCodes.reduce((sum, code) => {
           const amount = isConventionne 
