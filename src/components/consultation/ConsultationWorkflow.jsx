@@ -950,21 +950,57 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                 </div>
               </Card>
 
-              {selectedMedications.length > 0 && (
+              {/* Plan de soins */}
+              {(selectedMedications.length > 0 || carePlanData.non_drug_treatment || carePlanData.lab_orders || carePlanData.certificate_type || carePlanData.followup_notes || carePlanData.followup_delay || carePlanData.referral_notes) && (
                 <Card className="p-6">
                   <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Pill className="w-5 h-5" />
-                    Prescription ({selectedMedications.length} médicaments)
+                    <FileText className="w-5 h-5" />
+                    Plan de soins
                   </h3>
-                  <div className="space-y-2">
-                    {selectedMedications.map(med => (
-                      <div key={med.id} className="p-3 bg-slate-50 rounded-lg">
-                        <p className="font-semibold">{med.product_name}</p>
-                        <p className="text-sm text-slate-600">
-                          {med.dosage_prescribed} • {med.frequency} • {med.duration}
-                        </p>
+                  <div className="space-y-4">
+                    {selectedMedications.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-sm text-slate-600 mb-2">💊 Prescriptions ({selectedMedications.length})</p>
+                        {selectedMedications.map(med => (
+                          <div key={med.id} className="p-3 bg-slate-50 rounded-lg mb-1">
+                            <p className="font-semibold">{med.product_name}</p>
+                            <p className="text-sm text-slate-600">
+                              {med.dosage_prescribed} • {med.frequency} • {med.duration}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    {carePlanData.non_drug_treatment && (
+                      <div>
+                        <p className="font-semibold text-sm text-slate-600 mb-1">🩺 Traitement non-médicamenteux</p>
+                        <p className="text-sm whitespace-pre-wrap bg-slate-50 p-3 rounded-lg">{carePlanData.non_drug_treatment}</p>
+                      </div>
+                    )}
+                    {carePlanData.lab_orders && (
+                      <div>
+                        <p className="font-semibold text-sm text-slate-600 mb-1">🔬 Examens complémentaires</p>
+                        <p className="text-sm whitespace-pre-wrap bg-slate-50 p-3 rounded-lg">{carePlanData.lab_orders}</p>
+                      </div>
+                    )}
+                    {carePlanData.certificate_type && (
+                      <div>
+                        <p className="font-semibold text-sm text-slate-600 mb-1">📄 Certificat: {carePlanData.certificate_type}</p>
+                        {carePlanData.certificate_notes && <p className="text-sm bg-slate-50 p-3 rounded-lg">{carePlanData.certificate_notes}</p>}
+                      </div>
+                    )}
+                    {(carePlanData.followup_delay || carePlanData.followup_notes) && (
+                      <div>
+                        <p className="font-semibold text-sm text-slate-600 mb-1">📅 Suivi: {carePlanData.followup_delay || ''}</p>
+                        {carePlanData.followup_notes && <p className="text-sm bg-slate-50 p-3 rounded-lg">{carePlanData.followup_notes}</p>}
+                      </div>
+                    )}
+                    {carePlanData.referral_notes && (
+                      <div>
+                        <p className="font-semibold text-sm text-slate-600 mb-1">📨 Référé: {carePlanData.referral_specialty || 'Spécialiste'}</p>
+                        <p className="text-sm bg-slate-50 p-3 rounded-lg">{carePlanData.referral_notes}</p>
+                      </div>
+                    )}
                   </div>
                 </Card>
               )}
