@@ -321,7 +321,6 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const canGoNext = () => {
     switch(currentStep) {
       case 0: return consultationData.motif.trim().length > 0;
-      case 1: return consultationData.examen_clinique.trim().length > 0;
       default: return true;
     }
   };
