@@ -118,34 +118,6 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
     }
   }, [currentUser]);
 
-  const handleAddMedication = (drug) => {
-    // Vérifier si le médicament n'est pas déjà ajouté (par CNK ou nom)
-    const alreadyExists = selectedMedications.find(m => 
-      (m.cnk && drug.cnk && m.cnk === drug.cnk) || 
-      m.product_name === drug.product_name
-    );
-    
-    if (!alreadyExists) {
-      setSelectedMedications([...selectedMedications, {
-        ...drug,
-        id: drug.cnk || `temp-${Date.now()}`,
-        dosage_prescribed: drug.strength ? `${drug.strength}${drug.unit || ''}` : '',
-        frequency: '1x/jour',
-        duration: '7 jours'
-      }]);
-    }
-  };
-
-  const handleRemoveMedication = (index) => {
-    setSelectedMedications(selectedMedications.filter((_, i) => i !== index));
-  };
-
-  const handleMedicationChange = (index, field, value) => {
-    setSelectedMedications(selectedMedications.map((m, i) => 
-      i === index ? { ...m, [field]: value } : m
-    ));
-  };
-
   // Récupérer NISS du patient
   const getNISS = (patient) => {
     return patient?.identifier?.find(id => id.system?.includes('ssin'))?.value || '';
