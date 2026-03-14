@@ -59,7 +59,7 @@ const COMMON_REASONS = [
 const STEPS = [
   { id: 'motif', label: 'Motif', icon: Clock },
   { id: 'examen', label: 'Examen', icon: Stethoscope },
-  { id: 'prescription', label: 'Prescription', icon: Pill },
+  { id: 'plan', label: 'Plan de soins', icon: FileText },
   { id: 'facturation', label: 'Facturation', icon: Euro },
   { id: 'resume', label: 'Résumé', icon: CheckCircle }
 ];
