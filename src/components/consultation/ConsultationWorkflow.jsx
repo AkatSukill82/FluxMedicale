@@ -216,7 +216,21 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         });
       }
 
-      // 2. Créer la prescription si médicaments
+      // 2. Créer le certificat si demandé
+      if (carePlanData.certificate_type) {
+        await base44.entities.PatientDocument.create({
+          patient_id: patient.id,
+          file_url: '',
+          file_name: `Certificat - ${carePlanData.certificate_type}`,
+          document_type: 'certificat',
+          title: `Certificat: ${carePlanData.certificate_type}`,
+          description: carePlanData.certificate_notes || '',
+          document_date: new Date().toISOString().split('T')[0],
+          medecin_email: currentUser.email
+        });
+      }
+
+      // 3. Créer la prescription si médicaments
       if (selectedMedications.length > 0) {
         const patientNiss = getNISS(patient);
         const medicamentsData = selectedMedications.map(m => ({
