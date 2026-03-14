@@ -28,11 +28,6 @@ import {
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import InteractionChecker from '../medications/InteractionChecker';
-import TemplateSelector from '../medications/TemplateSelector';
-import DosageScheduler from '../medications/DosageScheduler';
-import GenericAlternatives from '../medications/GenericAlternatives';
-import SAMv2Search from '../medications/SAMv2Search';
 import { recipE } from '@/functions/recipE';
 import InvoiceReceipt from '../facturation/InvoiceReceipt';
 import VitalSignsInput from './VitalSignsInput';
