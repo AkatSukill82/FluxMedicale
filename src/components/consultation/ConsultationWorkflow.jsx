@@ -699,153 +699,16 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
             </div>
           )}
 
-          {/* Étape 3: Prescription */}
+          {/* Étape 3: Plan de soins */}
           {currentStep === 2 && (
-            <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="flex gap-2">
-                <Button
-                  variant={!showTemplates ? "default" : "outline"}
-                  onClick={() => setShowTemplates(false)}
-                  className="flex-1"
-                >
-                  🔍 Recherche SAM v2
-                </Button>
-                <Button
-                  variant={showTemplates ? "default" : "outline"}
-                  onClick={() => setShowTemplates(true)}
-                  className="flex-1"
-                >
-                  📋 Modèles & Schémas
-                </Button>
-              </div>
-
-              {!showTemplates ? (
-                <div>
-                  <Label className="text-lg font-semibold mb-3 block">Rechercher un médicament (SAM v2)</Label>
-                  <SAMv2Search
-                    onSelect={handleAddMedication}
-                    selectedMedications={selectedMedications}
-                    patient={patient}
-                  />
-                </div>
-              ) : (
-                <TemplateSelector
-                  onSelectTemplate={(selected) => {
-                    const meds = selected.data.medications.map(m => ({
-                      id: m.drug_id,
-                      product_name: m.drug_name,
-                      dosage_prescribed: m.dosage,
-                      frequency: m.frequency,
-                      duration: m.duration
-                    }));
-                    setSelectedMedications([...selectedMedications, ...meds]);
-                    setShowTemplates(false);
-                    toast.success('Modèle appliqué');
-                  }}
-                  onCreateTemplate={async () => {
-                    if (selectedMedications.length === 0) {
-                      toast.error('Aucun médicament à sauvegarder');
-                      return;
-                    }
-                    const name = prompt('Nom du modèle:');
-                    if (name) {
-                      await base44.entities.PrescriptionTemplate.create({
-                        name,
-                        use_case: consultationData.diagnostic || consultationData.motif,
-                        medications: selectedMedications.map(m => ({
-                          drug_id: m.id,
-                          drug_name: m.product_name,
-                          dosage: m.dosage_prescribed,
-                          frequency: m.frequency,
-                          duration: m.duration
-                        })),
-                        category: 'OTHER'
-                      });
-                      toast.success('Modèle créé');
-                    }
-                  }}
-                  currentMedications={selectedMedications}
-                />
-              )}
-
-              <InteractionChecker 
-                selectedMedications={selectedMedications} 
-                patientId={patient.id}
-              />
-
-              {selectedMedications.length > 0 && (
-                <div className="space-y-3">
-                  <Label className="text-lg font-semibold block">Médicaments prescrits ({selectedMedications.length})</Label>
-                  {selectedMedications.map((med, index) => (
-                    <div key={med.cnk || index} className="space-y-3">
-                      <Card className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="font-bold text-lg">{med.product_name}</h3>
-                                {med.substance_name && (
-                                  <p className="text-sm text-slate-600">{med.substance_name}</p>
-                                )}
-                                {med.cnk && (
-                                  <Badge variant="outline" className="text-xs mt-1">CNK: {med.cnk}</Badge>
-                                )}
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleRemoveMedication(index)}
-                                className="text-red-500 hover:bg-red-50"
-                              >
-                                <X className="w-5 h-5" />
-                              </Button>
-                            </div>
-                            
-                            <DosageScheduler
-                              medication={med}
-                              onChange={(data) => {
-                                handleMedicationChange(index, 'frequency', data.frequency);
-                                handleMedicationChange(index, 'duration', data.duration);
-                                handleMedicationChange(index, 'instructions', data.instructions);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </Card>
-                      
-                      <GenericAlternatives
-                        medication={med}
-                        onSelectAlternative={(alt) => {
-                          const updatedMeds = selectedMedications.map((m, i) => 
-                            i === index ? {
-                              ...alt,
-                              id: alt.cnk || `temp-${Date.now()}`,
-                              dosage_prescribed: med.dosage_prescribed,
-                              frequency: med.frequency,
-                              duration: med.duration,
-                              instructions: med.instructions
-                            } : m
-                          );
-                          setSelectedMedications(updatedMeds);
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {selectedMedications.length === 0 && (
-                <Card className="p-12 text-center border-dashed">
-                  <Pill className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                  <p className="text-slate-500 text-lg">
-                    Aucun médicament prescrit pour cette consultation
-                  </p>
-                  <p className="text-sm text-slate-400 mt-2">
-                    Recherchez et ajoutez des médicaments si nécessaire
-                  </p>
-                </Card>
-              )}
-            </div>
+            <CarePlanStep
+              patient={patient}
+              consultationData={consultationData}
+              selectedMedications={selectedMedications}
+              setSelectedMedications={setSelectedMedications}
+              carePlanData={carePlanData}
+              setCarePlanData={setCarePlanData}
+            />
           )}
 
           {/* Étape 4: Facturation */}
