@@ -16,6 +16,7 @@ import DosageScheduler from '../medications/DosageScheduler';
 import GenericAlternatives from '../medications/GenericAlternatives';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import AllergyInteractionBanner from './AllergyInteractionBanner';
 
 const CARE_SECTIONS = [
   { id: 'medications', label: 'Prescriptions médicamenteuses', icon: Pill, color: 'text-blue-600 bg-blue-50 border-blue-200' },
@@ -87,6 +88,9 @@ export default function CarePlanStep({
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
+      {/* Allergy/Interaction Banner */}
+      <AllergyInteractionBanner patientId={patient?.id} selectedMedications={selectedMedications} />
+
       {/* En-tête */}
       <div className="text-center mb-6">
         <p className="text-slate-500 text-sm">
