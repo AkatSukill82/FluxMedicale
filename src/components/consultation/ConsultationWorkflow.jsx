@@ -44,6 +44,7 @@ import ConsultationReportGenerator from './ConsultationReportGenerator';
 import AIConsultationAssistant from './AIConsultationAssistant';
 import ProtocolSelector from '../protocols/ProtocolSelector';
 import ProtocolViewer from '../protocols/ProtocolViewer';
+import CarePlanStep from './CarePlanStep';
 import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 
