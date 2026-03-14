@@ -91,6 +91,19 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [activeProtocol, setActiveProtocol] = useState(null);
   
   const [selectedMedications, setSelectedMedications] = useState([]);
+  const [carePlanData, setCarePlanData] = useState({
+    non_drug_treatment: '',
+    lab_orders: '',
+    lab_clinical_info: '',
+    certificate_type: '',
+    cert_start_date: '',
+    cert_end_date: '',
+    certificate_notes: '',
+    followup_delay: '',
+    followup_notes: '',
+    referral_specialty: '',
+    referral_notes: ''
+  });
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [isConventionne, setIsConventionne] = useState(true);
   const [editingCodeId, setEditingCodeId] = useState(null);
