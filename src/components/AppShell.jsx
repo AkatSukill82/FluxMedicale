@@ -96,6 +96,46 @@ export default function AppShell({ children, currentPageName }) {
 
       const handleLogout = async () => {
         try {
+          // Auto-send pending invoices before logout
+          try {
+            const pendingInvoices = await base44.entities.Invoice.filter({ status: 'PENDING' });
+            if (pendingInvoices.length > 0) {
+              // Group by mutuelle
+              const groups = {};
+              for (const inv of pendingInvoices) {
+                const key = inv.oa_code || inv.oa_name || 'INCONNU';
+                if (!groups[key]) groups[key] = { oa_code: key, oa_name: inv.oa_name || 'Mutuelle inconnue', invoices: [], total: 0, insuranceTotal: 0, patientTotal: 0 };
+                groups[key].invoices.push(inv);
+                groups[key].total += inv.total_amount || 0;
+                groups[key].insuranceTotal += inv.insurance_contribution || 0;
+                groups[key].patientTotal += inv.patient_contribution || 0;
+              }
+
+              for (const group of Object.values(groups)) {
+                const batchNum = `LOT-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${group.oa_code.slice(0,6)}-AUTO`;
+                const batch = await base44.entities.InvoiceBatch.create({
+                  batch_number: batchNum,
+                  oa_code: group.oa_code,
+                  oa_name: group.oa_name,
+                  invoice_count: group.invoices.length,
+                  total_amount: group.total,
+                  insurance_total: group.insuranceTotal,
+                  patient_total: group.patientTotal,
+                  status: 'SENT',
+                  invoice_ids: group.invoices.map(i => i.id),
+                  trigger: 'auto_logout',
+                  sent_at: new Date().toISOString()
+                });
+                for (const inv of group.invoices) {
+                  await base44.entities.Invoice.update(inv.id, { status: 'SENT', batch_id: batch.id, sent_at: new Date().toISOString() });
+                }
+              }
+              console.info(`[Auto-send] ${pendingInvoices.length} facture(s) envoyée(s) en ${Object.keys(groups).length} lot(s) avant déconnexion`);
+            }
+          } catch (autoSendErr) {
+            console.warn('Auto-send invoices before logout failed:', autoSendErr);
+          }
+
           await base44.auth.logout();
           window.location.href = '/';
         } catch (error) {
