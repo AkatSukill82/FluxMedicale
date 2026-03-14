@@ -651,7 +651,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <Label className="text-lg font-semibold">Examen clinique *</Label>
+                  <Label className="text-lg font-semibold">Examen clinique</Label>
                   <Button 
                     variant="ghost" 
                     size="sm"
