@@ -28,6 +28,9 @@ import TiersPayantLotsList from './TiersPayantLotsList';
 import MutuelleConventionsManager from './MutuelleConventionsManager';
 import TiersPayantStats from './TiersPayantStats';
 import CreateTiersPayantModal from './CreateTiersPayantModal';
+import OverdueInvoicesAlert from './OverdueInvoicesAlert';
+import BankReconciliation from './BankReconciliation';
+import MyCareNetPaymentTracker from './MyCareNetPaymentTracker';
 
 const STATUT_CONFIG = {
   brouillon: { label: 'Brouillon', color: 'bg-slate-100 text-slate-800', icon: FileText },
@@ -61,12 +64,22 @@ export default function TiersPayantDashboard() {
     queryFn: () => base44.entities.MutuelleConvention.filter({ actif: true })
   });
 
+  // Alertes impayées >60j
+  const overdueCount = factures.filter(f => {
+    if (!['envoyee', 'acceptee', 'partielle'].includes(f.statut)) return false;
+    if (!f.date_envoi && !f.date_facturation) return false;
+    const refDate = new Date(f.date_envoi || f.date_facturation);
+    const days = Math.floor((new Date() - refDate) / (1000 * 60 * 60 * 24));
+    return days >= 60;
+  }).length;
+
   // Calculer les statistiques
   const stats = {
     enAttente: factures.filter(f => f.statut === 'envoyee').length,
     montantEnAttente: factures.filter(f => f.statut === 'envoyee').reduce((sum, f) => sum + (f.montant_a_recevoir_mutuelle || 0), 0),
     aEnvoyer: factures.filter(f => f.statut === 'brouillon').length,
     refusees: factures.filter(f => f.statut === 'refusee' || f.statut === 'contestee').length,
+    overdue: overdueCount,
     payesCeMois: factures.filter(f => {
       if (f.statut !== 'payee' || !f.date_paiement) return false;
       const paiementDate = new Date(f.date_paiement);
@@ -163,9 +176,12 @@ export default function TiersPayantDashboard() {
         </Card>
       </div>
 
+      {/* Overdue alert banner — always visible if there are overdue invoices */}
+      <OverdueInvoicesAlert factures={factures} onSelectFacture={(f) => { setActiveTab('factures'); }} />
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="factures" className="gap-2">
             <FileText className="w-4 h-4" />
             Factures TP
@@ -173,8 +189,16 @@ export default function TiersPayantDashboard() {
               <Badge variant="secondary" className="ml-1">{stats.aEnvoyer}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="lots" className="gap-2">
+          <TabsTrigger value="suivi_mcn" className="gap-2">
             <Send className="w-4 h-4" />
+            Suivi MyCareNet
+          </TabsTrigger>
+          <TabsTrigger value="reconciliation" className="gap-2 relative">
+            <Euro className="w-4 h-4" />
+            Réconciliation
+          </TabsTrigger>
+          <TabsTrigger value="lots" className="gap-2">
+            <FileText className="w-4 h-4" />
             Lots d'envoi
           </TabsTrigger>
           <TabsTrigger value="conventions" className="gap-2">
@@ -193,6 +217,14 @@ export default function TiersPayantDashboard() {
             conventions={conventions}
             onRefresh={refetchFactures}
           />
+        </TabsContent>
+
+        <TabsContent value="suivi_mcn" className="mt-6">
+          <MyCareNetPaymentTracker />
+        </TabsContent>
+
+        <TabsContent value="reconciliation" className="mt-6">
+          <BankReconciliation factures={factures} />
         </TabsContent>
 
         <TabsContent value="lots" className="mt-6">
