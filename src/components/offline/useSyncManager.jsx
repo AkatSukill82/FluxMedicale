@@ -182,34 +182,85 @@ export function useSyncManager() {
       setSyncProgress({ current: i + 1, total: pending.length });
 
       try {
+        // Strip offline metadata from the payload
+        const cleanData = { ...action.data };
+        delete cleanData.id;
+        delete cleanData.isOffline;
+        delete cleanData.offlineCreatedAt;
+        delete cleanData.cachedAt;
+        delete cleanData.searchName;
+        delete cleanData.niss;
+
         switch (action.type) {
           case 'CREATE_CONSULTATION':
-            const newConsult = { ...action.data };
-            delete newConsult.id;
-            delete newConsult.isOffline;
-            delete newConsult.offlineCreatedAt;
-            delete newConsult.cachedAt;
-            await base44.entities.Consultation.create(newConsult);
+            await base44.entities.Consultation.create(cleanData);
             break;
 
-          case 'UPDATE_CONSULTATION':
-            const updateConsult = { ...action.data };
+          case 'UPDATE_CONSULTATION': {
+            // Conflict detection: compare updated_date before applying
             const consultId = action.originalId;
-            delete updateConsult.id;
-            delete updateConsult.isOffline;
-            delete updateConsult.offlineCreatedAt;
-            delete updateConsult.cachedAt;
-            await base44.entities.Consultation.update(consultId, updateConsult);
+            if (consultId) {
+              try {
+                const serverVersion = await base44.entities.Consultation.filter({ id: consultId });
+                const server = serverVersion?.[0];
+                if (server && action.data.offlineCreatedAt) {
+                  const serverUpdate = new Date(server.updated_date).getTime();
+                  const offlineEdit = new Date(action.data.offlineCreatedAt).getTime();
+                  if (serverUpdate > offlineEdit) {
+                    // Server has a newer version — merge: offline fields override only non-empty values
+                    const merged = {};
+                    for (const [key, value] of Object.entries(cleanData)) {
+                      if (value !== '' && value !== null && value !== undefined) {
+                        merged[key] = value;
+                      }
+                    }
+                    await base44.entities.Consultation.update(consultId, merged);
+                    console.info(`[Sync] Conflict resolved for consultation ${consultId} — merged offline changes`);
+                    break;
+                  }
+                }
+              } catch {
+                // If we can't fetch server version, proceed with direct update
+              }
+              await base44.entities.Consultation.update(consultId, cleanData);
+            }
             break;
+          }
 
           case 'CREATE_PRESCRIPTION':
-            const newPresc = { ...action.data };
-            delete newPresc.id;
-            delete newPresc.isOffline;
-            delete newPresc.offlineCreatedAt;
-            delete newPresc.cachedAt;
-            await base44.entities.Prescription.create(newPresc);
+            await base44.entities.Prescription.create(cleanData);
             break;
+
+          case 'UPDATE_PATIENT': {
+            // Conflict-aware patient update
+            const patientId = action.originalId;
+            if (patientId) {
+              try {
+                const serverPatients = await base44.entities.Patient.filter({ id: patientId });
+                const serverPatient = serverPatients?.[0];
+                if (serverPatient && action.data.offlineCreatedAt) {
+                  const serverUpdate = new Date(serverPatient.updated_date).getTime();
+                  const offlineEdit = new Date(action.data.offlineCreatedAt).getTime();
+                  if (serverUpdate > offlineEdit) {
+                    // Merge: only apply non-empty offline changes
+                    const merged = {};
+                    for (const [key, value] of Object.entries(cleanData)) {
+                      if (value !== '' && value !== null && value !== undefined) {
+                        merged[key] = value;
+                      }
+                    }
+                    await base44.entities.Patient.update(patientId, merged);
+                    console.info(`[Sync] Conflict resolved for patient ${patientId} — merged offline changes`);
+                    break;
+                  }
+                }
+              } catch {
+                // Fallthrough to direct update
+              }
+              await base44.entities.Patient.update(patientId, cleanData);
+            }
+            break;
+          }
 
           default:
             console.warn('Unknown action type:', action.type);
