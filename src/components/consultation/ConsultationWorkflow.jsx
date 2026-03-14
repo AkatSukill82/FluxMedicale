@@ -162,6 +162,27 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
       const currentUser = await base44.auth.me();
       let invoice = null;
       
+      // Construire les notes de traitement complètes
+      const treatmentParts = [];
+      if (selectedMedications.length > 0) {
+        treatmentParts.push('PRESCRIPTIONS:\n' + selectedMedications.map(m => `• ${m.product_name} - ${m.dosage_prescribed} - ${m.frequency} - ${m.duration}`).join('\n'));
+      }
+      if (carePlanData.non_drug_treatment) {
+        treatmentParts.push('TRAITEMENT NON-MÉDICAMENTEUX:\n' + carePlanData.non_drug_treatment);
+      }
+      if (carePlanData.lab_orders) {
+        treatmentParts.push('EXAMENS COMPLÉMENTAIRES:\n' + carePlanData.lab_orders);
+      }
+      if (carePlanData.certificate_type) {
+        treatmentParts.push(`CERTIFICAT: ${carePlanData.certificate_type}${carePlanData.certificate_notes ? '\n' + carePlanData.certificate_notes : ''}`);
+      }
+      if (carePlanData.followup_delay || carePlanData.followup_notes) {
+        treatmentParts.push(`SUIVI: ${carePlanData.followup_delay || ''}${carePlanData.followup_notes ? '\n' + carePlanData.followup_notes : ''}`);
+      }
+      if (carePlanData.referral_specialty || carePlanData.referral_notes) {
+        treatmentParts.push(`RÉFÉRÉ: ${carePlanData.referral_specialty || 'Spécialiste'}${carePlanData.referral_notes ? '\n' + carePlanData.referral_notes : ''}`);
+      }
+
       // 1. Créer la consultation
       const consultation = await base44.entities.Consultation.create({
         patient_id: patient.id,
@@ -171,7 +192,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         anamnese: consultationData.anamnese,
         examen_clinique: consultationData.examen_clinique,
         diagnostic: consultationData.diagnostic,
-        prescriptions: consultationData.traitement,
+        prescriptions: treatmentParts.join('\n\n') || consultationData.traitement,
         statut: 'Completee'
       });
 
