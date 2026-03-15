@@ -24,14 +24,15 @@ import {
 import { useI18n } from '../components/i18n/i18nContext';
 import { useEIDReader } from '../components/eid/useEIDReader';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import DashboardWidgetManager, { useDashboardWidgets } from '../components/dashboard/DashboardWidgetManager';
 import { AVAILABLE_WIDGETS } from '../components/dashboard/widgetConfig';
 import { useOfflinePatients, useOfflineRendezVous } from '../components/offline/useOfflineData';
 import OfflineBanner from '../components/offline/OfflineBanner';
 
 export default function Dashboard() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const { readEID, isReading } = useEIDReader();
@@ -109,7 +110,7 @@ export default function Dashboard() {
       <div className="text-center py-6">
         <div className="inline-flex items-center gap-2 text-slate-400 mb-2">
           <GreetingIcon className="w-5 h-5" />
-          <span className="text-sm">{format(new Date(), "EEEE d MMMM", { locale: fr })}</span>
+          <span className="text-sm">{format(new Date(), "EEEE d MMMM", { locale: dateLocale })}</span>
         </div>
         <h1 className="text-3xl font-light text-slate-800">
           {greeting}, <span className="font-medium">{user?.full_name?.split(' ')[0] || 'Docteur'}</span>
