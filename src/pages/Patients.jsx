@@ -349,34 +349,34 @@ export default function Patients() {
               <TabsList className="h-12 bg-transparent">
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="consultation" className="gap-2">
-                    📝 Consultation
+                    📝 {t('patient.consultation')}
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="history" className="gap-2">
-                  📋 Historique
+                  📋 {t('patient.history')}
                 </TabsTrigger>
                 <TabsTrigger value="documents" className="gap-2">
-                  📁 Documents
+                  📁 {t('patient.documents')}
                 </TabsTrigger>
                 {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
                   <TabsTrigger value="secure-files" className="gap-2">
-                    🔒 Fichiers sécurisés
+                    🔒 {t('patient.secureFiles')}
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="billing" className="gap-2">
-                  💰 Facturation
+                  💰 {t('patient.billing')}
                 </TabsTrigger>
                 <TabsTrigger value="protocoles" className="gap-2">
-                  📋 Protocoles
+                  📋 {t('patient.protocols')}
                 </TabsTrigger>
                 <TabsTrigger value="chapter4" className="gap-2">
-                  <Shield className="w-4 h-4" /> Chapitre IV
+                  <Shield className="w-4 h-4" /> {t('patient.chapter4')}
                 </TabsTrigger>
                 <TabsTrigger value="hubs" className="gap-2">
-                   <Globe className="w-4 h-4" /> Hubs
+                   <Globe className="w-4 h-4" /> {t('patient.hubs')}
                  </TabsTrigger>
                  <TabsTrigger value="admin" className="gap-2">
-                   👤 Admin
+                   👤 {t('patient.admin')}
                  </TabsTrigger>
               </TabsList>
             </div>
