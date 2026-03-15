@@ -50,7 +50,7 @@ export default function NewPatientDialog({ isOpen, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
       handleSuccess('Patient créé avec succès');
       onClose();
-      navigate(createPageUrl(`Patients?patient=${patient.id}`));
+      navigate(`/Patients?patient=${patient.id}`);
     },
     onError: (error) => {
       handleError(error, 'Création patient');
