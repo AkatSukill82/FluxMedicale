@@ -32,6 +32,7 @@ import { recipE } from '@/functions/recipE';
 import InvoiceReceipt from '../facturation/InvoiceReceipt';
 import ETarification from '../facturation/ETarification';
 import PayconiqQR from '../facturation/PayconiqQR';
+import MemoCodeSelector from '../facturation/MemoCodeSelector';
 import VitalSignsInput from './VitalSignsInput';
 import DiagnosisCodeSearch from './DiagnosisCodeSearch';
 import VoiceDictation from './VoiceDictation';
@@ -831,15 +832,26 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                 />
               </div>
 
+              {/* Codes mémo / frais fixes non-INAMI */}
+              <MemoCodeSelector
+                selectedMemoCodes={selectedCodes.filter(c => c.is_memo)}
+                onSelect={(memoItem) => {
+                  if (!selectedCodes.find(c => c.id === memoItem.id)) {
+                    setSelectedCodes([...selectedCodes, memoItem]);
+                  }
+                }}
+                onRemove={(id) => setSelectedCodes(selectedCodes.filter(c => c.id !== id))}
+              />
+
               {/* eTarification */}
-              {selectedCodes.length > 0 && (
+              {selectedCodes.filter(c => !c.is_memo).length > 0 && (
                 <ETarification
                   patient={patient}
-                  codes={selectedCodes}
+                  codes={selectedCodes.filter(c => !c.is_memo)}
                   isConventionne={isConventionne}
                   onTariffResult={(results) => {
-                    // Update codes with adjusted tariffs from eTar
                     setSelectedCodes(prev => prev.map(code => {
+                      if (code.is_memo) return code;
                       const tariff = results.find(r => r.code_id === code.id);
                       if (tariff && tariff.changed) {
                         return {
@@ -852,7 +864,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                       }
                       return code;
                     }));
-                  }}
+                  }
                 />
               )}
 
