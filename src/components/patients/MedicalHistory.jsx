@@ -7,7 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { FileText, Pill, Activity, Calendar, ChevronRight, CreditCard, Filter, X, Edit } from 'lucide-react';
 import { format, isSameDay, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
+import { useI18n } from '../i18n/i18nContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLocation } from 'react-router-dom';
 import ConsultationEditModal from './ConsultationEditModal';
@@ -16,6 +17,8 @@ import { useOfflineConsultations, useOfflinePrescriptions } from '../offline/use
 import { useOnlineStatus } from '../OfflineIndicator';
 
 export default function MedicalHistory({ patient }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const location = useLocation();
   const isOnline = useOnlineStatus();
   const urlParams = new URLSearchParams(location.search);
@@ -84,7 +87,7 @@ export default function MedicalHistory({ patient }) {
         <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <Filter className="w-4 h-4 text-blue-600" />
           <span className="text-sm text-blue-800">
-            Affichage des éléments du <strong>{format(parseISO(highlightDate), 'dd MMMM yyyy', { locale: fr })}</strong>
+            {t('history.showItemsFrom')} <strong>{format(parseISO(highlightDate), 'dd MMMM yyyy', { locale: dateLocale })}</strong>
           </span>
           <Button 
             variant="ghost" 
@@ -93,7 +96,7 @@ export default function MedicalHistory({ patient }) {
             onClick={() => setHighlightDate(null)}
           >
             <X className="w-3 h-3 mr-1" />
-            Effacer filtre
+            {t('history.clearFilter')}
           </Button>
         </div>
       )}
@@ -102,19 +105,19 @@ export default function MedicalHistory({ patient }) {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="consultations" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
-            Consultations ({consultations.length})
+            {t('history.consultations')} ({consultations.length})
           </TabsTrigger>
           <TabsTrigger value="prescriptions" className="flex items-center gap-2">
             <Pill className="w-4 h-4" />
-            Ordonnances ({prescriptions.length})
+            {t('history.prescriptions')} ({prescriptions.length})
           </TabsTrigger>
           <TabsTrigger value="invoices" className="flex items-center gap-2">
             <CreditCard className="w-4 h-4" />
-            Factures ({invoices.length})
+            {t('history.invoices')} ({invoices.length})
           </TabsTrigger>
           <TabsTrigger value="vitals" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
-            Signes vitaux
+            {t('history.vitalSigns')}
           </TabsTrigger>
         </TabsList>
 
@@ -122,7 +125,7 @@ export default function MedicalHistory({ patient }) {
           {consultations.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune consultation enregistrée</p>
+              <p>{t('consultation.noneRecorded')}</p>
             </div>
           ) : (
             consultations.map(consult => {
@@ -140,29 +143,29 @@ export default function MedicalHistory({ patient }) {
                         <div className="flex items-center gap-2 mb-2">
                           <Calendar className="w-4 h-4 text-slate-500" />
                           <span className="font-medium">
-                            {!isNaN(consultDate.getTime()) && format(consultDate, 'dd MMMM yyyy', { locale: fr })}
+                            {!isNaN(consultDate.getTime()) && format(consultDate, 'dd MMMM yyyy', { locale: dateLocale })}
                           </span>
                           <Badge variant="outline" className="text-xs">
                             Dr. {consult.medecin_email?.split('@')[0]}
                           </Badge>
-                          {highlighted && <Badge className="bg-blue-600">Aujourd'hui</Badge>}
+                          {highlighted && <Badge className="bg-blue-600">{t('history.today')}</Badge>}
                         </div>
                         
                         {consult.motif && (
                           <p className="text-sm text-slate-600 mb-2">
-                            <strong>Motif:</strong> {consult.motif}
+                            <strong>{t('consultation.reason')}:</strong> {consult.motif}
                           </p>
                         )}
                         
                         {consult.diagnostic && (
                           <p className="text-sm text-slate-700 mb-2">
-                            <strong>Diagnostic:</strong> {consult.diagnostic}
+                            <strong>{t('consultation.diagnostic')}:</strong> {consult.diagnostic}
                           </p>
                         )}
                         
                         {consult.prescriptions && (
                           <p className="text-sm text-slate-600">
-                            <strong>Traitement:</strong> {consult.prescriptions}
+                            <strong>{t('common.treatment')}:</strong> {consult.prescriptions}
                           </p>
                         )}
                       </div>
@@ -173,7 +176,7 @@ export default function MedicalHistory({ patient }) {
                         onClick={() => setEditingConsultation(consult)}
                       >
                         <Edit className="w-3 h-3" />
-                        Modifier
+                        {t('common.modify')}
                       </Button>
                     </div>
                   </CardContent>
@@ -187,7 +190,7 @@ export default function MedicalHistory({ patient }) {
           {prescriptions.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <Pill className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune ordonnance enregistrée</p>
+              <p>{t('history.noPrescriptions')}</p>
             </div>
           ) : (
             prescriptions.map(presc => (
@@ -198,7 +201,7 @@ export default function MedicalHistory({ patient }) {
                       <div className="flex items-center gap-2 mb-2">
                         <Pill className="w-4 h-4 text-green-600" />
                         <span className="font-medium">
-                          {presc.created_date && format(new Date(presc.created_date), 'dd MMM yyyy', { locale: fr })}
+                          {presc.created_date && format(new Date(presc.created_date), 'dd MMM yyyy', { locale: dateLocale })}
                         </span>
                         <Badge className="bg-green-100 text-green-800 text-xs">
                           {presc.status || 'Active'}
@@ -226,7 +229,7 @@ export default function MedicalHistory({ patient }) {
           {invoices.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <CreditCard className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune facture enregistrée</p>
+              <p>{t('history.noInvoices')}</p>
             </div>
           ) : (
             invoices.map(invoice => {
@@ -243,12 +246,12 @@ export default function MedicalHistory({ patient }) {
                   PAID: 'bg-purple-100 text-purple-800'
                 };
                 const labels = {
-                  DRAFT: 'Brouillon',
-                  NOT_SENT: 'Pas envoyé',
-                  SENT: 'Envoyé',
-                  ACCEPTED: 'Acceptée',
-                  REJECTED: 'Refusée',
-                  PAID: 'Payée'
+                  DRAFT: t('billing.draft'),
+                  NOT_SENT: t('billing.sent'),
+                  SENT: t('billing.sent'),
+                  ACCEPTED: t('billing.accepted'),
+                  REJECTED: t('billing.rejected'),
+                  PAID: t('billing.paid')
                 };
                 return <Badge className={styles[status] || styles.DRAFT}>{labels[status] || status}</Badge>;
               };
@@ -265,20 +268,20 @@ export default function MedicalHistory({ patient }) {
                         <div className="flex items-center gap-2 mb-2">
                           <CreditCard className="w-4 h-4 text-green-600" />
                           <span className="font-medium">
-                            {invoiceDate && !isNaN(invoiceDate.getTime()) && format(invoiceDate, 'dd MMMM yyyy', { locale: fr })}
+                            {invoiceDate && !isNaN(invoiceDate.getTime()) && format(invoiceDate, 'dd MMMM yyyy', { locale: dateLocale })}
                           </span>
                           {getStatusBadge(invoice.status)}
                           <Badge variant="outline" className="text-xs">{invoice.type}</Badge>
-                          {highlighted && <Badge className="bg-blue-600">Ce jour</Badge>}
+                          {highlighted && <Badge className="bg-blue-600">{t('history.thisDay')}</Badge>}
                         </div>
                         
                         <div className="flex items-center gap-4 text-sm">
                           <span className="text-slate-600">
-                            <strong>Montant:</strong> {((invoice.total_amount || 0) / 100).toFixed(2)}€
+                            <strong>{t('history.amount')}:</strong> {((invoice.total_amount || 0) / 100).toFixed(2)}€
                           </span>
                           {invoice.payment_method && (
                             <span className="text-slate-500">
-                              Paiement: {invoice.payment_method === 'CARD' ? 'Carte' : invoice.payment_method === 'CASH' ? 'Espèces' : invoice.payment_method}
+                              {t('history.payment')}: {invoice.payment_method === 'CARD' ? t('billing.card') : invoice.payment_method === 'CASH' ? t('billing.cash') : invoice.payment_method}
                             </span>
                           )}
                         </div>
@@ -294,7 +297,7 @@ export default function MedicalHistory({ patient }) {
                         onClick={() => setEditingInvoice(invoice)}
                       >
                         <Edit className="w-3 h-3" />
-                        Modifier
+                        {t('common.modify')}
                       </Button>
                     </div>
                   </CardContent>
@@ -308,7 +311,7 @@ export default function MedicalHistory({ patient }) {
           {vitalSigns.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <Activity className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucun signe vital enregistré</p>
+              <p>{t('history.noVitals')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3">
@@ -316,7 +319,7 @@ export default function MedicalHistory({ patient }) {
                 <Card key={vital.id}>
                   <CardContent className="p-3">
                     <p className="text-xs text-slate-500">
-                      {vital.measurement_time && format(new Date(vital.measurement_time), 'dd/MM HH:mm', { locale: fr })}
+                      {vital.measurement_time && format(new Date(vital.measurement_time), 'dd/MM HH:mm', { locale: dateLocale })}
                     </p>
                     {vital.blood_pressure && (
                       <p className="text-sm mt-1"><strong>TA:</strong> {vital.blood_pressure}</p>

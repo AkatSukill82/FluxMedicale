@@ -92,13 +92,12 @@ export default function HubsTab({ patient, onOpenSumehr }) {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
             <Database className="w-5 h-5 text-blue-600" />
-            Accès aux Réseaux de Santé (HUB)
+            {t('hub.accessTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Pour accéder aux données du patient sur les réseaux de santé (RSW, Vitalink, CoZo), 
-            vous devez avoir un lien thérapeutique actif et le consentement du patient.
+            {t('hub.accessDescription')}
           </p>
 
           {/* Boutons de statut */}
@@ -112,12 +111,12 @@ export default function HubsTab({ patient, onOpenSumehr }) {
               {hasValidLink ? (
                 <>
                   <CheckCircle2 className="w-4 h-4 mr-2 text-green-600" />
-                  <span className="text-green-700">Lien thérapeutique</span>
+                  <span className="text-green-700">{t('hub.therapeuticLink')}</span>
                 </>
               ) : (
                 <>
                   <Link2 className="w-4 h-4 mr-2" />
-                  Lien thérapeutique
+                  {t('hub.therapeuticLink')}
                 </>
               )}
             </Button>
@@ -131,12 +130,12 @@ export default function HubsTab({ patient, onOpenSumehr }) {
               {hasValidConsent ? (
                 <>
                   <ShieldCheck className="w-4 h-4 mr-2 text-green-600" />
-                  <span className="text-green-700">Consentement</span>
+                  <span className="text-green-700">{t('hub.consent')}</span>
                 </>
               ) : (
                 <>
                   <Shield className="w-4 h-4 mr-2" />
-                  Consentement
+                  {t('hub.consent')}
                 </>
               )}
             </Button>
@@ -147,7 +146,7 @@ export default function HubsTab({ patient, onOpenSumehr }) {
               className={canAccessHub ? "bg-blue-600 hover:bg-blue-700" : "bg-slate-400"}
             >
               <Database className="w-4 h-4 mr-2" />
-              Accéder au HUB
+              {t('hub.accessHub')}
             </Button>
 
             {/* Bouton Sumehr */}
@@ -157,7 +156,7 @@ export default function HubsTab({ patient, onOpenSumehr }) {
               className="border-purple-300 text-purple-700 hover:bg-purple-50"
             >
               <FileText className="w-4 h-4 mr-2" />
-              Éditer Sumehr
+              {t('hub.editSumehr')}
             </Button>
           </div>
 
@@ -167,18 +166,18 @@ export default function HubsTab({ patient, onOpenSumehr }) {
               {hasValidLink && therapeuticLink?.expires_at && (
                 <div className="flex items-center gap-2 text-green-700">
                   <Calendar className="w-4 h-4" />
-                  Lien valide jusqu'au {formatExpiryDate(therapeuticLink.expires_at)}
+                  {t('hub.linkValidUntil')} {formatExpiryDate(therapeuticLink.expires_at)}
                   <Badge variant="outline" className="text-xs text-green-600 border-green-300">
-                    {therapeuticLink.method === 'eid' ? 'via eID' : 'manuel'}
+                    {therapeuticLink.method === 'eid' ? t('hub.viaEid') : t('hub.manual')}
                   </Badge>
                 </div>
               )}
               {hasValidConsent && consent?.expires_at && (
                 <div className="flex items-center gap-2 text-green-700">
                   <Calendar className="w-4 h-4" />
-                  Consentement valide jusqu'au {formatExpiryDate(consent.expires_at)}
+                  {t('hub.consentValidUntil')} {formatExpiryDate(consent.expires_at)}
                   <Badge variant="outline" className="text-xs text-green-600 border-green-300">
-                    {consent.method === 'eid' ? 'via eID' : 'manuel'}
+                    {consent.method === 'eid' ? t('hub.viaEid') : t('hub.manual')}
                   </Badge>
                 </div>
               )}
@@ -191,11 +190,11 @@ export default function HubsTab({ patient, onOpenSumehr }) {
               <AlertTriangle className="w-4 h-4 text-amber-600" />
               <AlertDescription className="text-amber-900 text-sm">
                 {!hasValidLink && !hasValidConsent ? (
-                  "Le lien thérapeutique et le consentement sont requis pour accéder au HUB."
+                  t('hub.linkAndConsentRequired')
                 ) : !hasValidLink ? (
-                  "Le lien thérapeutique est requis pour accéder au HUB."
+                  t('hub.linkRequired')
                 ) : (
-                  "Le consentement du patient est requis pour accéder au HUB."
+                  t('hub.consentRequired')
                 )}
               </AlertDescription>
             </Alert>
@@ -206,7 +205,7 @@ export default function HubsTab({ patient, onOpenSumehr }) {
             <Alert className="bg-green-50 border-green-200">
               <CheckCircle2 className="w-4 h-4 text-green-600" />
               <AlertDescription className="text-green-900 text-sm">
-                Accès autorisé aux réseaux de santé. Vous pouvez consulter les données du patient.
+                {t('hub.accessGranted')}
               </AlertDescription>
             </Alert>
           )}
@@ -236,7 +235,7 @@ export default function HubsTab({ patient, onOpenSumehr }) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            💉 Vaccinet - Registre de Vaccination
+            💉 {t('hub.vaccinetTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
