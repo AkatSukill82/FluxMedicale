@@ -87,7 +87,7 @@ export default function Dashboard() {
 
   // Greeting based on time
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const greeting = hour < 12 ? t('dashboard.greeting.morning') : hour < 18 ? t('dashboard.greeting.afternoon') : t('dashboard.greeting.evening');
   const GreetingIcon = hour < 12 ? Sunrise : hour < 18 ? Sun : Moon;
 
   // Filter today's appointments (cache may return all dates)
@@ -122,7 +122,7 @@ export default function Dashboard() {
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
-              placeholder="Rechercher un patient (nom ou NISS)..."
+              placeholder={t('dashboard.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-12 h-14 text-lg border-0 shadow-none focus-visible:ring-0 bg-slate-50 rounded-xl"
@@ -175,7 +175,7 @@ export default function Dashboard() {
           ) : (
             <CreditCard className="w-6 h-6 text-blue-600" />
           )}
-          <span className="text-xs font-medium">Lire eID</span>
+          <span className="text-xs font-medium">{t('dashboard.readEid')}</span>
         </Button>
 
         <Button
@@ -184,7 +184,7 @@ export default function Dashboard() {
           className="h-auto py-4 flex flex-col gap-2 hover:bg-green-50 hover:border-green-200"
         >
           <Plus className="w-6 h-6 text-green-600" />
-          <span className="text-xs font-medium">Nouveau patient</span>
+          <span className="text-xs font-medium">{t('dashboard.newPatient')}</span>
         </Button>
 
         <Button
@@ -193,7 +193,7 @@ export default function Dashboard() {
           className="h-auto py-4 flex flex-col gap-2 hover:bg-purple-50 hover:border-purple-200"
         >
           <Calendar className="w-6 h-6 text-purple-600" />
-          <span className="text-xs font-medium">Agenda</span>
+          <span className="text-xs font-medium">{t('dashboard.agenda')}</span>
         </Button>
 
         <Button
@@ -202,7 +202,7 @@ export default function Dashboard() {
           className="h-auto py-4 flex flex-col gap-2 hover:bg-orange-50 hover:border-orange-200"
         >
           <Clock className="w-6 h-6 text-orange-600" />
-          <span className="text-xs font-medium">Prescriptions</span>
+          <span className="text-xs font-medium">{t('dashboard.prescriptions')}</span>
         </Button>
       </div>
 
@@ -216,8 +216,8 @@ export default function Dashboard() {
             <MessageSquare className="w-5 h-5 text-blue-600" />
           </div>
           <div className="flex-1">
-            <p className="font-medium text-slate-800">Messagerie sécurisée</p>
-            <p className="text-sm text-slate-500">Échangez avec vos confrères</p>
+            <p className="font-medium text-slate-800">{t('dashboard.secureMessaging')}</p>
+            <p className="text-sm text-slate-500">{t('dashboard.exchangeColleagues')}</p>
           </div>
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </CardContent>
@@ -225,7 +225,7 @@ export default function Dashboard() {
 
       {/* Configurable Widgets Section */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-700">Mes widgets</h2>
+        <h2 className="text-lg font-semibold text-slate-700">{t('dashboard.myWidgets')}</h2>
         <DashboardWidgetManager 
           config={config}
           toggleWidget={toggleWidget}
@@ -247,8 +247,8 @@ export default function Dashboard() {
         <Card className="shadow-sm">
           <CardContent className="p-8 text-center">
             <Settings2 className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-            <p className="text-slate-500 font-medium">Aucun widget actif</p>
-            <p className="text-sm text-slate-400 mb-4">Personnalisez votre tableau de bord</p>
+            <p className="text-slate-500 font-medium">{t('dashboard.noActiveWidget')}</p>
+            <p className="text-sm text-slate-400 mb-4">{t('dashboard.customizeDashboard')}</p>
             <DashboardWidgetManager 
               config={config}
               toggleWidget={toggleWidget}
