@@ -17,6 +17,7 @@ import PaymentTracker from '../components/facturation/PaymentTracker';
 import InvoiceCreator from '../components/facturation/InvoiceCreator';
 import PaymentRecorder from '../components/facturation/PaymentRecorder';
 import AccountingExport from '../components/facturation/AccountingExport';
+import ErrorInvoicesPanel from '../components/facturation/ErrorInvoicesPanel';
 
 export default function FacturationPage() {
   const [showInvoiceCreator, setShowInvoiceCreator] = useState(false);
@@ -49,6 +50,7 @@ export default function FacturationPage() {
 
   const invoices = data?.invoices || [];
   const pendingCount = invoices.filter(i => i.status === 'PENDING').length;
+  const errorCount = invoices.filter(i => ['ERROR', 'REJECTED', 'PARTIAL'].includes(i.status)).length;
 
   return (
     <div className="space-y-4 p-1">
@@ -76,11 +78,17 @@ export default function FacturationPage() {
 
       {/* Main tabs */}
       <Tabs defaultValue="pending">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="pending" className="relative">
             ⏳ En attente
             {pendingCount > 0 && (
-              <Badge className="ml-1.5 bg-red-500 text-white text-[10px] px-1.5 py-0">{pendingCount}</Badge>
+              <Badge className="ml-1.5 bg-blue-500 text-white text-[10px] px-1.5 py-0">{pendingCount}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="errors" className="relative">
+            ❌ Erreurs
+            {errorCount > 0 && (
+              <Badge className="ml-1.5 bg-red-500 text-white text-[10px] px-1.5 py-0">{errorCount}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="batches">📦 Lots envoyés</TabsTrigger>
@@ -92,6 +100,10 @@ export default function FacturationPage() {
 
         <TabsContent value="pending" className="mt-4">
           <PendingInvoicesQueue invoices={invoices} isLoading={isLoading} />
+        </TabsContent>
+
+        <TabsContent value="errors" className="mt-4">
+          <ErrorInvoicesPanel invoices={invoices} patients={data?.patients || []} isLoading={isLoading} />
         </TabsContent>
 
         <TabsContent value="batches" className="mt-4">
