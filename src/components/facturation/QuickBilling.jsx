@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Euro, Clock, CreditCard, Loader2, FileText, Printer, AlertTriangle } from 'lucide-react';
+import { Euro, Clock, CreditCard, Loader2, FileText, Printer, AlertTriangle, QrCode } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -11,6 +11,7 @@ import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InsuranceVerification from './InsuranceVerification';
+import PayconiqQR from './PayconiqQR';
 
 // Modèles de facturation rapide pour consultations courantes
 const QUICK_BILLING_TEMPLATES = [
@@ -62,6 +63,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
   const [printOnClose, setPrintOnClose] = useState(true);
   const [insuranceVerified, setInsuranceVerified] = useState(false);
   const [insuranceResult, setInsuranceResult] = useState(null);
+  const [showPayconiq, setShowPayconiq] = useState(false);
 
   // Gérer le résultat de la vérification d'assurance
   const handleInsuranceVerified = (result) => {
