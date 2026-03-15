@@ -16,13 +16,12 @@ const formatAmount = (cents) => {
 
 export default function PendingInvoicesQueue({ invoices, isLoading }) {
   const [showSendDialog, setShowSendDialog] = useState(false);
-  const [sendGroups, setSendGroups] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const queryClient = useQueryClient();
 
   const pendingInvoices = invoices.filter(inv => inv.status === 'PENDING');
 
-  // Grouper par mutuelle
+  // Grouper par mutuelle pour l'envoi
   const groups = Object.values(
     pendingInvoices.reduce((acc, inv) => {
       const key = inv.oa_code || inv.oa_name || 'INCONNU';
@@ -38,28 +37,13 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
     }, {})
   ).sort((a, b) => b.invoices.length - a.invoices.length);
 
-  // Ouvrir le récap pour tout envoyer
-  const handleSendAll = () => {
-    setSendGroups(groups);
-    setShowSendDialog(true);
-  };
-
-  // Ouvrir le récap pour un seul groupe
-  const handleSendGroup = (group) => {
-    setSendGroups([group]);
-    setShowSendDialog(true);
-  };
-
-  // Confirmer l'envoi (reçoit les groupes avec batchNumber modifié)
   const handleConfirmSend = async (enrichedGroups) => {
     setIsSending(true);
     let totalSent = 0;
 
     for (const group of enrichedGroups) {
-      const batchNumber = group.batchNumber;
-
       const batch = await base44.entities.InvoiceBatch.create({
-        batch_number: batchNumber,
+        batch_number: group.batchNumber,
         oa_code: group.oa_code,
         oa_name: group.oa_name,
         invoice_count: group.invoices.length,
@@ -79,7 +63,6 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
           sent_at: new Date().toISOString()
         });
       }
-
       totalSent += group.invoices.length;
     }
 
@@ -113,6 +96,8 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
     );
   }
 
+  const totalAmount = pendingInvoices.reduce((s, i) => s + (i.total_amount || 0), 0);
+
   return (
     <>
       <div className="space-y-4">
@@ -129,12 +114,12 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
                     {pendingInvoices.length} attestation(s) en attente
                   </h2>
                   <p className="text-sm text-blue-700">
-                    {groups.length} mutuelle(s) • Total: {formatAmount(pendingInvoices.reduce((s, i) => s + (i.total_amount || 0), 0))}
+                    {groups.length} mutuelle(s) • Total: {formatAmount(totalAmount)}
                   </p>
                 </div>
               </div>
               <Button
-                onClick={handleSendAll}
+                onClick={() => setShowSendDialog(true)}
                 className="bg-blue-600 hover:bg-blue-700 h-12 px-6 text-base gap-2"
               >
                 <Send className="w-5 h-5" />
@@ -144,69 +129,39 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
           </CardContent>
         </Card>
 
-        {/* Groupes par mutuelle */}
-        {groups.map(group => (
-          <Card key={group.oa_code} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-0">
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-slate-600" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-slate-900">{group.oa_name}</h3>
-                      {group.oa_code !== 'INCONNU' && (
-                        <Badge variant="outline" className="font-mono text-xs">{group.oa_code}</Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-slate-600">
-                      <span>{group.invoices.length} facture(s)</span>
-                      <span className="text-slate-300">|</span>
-                      <span>Mutuelle: <strong className="text-green-700">{formatAmount(group.insuranceTotal)}</strong></span>
-                      <span className="text-slate-300">|</span>
-                      <span>Patient: <strong className="text-orange-700">{formatAmount(group.patientTotal)}</strong></span>
-                      <span className="text-slate-300">|</span>
-                      <span>Total: <strong>{formatAmount(group.total)}</strong></span>
-                    </div>
-                  </div>
-                </div>
-                <Button onClick={() => handleSendGroup(group)} variant="outline" className="gap-2">
-                  <Send className="w-4 h-4" />
-                  Envoyer
-                </Button>
+        {/* Liste plate de toutes les factures */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="grid grid-cols-6 gap-4 text-xs font-semibold text-slate-500 px-4 py-3 border-b bg-slate-50">
+              <span>N° Facture</span>
+              <span>Patient</span>
+              <span>Date</span>
+              <span>Mutuelle</span>
+              <span>Type</span>
+              <span className="text-right">Montant</span>
+            </div>
+            {pendingInvoices.map(inv => (
+              <div key={inv.id} className="grid grid-cols-6 gap-4 text-sm py-3 px-4 border-b last:border-0 hover:bg-slate-50">
+                <span className="font-mono text-xs text-slate-600">{inv.invoice_number || inv.id.slice(0, 10)}</span>
+                <span className="font-medium truncate">{inv.patient_name || 'Patient'}</span>
+                <span className="text-slate-600">{inv.invoice_date ? format(new Date(inv.invoice_date), 'dd/MM/yyyy') : '-'}</span>
+                <span className="text-slate-600 truncate">{inv.oa_name || '-'}</span>
+                <Badge variant="outline" className="w-fit text-xs">{inv.type}</Badge>
+                <span className="text-right font-semibold">{formatAmount(inv.total_amount)}</span>
               </div>
-
-              {/* Aperçu des factures */}
-              <div className="border-t bg-slate-50/50 px-4 py-2">
-                <div className="grid grid-cols-4 gap-4 text-xs font-semibold text-slate-500 mb-1 px-2">
-                  <span>Patient</span>
-                  <span>Date</span>
-                  <span>N° Facture</span>
-                  <span className="text-right">Montant</span>
-                </div>
-                {group.invoices.slice(0, 5).map(inv => (
-                  <div key={inv.id} className="grid grid-cols-4 gap-4 text-sm py-1.5 px-2 rounded hover:bg-white">
-                    <span className="font-medium truncate">{inv.patient_name || 'Patient'}</span>
-                    <span className="text-slate-600">{inv.invoice_date ? format(new Date(inv.invoice_date), 'dd/MM/yyyy') : '-'}</span>
-                    <span className="font-mono text-xs text-slate-500">{inv.invoice_number || inv.id.slice(0, 8)}</span>
-                    <span className="text-right font-semibold">{formatAmount(inv.total_amount)}</span>
-                  </div>
-                ))}
-                {group.invoices.length > 5 && (
-                  <p className="text-xs text-slate-500 text-center py-1">
-                    +{group.invoices.length - 5} autre(s)
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            ))}
+            {/* Total */}
+            <div className="grid grid-cols-6 gap-4 text-sm py-3 px-4 bg-slate-100 font-bold">
+              <span className="col-span-5">Total</span>
+              <span className="text-right">{formatAmount(totalAmount)}</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Dialog récapitulatif d'envoi */}
       <BatchSendDialog
-        groups={sendGroups}
+        groups={groups}
         open={showSendDialog}
         onOpenChange={(val) => { if (!isSending) setShowSendDialog(val); }}
         onConfirm={handleConfirmSend}
