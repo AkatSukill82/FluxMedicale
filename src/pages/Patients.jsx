@@ -146,13 +146,13 @@ export default function Patients() {
         <OfflineBanner />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold">Tous les patients</h2>
-            <Badge variant="outline">{allPatients.length} patients</Badge>
+            <h2 className="text-2xl font-bold">{t('patient.allPatients')}</h2>
+            <Badge variant="outline">{allPatients.length} {t('nav.patients').toLowerCase()}</Badge>
           </div>
           <div className="flex items-center gap-2">
             <Button onClick={() => setShowNewPatientDialog(true)} className="gap-2">
               <UserPlus className="w-4 h-4" />
-              Nouveau patient
+              {t('patient.newPatient')}
             </Button>
             <EIDReaderButton
               onPatientFound={(p) => navigate(createPageUrl(`Patients?patient=${p.id}`))}
@@ -166,7 +166,7 @@ export default function Patients() {
         
         {isLoadingList ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">Chargement...</p>
+            <p className="text-muted-foreground">{t('patient.loading')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -218,7 +218,7 @@ export default function Patients() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Chargement...</p>
+        <p className="text-muted-foreground">{t('patient.loading')}</p>
       </div>
     );
   }
@@ -226,7 +226,7 @@ export default function Patients() {
   if (!patient) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Patient non trouvé</p>
+        <p className="text-muted-foreground">{t('patient.notFound')}</p>
       </div>
     );
   }
@@ -245,7 +245,7 @@ export default function Patients() {
         <div className="p-4 border-b">
           <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
             <ArrowLeft className="w-4 h-4" />
-            Retour
+            {t('patient.back')}
           </Button>
           
           <div className="space-y-2">
@@ -268,7 +268,7 @@ export default function Patients() {
               size="sm"
             >
               <CreditCard className="w-4 h-4" />
-              Facturer (Alt+F)
+              {t('actions.bill')} (Alt+F)
             </Button>
           )}
           {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
@@ -280,7 +280,7 @@ export default function Patients() {
                 variant="outline"
               >
                 <Pill className="w-4 h-4" />
-                Prescrire (Alt+P)
+                {t('actions.prescribe')} (Alt+P)
               </Button>
               <Button
                 onClick={() => setShowQuickVaccination(true)}
@@ -288,7 +288,7 @@ export default function Patients() {
                 size="sm"
                 variant="outline"
               >
-                💉 Vacciner (Alt+V)
+                💉 {t('actions.vaccinate')} (Alt+V)
               </Button>
             </>
           )}
@@ -299,14 +299,14 @@ export default function Patients() {
             variant="outline"
           >
             <FileText className="w-4 h-4" />
-            Générer document
+            {t('actions.generateDocument')}
           </Button>
         </div>
 
         {/* Infos clés */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Contact</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">{t('patient.contact')}</h3>
             <div className="space-y-1 text-sm">
               {patient.telecom?.find(t => t.system === 'phone')?.value && (
                 <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
@@ -319,21 +319,21 @@ export default function Patients() {
 
           {patient.mutuelle && (
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Mutuelle</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">{t('patient.insurance')}</h3>
               <p className="text-sm">{patient.mutuelle}</p>
             </div>
           )}
 
           {patient.allergies && (
             <div>
-              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ Allergies</h3>
+              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ {t('patient.allergies')}</h3>
               <p className="text-sm">{patient.allergies}</p>
             </div>
           )}
 
           {patient.antecedents_medicaux && (
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">Antécédents</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">{t('patient.medicalHistory')}</h3>
               <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
             </div>
           )}
