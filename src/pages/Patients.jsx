@@ -193,6 +193,11 @@ export default function Patients() {
             })}
           </div>
         )}
+
+        <NewPatientDialog
+          isOpen={showNewPatientDialog}
+          onClose={() => setShowNewPatientDialog(false)}
+        />
       </div>
     );
   }
