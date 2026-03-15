@@ -864,7 +864,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                       }
                       return code;
                     }));
-                  }
+                  }}
                 />
               )}
 
