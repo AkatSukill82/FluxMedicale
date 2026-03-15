@@ -125,7 +125,20 @@ export default function Patients() {
     navigate(createPageUrl('Dashboard'));
   };
 
-  const { data: allPatients = [], isLoading: isLoadingList } = useOfflinePatients('-created_date', 500);
+  const { data: allPatientsRaw = [], isLoading: isLoadingList } = useOfflinePatients('-created_date', 500);
+  
+  const allPatients = React.useMemo(() => {
+    return [...allPatientsRaw].sort((a, b) => {
+      const nameA = a.name?.find(n => n.use === 'official') || a.name?.[0] || {};
+      const nameB = b.name?.find(n => n.use === 'official') || b.name?.[0] || {};
+      const familyA = (nameA.family || '').toLowerCase();
+      const familyB = (nameB.family || '').toLowerCase();
+      if (familyA !== familyB) return familyA.localeCompare(familyB, 'fr');
+      const givenA = (nameA.given?.[0] || '').toLowerCase();
+      const givenB = (nameB.given?.[0] || '').toLowerCase();
+      return givenA.localeCompare(givenB, 'fr');
+    });
+  }, [allPatientsRaw]);
 
   if (!patientId) {
     return (
