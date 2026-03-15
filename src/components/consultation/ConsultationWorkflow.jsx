@@ -297,26 +297,49 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
         const patientName = patient?.name?.[0] 
           ? `${(patient.name[0].given || []).join(' ')} ${patient.name[0].family}`
           : 'Patient';
-        const patientOaCode = patient?.mutuelle ? patient.mutuelle : '';
-        const patientOaName = patient?.mutuelle || 'Mutuelle inconnue';
+
+        // Générer numéro de facture
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+        const seq = now.getTime().toString().slice(-4);
+        const invoiceNumber = `FA-${dateStr}-${seq}`;
+
+        // Construire les lignes embarquées
+        const invoiceLines = selectedCodes.map((code, i) => {
+          const lineAmount = isConventionne 
+            ? (code.original_honorarium || code.honorarium || 0) 
+            : (code.is_custom_price ? (code.custom_honorarium || 0) : (code.honorarium || 0));
+          return {
+            id: `line-${i}`,
+            description: code.title_fr,
+            nomenclature_code: code.code,
+            quantity: 1,
+            unit_price: lineAmount,
+            amount: lineAmount,
+            vat_rate: code.is_memo ? (code.vat_rate || 0) : 0,
+            consultation_id: ''
+          };
+        });
 
         invoice = await base44.entities.Invoice.create({
+          invoice_number: invoiceNumber,
           patient_id: patient.id,
           patient_name: patientName,
           provider_id: currentUser.email,
           type: 'EATTEST',
           payment_method: paymentMethod,
           status: 'PENDING',
-          oa_code: patientOaCode,
-          oa_name: patientOaName,
+          oa_code: patient?.numero_mutuelle || '',
+          oa_name: patient?.mutuelle || '',
           total_amount: totalHonorarium,
           patient_contribution: totalPatientShare,
           insurance_contribution: totalReimbursed,
-          invoice_date: new Date().toISOString().split('T')[0],
+          invoice_date: now.toISOString().split('T')[0],
+          invoice_lines: invoiceLines,
           created_by: currentUser.email
         });
 
-        // Créer les lignes de facture
+        // Créer aussi les lignes séparées pour tracking détaillé
         for (const code of selectedCodes) {
           const lineAmount = isConventionne 
             ? (code.original_honorarium || code.honorarium || 0) 
@@ -328,7 +351,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
             quantity: 1,
             unit_price: lineAmount,
             amount: lineAmount,
-            date_prestation: new Date().toISOString().split('T')[0],
+            date_prestation: now.toISOString().split('T')[0],
             is_convention_price: isConventionne
           });
         }

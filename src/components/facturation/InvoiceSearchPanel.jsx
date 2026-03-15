@@ -18,7 +18,9 @@ const STATUS_CONFIG = {
   ACCEPTED: { label: 'Accepté', color: 'bg-green-100 text-green-700', icon: CheckCircle },
   REJECTED: { label: 'Refusé', color: 'bg-red-100 text-red-700', icon: XCircle },
   PAID: { label: 'Payé', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+  PARTIAL: { label: 'Partiel', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
   CANCELLED: { label: 'Annulé', color: 'bg-slate-100 text-slate-500', icon: FileX2 },
+  CREDIT_NOTE: { label: 'Note de crédit', color: 'bg-orange-100 text-orange-700', icon: FileX2 },
 };
 
 const QUICK_FILTERS = [
@@ -129,6 +131,8 @@ export default function InvoiceSearchPanel({ invoices, isLoading }) {
                 <SelectItem value="REJECTED">Refusé</SelectItem>
                 <SelectItem value="ERROR">Erreur</SelectItem>
                 <SelectItem value="PAID">Payé</SelectItem>
+                <SelectItem value="CANCELLED">Annulé</SelectItem>
+                <SelectItem value="CREDIT_NOTE">Note de crédit</SelectItem>
               </SelectContent>
             </Select>
             <Select value={periodFilter} onValueChange={setPeriodFilter}>

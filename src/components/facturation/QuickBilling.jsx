@@ -84,24 +84,56 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
       let totalAmount, patientShare, insuranceShare, codes, isCustom;
       
       if (data.isCustom) {
-        // Facturation personnalisée avec codes INAMI
         isCustom = true;
         codes = data.codes;
         totalAmount = data.codes.reduce((sum, code) => sum + (code.honorarium || 0), 0);
         insuranceShare = data.codes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
         patientShare = totalAmount - insuranceShare;
       } else {
-        // Template rapide
         isCustom = false;
         codes = data.template.codes;
         totalAmount = data.template.amount * 100;
         patientShare = totalAmount;
         insuranceShare = 0;
       }
-      
+
+      // Générer le numéro de facture
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+      const seq = now.getTime().toString().slice(-4);
+      const invoiceNumber = `FA-${dateStr}-${seq}`;
+
+      // Nom du patient
+      const patientName = patient?.name?.[0] 
+        ? `${(patient.name[0].given || []).join(' ')} ${patient.name[0].family}`
+        : 'Patient';
+
+      // Construire les lignes de facture embarquées
+      const invoiceLines = isCustom
+        ? codes.map((code, i) => ({
+            id: `line-${i}`,
+            description: code.title_fr,
+            nomenclature_code: code.code,
+            quantity: 1,
+            unit_price: code.honorarium,
+            amount: code.honorarium,
+            vat_rate: 0
+          }))
+        : codes.map((code, i) => ({
+            id: `line-${i}`,
+            description: data.template.name,
+            nomenclature_code: code,
+            quantity: 1,
+            unit_price: data.template.amount * 100,
+            amount: data.template.amount * 100,
+            vat_rate: 0
+          }));
+
       // Créer la facture
       const invoice = await base44.entities.Invoice.create({
+        invoice_number: invoiceNumber,
         patient_id: patient.id,
+        patient_name: patientName,
         provider_id: currentUser.email,
         type: data.invoiceType,
         payment_method: paymentMethod,
@@ -109,7 +141,10 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
         total_amount: totalAmount,
         patient_contribution: patientShare,
         insurance_contribution: insuranceShare,
-        invoice_date: new Date().toISOString().split('T')[0],
+        invoice_date: now.toISOString().split('T')[0],
+        oa_code: patient?.numero_mutuelle || '',
+        oa_name: patient?.mutuelle || '',
+        invoice_lines: invoiceLines,
         created_by: currentUser.email
       });
 
