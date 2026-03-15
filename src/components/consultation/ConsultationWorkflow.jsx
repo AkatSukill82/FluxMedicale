@@ -877,14 +877,18 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                     const isEditing = editingCodeId === code.id;
                     
                     return (
-                      <Card key={code.id} className={`p-4 ${code.is_custom_price ? 'border-orange-300 bg-orange-50/50' : ''}`}>
+                      <Card key={code.id} className={`p-4 ${code.is_memo ? 'border-amber-300 bg-amber-50/50' : code.is_custom_price ? 'border-orange-300 bg-orange-50/50' : ''}`}>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline" className="font-mono text-base">
+                              <Badge variant="outline" className={`font-mono text-base ${code.is_memo ? 'border-amber-400 text-amber-700' : ''}`}>
                                 {code.code}
                               </Badge>
-                              <Badge variant="secondary">{code.category}</Badge>
+                              {code.is_memo ? (
+                                <Badge className="bg-amber-100 text-amber-700 text-xs">Frais fixe</Badge>
+                              ) : (
+                                <Badge variant="secondary">{code.category}</Badge>
+                              )}
                               {code.is_custom_price && (
                                 <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-300 text-xs">
                                   Prix modifié
@@ -989,7 +993,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
               )}
 
               {/* Mode de paiement */}
-              {selectedCodes.length > 0 && (
+              {(selectedCodes.length > 0) && (
                 <div className="space-y-3">
                   <Label className="text-lg font-semibold block">Mode de paiement</Label>
                   <div className="grid grid-cols-4 gap-3">
