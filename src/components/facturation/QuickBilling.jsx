@@ -403,10 +403,10 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
 
                 <div>
                   <p className="text-sm font-semibold mb-3">Mode de paiement</p>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-4 gap-3">
                     <Button
                       variant={paymentMethod === 'CARD' ? 'default' : 'outline'}
-                      onClick={() => setPaymentMethod('CARD')}
+                      onClick={() => { setPaymentMethod('CARD'); setShowPayconiq(false); }}
                       className="h-16 flex flex-col gap-1"
                     >
                       <CreditCard className="w-5 h-5" />
@@ -414,7 +414,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                     </Button>
                     <Button
                       variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
-                      onClick={() => setPaymentMethod('CASH')}
+                      onClick={() => { setPaymentMethod('CASH'); setShowPayconiq(false); }}
                       className="h-16 flex flex-col gap-1"
                     >
                       <Euro className="w-5 h-5" />
@@ -422,7 +422,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                     </Button>
                     <Button
                       variant={paymentMethod === 'BANK' ? 'default' : 'outline'}
-                      onClick={() => setPaymentMethod('BANK')}
+                      onClick={() => { setPaymentMethod('BANK'); setShowPayconiq(false); }}
                       className="h-16 flex flex-col gap-1"
                     >
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -430,7 +430,26 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                       </svg>
                       <span className="text-xs">Virement</span>
                     </Button>
+                    <Button
+                      variant={paymentMethod === 'PAYCONIQ' ? 'default' : 'outline'}
+                      onClick={() => { setPaymentMethod('PAYCONIQ'); setShowPayconiq(true); }}
+                      className="h-16 flex flex-col gap-1"
+                    >
+                      <QrCode className="w-5 h-5" />
+                      <span className="text-xs">Payconiq QR</span>
+                    </Button>
                   </div>
+
+                  {showPayconiq && selectedCodes.length > 0 && (
+                    <div className="mt-4">
+                      <PayconiqQR
+                        amount={selectedCodes.reduce((sum, c) => sum + (c.honorarium || 0), 0)}
+                        patientName={patient?.name?.[0] ? `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` : ''}
+                        invoiceRef={Date.now().toString().slice(-10)}
+                        onPaymentConfirmed={() => setPaymentMethod('PAYCONIQ')}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center space-x-2 pt-2">
