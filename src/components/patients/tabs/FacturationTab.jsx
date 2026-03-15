@@ -13,8 +13,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import PaymentHistory from '../../facturation/PaymentHistory';
+import { useI18n } from '../../i18n/i18nContext';
 import {
   Select,
   SelectContent,
@@ -24,6 +25,8 @@ import {
 } from "@/components/ui/select";
 
 export default function FacturationTab({ patient, onNewBilling }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const [filterType, setFilterType] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
 
@@ -53,11 +56,11 @@ export default function FacturationTab({ patient, onNewBilling }) {
     };
 
     const labels = {
-      DRAFT: 'Brouillon',
-      SENT: 'Envoyée',
-      ACCEPTED: 'Acceptée',
-      REJECTED: 'Refusée',
-      PAID: 'Payée'
+      DRAFT: t('billing.draft'),
+      SENT: t('billing.sent'),
+      ACCEPTED: t('billing.accepted'),
+      REJECTED: t('billing.rejected'),
+      PAID: t('billing.paid')
     };
 
     return <Badge className={styles[status]}>{labels[status]}</Badge>;
@@ -75,10 +78,10 @@ export default function FacturationTab({ patient, onNewBilling }) {
 
   const getPaymentLabel = (method) => {
     const labels = {
-      CARD: 'Carte',
-      CASH: 'Espèces',
-      BANK: 'Virement',
-      PAPER: 'Papier'
+      CARD: t('billing.card'),
+      CASH: t('billing.cash'),
+      BANK: t('billing.transfer'),
+      PAPER: t('billing.paper')
     };
     return labels[method] || method;
   };
@@ -92,15 +95,15 @@ export default function FacturationTab({ patient, onNewBilling }) {
         <CardContent className="p-6">
           <div className="grid grid-cols-3 gap-6">
             <div>
-              <div className="text-sm text-slate-600 mb-1">Total facturé</div>
+              <div className="text-sm text-slate-600 mb-1">{t('billing.totalBilled')}</div>
               <div className="text-2xl font-bold text-slate-900">{totalFacture.toFixed(2)}€</div>
             </div>
             <div>
-              <div className="text-sm text-slate-600 mb-1">Total payé</div>
+              <div className="text-sm text-slate-600 mb-1">{t('billing.totalPaid')}</div>
               <div className="text-2xl font-bold text-green-600">{totalPaye.toFixed(2)}€</div>
             </div>
             <div>
-              <div className="text-sm text-slate-600 mb-1">Reste dû</div>
+              <div className="text-sm text-slate-600 mb-1">{t('billing.amountDue')}</div>
               <div className="text-2xl font-bold text-orange-600">{resteDu.toFixed(2)}€</div>
             </div>
           </div>
@@ -113,17 +116,17 @@ export default function FacturationTab({ patient, onNewBilling }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-slate-500" />
-              <span className="text-sm font-semibold">Filtres:</span>
+              <span className="text-sm font-semibold">{t('billing.filters')}:</span>
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-32">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tous</SelectItem>
+                <SelectItem value="ALL">{t('billing.all')}</SelectItem>
                 <SelectItem value="EFACT">eFact</SelectItem>
                 <SelectItem value="EATTEST">eAttest</SelectItem>
-                <SelectItem value="PAPER">Papier</SelectItem>
+                <SelectItem value="PAPER">{t('billing.paper')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -132,18 +135,18 @@ export default function FacturationTab({ patient, onNewBilling }) {
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tous</SelectItem>
-                <SelectItem value="DRAFT">Brouillon</SelectItem>
-                <SelectItem value="SENT">Envoyée</SelectItem>
-                <SelectItem value="ACCEPTED">Acceptée</SelectItem>
-                <SelectItem value="REJECTED">Refusée</SelectItem>
-                <SelectItem value="PAID">Payée</SelectItem>
+                <SelectItem value="ALL">{t('billing.all')}</SelectItem>
+                <SelectItem value="DRAFT">{t('billing.draft')}</SelectItem>
+                <SelectItem value="SENT">{t('billing.sent')}</SelectItem>
+                <SelectItem value="ACCEPTED">{t('billing.accepted')}</SelectItem>
+                <SelectItem value="REJECTED">{t('billing.rejected')}</SelectItem>
+                <SelectItem value="PAID">{t('billing.paid')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Button variant="outline" size="sm" className="ml-auto">
               <Download className="w-4 h-4 mr-2" />
-              Export CSV
+              {t('billing.exportCsv')}
             </Button>
           </div>
         </CardContent>
@@ -154,7 +157,7 @@ export default function FacturationTab({ patient, onNewBilling }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
-            Factures du patient
+            {t('billing.patientInvoices')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -165,7 +168,7 @@ export default function FacturationTab({ patient, onNewBilling }) {
           ) : filteredInvoices.length === 0 ? (
             <div className="text-center py-8 text-slate-500">
               <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>Aucune facture pour ce patient</p>
+              <p>{t('billing.noInvoices')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -189,15 +192,15 @@ export default function FacturationTab({ patient, onNewBilling }) {
                         </div>
                         <div className="text-sm text-slate-600">
                           {isValidDate 
-                            ? format(invoiceDate, 'dd MMMM yyyy', { locale: fr })
-                            : 'Date non disponible'
+                            ? format(invoiceDate, 'dd MMMM yyyy', { locale: dateLocale })
+                            : t('consultation.dateUnavailable')
                           } •
                           {' '}{getPaymentLabel(invoice.payment_method)} •
                           OA: {invoice.oa_code || 'N/A'}
                         </div>
                         {invoice.transaction_id && (
                           <div className="text-xs text-slate-500 mt-1 font-mono">
-                            Réf: {invoice.transaction_id}
+                            {t('billing.ref')}: {invoice.transaction_id}
                           </div>
                         )}
                       </div>
@@ -218,7 +221,7 @@ export default function FacturationTab({ patient, onNewBilling }) {
                         {invoice.status === 'REJECTED' && (
                           <Button variant="outline" size="sm">
                             <Send className="w-4 h-4 mr-2" />
-                            Renvoyer
+                            {t('billing.resend')}
                           </Button>
                         )}
                       </div>
