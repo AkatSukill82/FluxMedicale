@@ -151,15 +151,15 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.dashboard'), path: 'Dashboard', icon: LayoutDashboard },
         { title: t('nav.patients'), path: 'Patients', icon: Users },
         { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
-        { title: 'Messagerie', path: 'Inbox', icon: MessageSquare },
+        { title: t('nav.messaging'), path: 'Inbox', icon: MessageSquare },
         { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
-        { title: 'Garde', path: 'Garde', icon: Phone },
-        { title: 'Stocks', path: 'Stock', icon: Package },
-        { title: 'Médicaments', path: 'Medicaments', icon: Pill },
-        { title: 'Chapitre IV', path: 'ChapitreIV', icon: Shield },
-        { title: 'Statistiques', path: 'Statistiques', icon: BarChart3 },
-        { title: 'Documentation', path: 'Documentation', icon: BookOpen },
-        { title: 'Notifications', path: 'Notifications', icon: Bell },
+        { title: t('nav.guard'), path: 'Garde', icon: Phone },
+        { title: t('nav.stocks'), path: 'Stock', icon: Package },
+        { title: t('nav.medications'), path: 'Medicaments', icon: Pill },
+        { title: t('nav.chapter4'), path: 'ChapitreIV', icon: Shield },
+        { title: t('nav.statistics'), path: 'Statistiques', icon: BarChart3 },
+        { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
+        { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];
   
   const adminNavItems = [
@@ -167,7 +167,7 @@ export default function AppShell({ children, currentPageName }) {
     { title: t('nav.audit'), path: 'Audit', icon: Activity, adminOnly: true },
     { title: t('nav.health'), path: 'Health', icon: Activity, adminOnly: true },
     { title: t('nav.security'), path: 'Securite', icon: Shield },
-    { title: 'Médicaments SAM', path: 'ReferentialImport', icon: Upload, adminOnly: true },
+    { title: t('nav.samMedications'), path: 'ReferentialImport', icon: Upload, adminOnly: true },
   ];
 
   const profileNavItem = { title: t('nav.profile'), path: 'ProfilMedecin', icon: UserIcon };
@@ -215,7 +215,7 @@ export default function AppShell({ children, currentPageName }) {
                 </SidebarMenu>
                  {canAccessAdmin && (
                   <>
-                    <p className={cn("text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : "Administration"}</p>
+                    <p className={cn("text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : t('nav.administration')}</p>
                     <SidebarMenu>
                       {adminNavItems.map((item) => (
                          <SidebarMenuItem key={item.path} className="relative">
@@ -307,7 +307,7 @@ export default function AppShell({ children, currentPageName }) {
                   <WifiOff className="w-4 h-4" />
                 )}
                 <span className="hidden sm:inline">
-                  {isOnline ? "Visite à domicile" : "Hors-ligne"}
+                  {isOnline ? t('common.homeVisit') : t('common.offline')}
                 </span>
                 {pendingCount > 0 && (
                   <span className="ml-1 px-1.5 py-0.5 bg-yellow-500 text-white text-xs rounded-full">
@@ -330,7 +330,7 @@ export default function AppShell({ children, currentPageName }) {
                     {(user.role === 'admin' || user.role === 'editor') ? 'Dr.' : ''} {user.full_name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {t('common.connected')} • {user.role === 'admin' ? 'ADMIN' : user.role === 'editor' ? 'ÉDITEUR' : 'LECTEUR'}
+                    {t('common.connected')} • {user.role === 'admin' ? 'ADMIN' : user.role === 'editor' ? t('common.editor') : t('common.reader')}
                   </p>
                 </Link>
 
