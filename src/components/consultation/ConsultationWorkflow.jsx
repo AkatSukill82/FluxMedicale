@@ -897,7 +897,16 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                             </div>
                             <p className="font-medium text-base">{code.title_fr}</p>
                             
-                            {isEditing && !isConventionne ? (
+                            {code.is_memo ? (
+                              <div className="flex items-center gap-6 mt-2 text-sm">
+                                <span className="text-slate-600">
+                                  Montant: <strong>{formatAmount(code.honorarium)}</strong>
+                                </span>
+                                <span className="text-amber-600">
+                                  Patient: <strong>{formatAmount(code.honorarium)}</strong> (non remboursable)
+                                </span>
+                              </div>
+                            ) : isEditing && !isConventionne ? (
                               <div className="mt-3 p-3 bg-white rounded-lg border">
                                 <Label className="text-sm mb-2 block">Modifier l'honoraire (en centimes)</Label>
                                 <div className="flex items-center gap-2">
