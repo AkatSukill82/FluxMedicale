@@ -137,7 +137,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
         provider_id: currentUser.email,
         type: data.invoiceType,
         payment_method: paymentMethod,
-        status: data.invoiceType === 'PAPER' ? 'NOT_SENT' : 'SENT',
+        status: data.invoiceType === 'PAPER' ? 'NOT_SENT' : 'PENDING',
         total_amount: totalAmount,
         patient_contribution: patientShare,
         insurance_contribution: insuranceShare,
