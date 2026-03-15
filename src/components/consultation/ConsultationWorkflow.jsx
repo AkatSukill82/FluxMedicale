@@ -304,7 +304,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           patient_name: patientName,
           provider_id: currentUser.email,
           type: 'EATTEST',
-          payment_method: 'CARD',
+          payment_method: paymentMethod,
           status: 'PENDING',
           oa_code: patientOaCode,
           oa_name: patientOaName,
