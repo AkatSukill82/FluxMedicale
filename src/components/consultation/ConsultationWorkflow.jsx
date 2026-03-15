@@ -470,7 +470,8 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           <p><strong>Paiement:</strong> ${
             invoice?.payment_method === 'CARD' ? 'Carte bancaire' :
             invoice?.payment_method === 'CASH' ? 'Espèces' :
-            invoice?.payment_method === 'BANK' ? 'Virement' : 'N/A'
+            invoice?.payment_method === 'BANK' ? 'Virement' :
+            invoice?.payment_method === 'PAYCONIQ' ? 'Payconiq / QR' : 'N/A'
           }</p>
         </div>
 
