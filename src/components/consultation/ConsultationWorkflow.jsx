@@ -830,6 +830,31 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                 />
               </div>
 
+              {/* eTarification */}
+              {selectedCodes.length > 0 && (
+                <ETarification
+                  patient={patient}
+                  codes={selectedCodes}
+                  isConventionne={isConventionne}
+                  onTariffResult={(results) => {
+                    // Update codes with adjusted tariffs from eTar
+                    setSelectedCodes(prev => prev.map(code => {
+                      const tariff = results.find(r => r.code_id === code.id);
+                      if (tariff && tariff.changed) {
+                        return {
+                          ...code,
+                          honorarium: tariff.tarif_honoraire,
+                          original_honorarium: tariff.tarif_honoraire,
+                          reimbursed: tariff.tarif_remboursement,
+                          etar_adjusted: true,
+                        };
+                      }
+                      return code;
+                    }));
+                  }}
+                />
+              )}
+
               {selectedCodes.length > 0 && (
                 <div className="space-y-3">
                   <Label className="text-lg font-semibold block">Prestations</Label>
@@ -947,6 +972,48 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                       <span className="text-2xl font-bold text-blue-900">{formatAmount(totalFacturation)}</span>
                     </div>
                   </Card>
+                </div>
+              )}
+
+              {/* Mode de paiement */}
+              {selectedCodes.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-lg font-semibold block">Mode de paiement</Label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { value: 'CARD', label: 'Bancontact', icon: '💳' },
+                      { value: 'CASH', label: 'Espèces', icon: '💶' },
+                      { value: 'BANK', label: 'Virement', icon: '🏦' },
+                      { value: 'PAYCONIQ', label: 'Payconiq QR', icon: '📱' },
+                    ].map(method => (
+                      <Button
+                        key={method.value}
+                        variant={paymentMethod === method.value ? 'default' : 'outline'}
+                        onClick={() => {
+                          setPaymentMethod(method.value);
+                          setShowPayconiq(method.value === 'PAYCONIQ');
+                        }}
+                        className="h-16 flex flex-col gap-1"
+                      >
+                        <span className="text-lg">{method.icon}</span>
+                        <span className="text-xs">{method.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Payconiq QR display */}
+                  {showPayconiq && (
+                    <PayconiqQR
+                      amount={totalFacturation}
+                      patientName={patient?.name?.[0] ? `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` : ''}
+                      invoiceRef={Date.now().toString().slice(-10)}
+                      doctorIBAN={currentUser?.iban || ''}
+                      doctorName={currentUser?.full_name || 'Dr.'}
+                      onPaymentConfirmed={() => {
+                        setPaymentMethod('PAYCONIQ');
+                      }}
+                    />
+                  )}
                 </div>
               )}
 
