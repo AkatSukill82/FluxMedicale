@@ -21,13 +21,16 @@ import {
   ScanLine
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import DocumentEditor from '../../documents/DocumentEditor';
+import { useI18n } from '../../i18n/i18nContext';
 import AIDocumentAnalyzer from '../../documents/AIDocumentAnalyzer';
 import PatientDocumentsManager from '../../documents/PatientDocumentsManager';
 import DocumentScanner from '../../documents/DocumentScanner';
 
 export default function DocumentsTab({ patient }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
@@ -117,7 +120,7 @@ export default function DocumentsTab({ patient }) {
       <div className="flex justify-end">
         <Button onClick={() => setShowScanner(true)} variant="outline" className="gap-2">
           <ScanLine className="w-4 h-4" />
-          Scanner un document
+          {t('docs.scanDocument')}
         </Button>
       </div>
 
@@ -127,10 +130,10 @@ export default function DocumentsTab({ patient }) {
       {/* Séparateur */}
       <div className="border-t pt-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-slate-900">Documents générés</h2>
+          <h2 className="text-xl font-semibold text-slate-900">{t('docs.generatedDocs')}</h2>
         <Button onClick={() => setShowTemplateSelector(true)} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
-          Nouveau document
+          {t('docs.newDocument')}
         </Button>
       </div>
 
@@ -138,19 +141,19 @@ export default function DocumentsTab({ patient }) {
       {isLoading ? (
         <div className="text-center py-12 text-slate-500 flex items-center justify-center">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Chargement des documents...
+          {t('docs.loading')}
         </div>
       ) : documents.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <FileText className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-700 mb-2">Aucun document</h3>
+            <h3 className="text-lg font-semibold text-slate-700 mb-2">{t('docs.noDocuments')}</h3>
             <p className="text-slate-500 mb-4">
-              Aucun document n'a encore été créé pour ce patient
+              {t('docs.noDocsCreated')}
             </p>
             <Button onClick={() => setShowTemplateSelector(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Créer le premier document
+              {t('docs.createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -179,7 +182,7 @@ export default function DocumentsTab({ patient }) {
                         <div className="flex items-center gap-4 text-xs text-slate-500">
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {doc.created_date && format(new Date(doc.created_date), 'dd MMM yyyy', { locale: fr })}
+                            {doc.created_date && format(new Date(doc.created_date), 'dd MMM yyyy', { locale: dateLocale })}
                           </div>
                           <div className="flex items-center gap-1">
                             <User className="w-3 h-3" />
@@ -187,7 +190,7 @@ export default function DocumentsTab({ patient }) {
                           </div>
                           {doc.sent_via && (
                             <div>
-                              Envoi: {doc.sent_via}
+                              {t('docs.sending')}: {doc.sent_via}
                             </div>
                           )}
                         </div>
@@ -196,10 +199,10 @@ export default function DocumentsTab({ patient }) {
                           <Alert className="mt-3 bg-green-50 border-green-200">
                             <CheckCircle className="w-4 h-4 text-green-600" />
                             <AlertDescription className="text-xs text-green-800">
-                              <strong>Document signé</strong>
+                              <strong>{t('docs.signedDocument')}</strong>
                               {doc.signature.qes_compliant && ' • Signature qualifiée eIDAS'}
                               <br />
-                              {doc.signature.timestamp && format(new Date(doc.signature.timestamp), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                              {doc.signature.timestamp && format(new Date(doc.signature.timestamp), 'dd/MM/yyyy HH:mm', { locale: dateLocale })}
                             </AlertDescription>
                           </Alert>
                         )}
@@ -209,7 +212,7 @@ export default function DocumentsTab({ patient }) {
                           <Alert className="mt-3 bg-purple-50 border-purple-200">
                             <Sparkles className="w-4 h-4 text-purple-600" />
                             <AlertDescription className="text-xs text-purple-900">
-                              <strong>Résumé IA:</strong> {doc.ai_analysis.summary}
+                              <strong>{t('docs.aiSummary')}:</strong> {doc.ai_analysis.summary}
                             </AlertDescription>
                           </Alert>
                         )}
@@ -226,7 +229,7 @@ export default function DocumentsTab({ patient }) {
                         }}
                       >
                         <Eye className="w-4 h-4 mr-2" />
-                        Voir
+                        {t('docs.view')}
                       </Button>
                       {doc.file_ref_pdf && (
                         <Button 
@@ -244,7 +247,7 @@ export default function DocumentsTab({ patient }) {
                           onClick={() => setAnalyzingDocument(doc)}
                         >
                           <Sparkles className="w-4 h-4 mr-2" />
-                          Analyser IA
+                          {t('docs.analyzeAI')}
                         </Button>
                       )}
                     </div>
@@ -274,7 +277,7 @@ export default function DocumentsTab({ patient }) {
           <Card className="w-full max-w-5xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Choisir un template</CardTitle>
+                <CardTitle>{t('docs.chooseTemplate')}</CardTitle>
                 <Button variant="ghost" size="icon" onClick={() => setShowTemplateSelector(false)}>
                   <XCircle className="w-5 h-5" />
                 </Button>
@@ -303,7 +306,7 @@ export default function DocumentsTab({ patient }) {
                             </div>
                           )}
                           <div className="text-xs text-slate-500 mt-2">
-                            {template.usage_count || 0} utilisations
+                            {template.usage_count || 0} {t('docs.usages')}
                           </div>
                         </button>
                       ))}
