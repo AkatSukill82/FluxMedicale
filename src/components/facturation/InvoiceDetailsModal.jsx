@@ -28,6 +28,7 @@ import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import NomenSearch from '../nomenclature/NomenSearch';
 import OAErrorExplainer from './OAErrorExplainer';
+import EAttestCancelButton from './EAttestCancelButton';
 
 export default function InvoiceDetailsModal({ invoice, patient, isOpen, onClose }) {
   const queryClient = useQueryClient();
@@ -416,9 +417,18 @@ export default function InvoiceDetailsModal({ invoice, patient, isOpen, onClose 
 
         {/* Actions */}
         <div className="border-t pt-4 flex items-center justify-between">
-          <Button variant="outline" onClick={onClose}>
-            Fermer
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={onClose}>
+              Fermer
+            </Button>
+            <EAttestCancelButton
+              invoice={invoice}
+              onCancelled={() => {
+                queryClient.invalidateQueries({ queryKey: ['invoiceLines', invoice.id] });
+                onClose();
+              }}
+            />
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleResend} disabled={resendInvoiceMutation.isPending}>
               <Send className="w-4 h-4 mr-2" />
