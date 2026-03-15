@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { nissValidator } from '../../eid/nissValidator';
 import { toast } from 'sonner';
+import { useI18n } from '../../i18n/i18nContext';
 
 import IdSupportButton from '../../idsupport/IdSupportButton';
 import MedicationManager from '../MedicationManager';
@@ -29,6 +30,7 @@ import GDPRConsentManager from '../../gdpr/GDPRConsentManager';
 import MedicalHistoryPanel from '../MedicalHistoryPanel';
 
 export default function FicheAdministrativeTab({ patient }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -206,14 +208,14 @@ export default function FicheAdministrativeTab({ patient }) {
       return (
         <Badge className="bg-green-100 text-green-800 flex items-center gap-1">
           <CheckCircle className="w-3 h-3" />
-          NISS valide
+          {t('admin.nissValid')}
         </Badge>
       );
     } else {
       return (
         <Badge className="bg-red-100 text-red-800 flex items-center gap-1">
           <XCircle className="w-3 h-3" />
-          NISS invalide
+          {t('admin.nissInvalid')}
         </Badge>
       );
     }
@@ -223,19 +225,19 @@ export default function FicheAdministrativeTab({ patient }) {
     <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-slate-900">Fiche Administrative</h3>
+        <h3 className="text-lg font-semibold text-slate-900">{t('admin.title')}</h3>
         {!isEditing ? (
           <Button onClick={() => setIsEditing(true)}>
-            Modifier
+            {t('common.modify')}
           </Button>
         ) : (
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setIsEditing(false)}>
-              Annuler
+              {t('actions.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={updatePatientMutation.isLoading}>
               <Save className="w-4 h-4 mr-2" />
-              {updatePatientMutation.isLoading ? 'Sauvegarde...' : 'Sauvegarder'}
+              {updatePatientMutation.isLoading ? t('admin.saving') : t('admin.save')}
             </Button>
           </div>
         )}
@@ -246,13 +248,13 @@ export default function FicheAdministrativeTab({ patient }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5 text-blue-600" />
-            Identité (FHIR)
+            {t('admin.identity')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="given">Prénom</Label>
+              <Label htmlFor="given">{t('admin.firstName')}</Label>
               <Input
                 id="given"
                 value={formData.given}
@@ -261,7 +263,7 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
             <div>
-              <Label htmlFor="family">Nom</Label>
+              <Label htmlFor="family">{t('admin.lastName')}</Label>
               <Input
                 id="family"
                 value={formData.family}
@@ -270,7 +272,7 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
             <div>
-              <Label htmlFor="birthDate">Date de naissance</Label>
+              <Label htmlFor="birthDate">{t('admin.birthDate')}</Label>
               <Input
                 id="birthDate"
                 type="date"
@@ -280,7 +282,7 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
             <div>
-              <Label htmlFor="gender">Sexe</Label>
+              <Label htmlFor="gender">{t('admin.gender')}</Label>
               <select
                 id="gender"
                 value={formData.gender}
@@ -288,10 +290,10 @@ export default function FicheAdministrativeTab({ patient }) {
                 disabled={!isEditing}
                 className="w-full p-2 border rounded-md"
               >
-                <option value="male">Masculin</option>
-                <option value="female">Féminin</option>
-                <option value="other">Autre</option>
-                <option value="unknown">Inconnu</option>
+                <option value="male">{t('admin.male')}</option>
+                <option value="female">{t('admin.female')}</option>
+                <option value="other">{t('admin.other')}</option>
+                <option value="unknown">{t('admin.unknown')}</option>
               </select>
             </div>
           </div>
@@ -304,7 +306,7 @@ export default function FicheAdministrativeTab({ patient }) {
                 <div className="flex items-center gap-2">
                   <Label htmlFor="niss" className="flex items-center gap-2">
                     <Shield className="w-4 h-4 text-blue-600" />
-                    NISS / INSZ (Numéro de Registre National)
+                    {t('admin.nissLabel')}
                   </Label>
                   {getNissBadge()}
                 </div>
@@ -326,7 +328,7 @@ export default function FicheAdministrativeTab({ patient }) {
                       className="whitespace-nowrap"
                     >
                       <CheckCircle className="w-4 h-4 mr-2" />
-                      Vérifier
+                      {t('admin.verify')}
                     </Button>
                   )}
                 </div>
@@ -369,12 +371,12 @@ export default function FicheAdministrativeTab({ patient }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-blue-600" />
-            Adresse (FHIR)
+            {t('admin.addressFhir')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="address_line">Rue et numéro</Label>
+            <Label htmlFor="address_line">{t('admin.streetNumber')}</Label>
             <Input
               id="address_line"
               value={formData.address_line}
@@ -384,7 +386,7 @@ export default function FicheAdministrativeTab({ patient }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="postalCode">Code postal</Label>
+              <Label htmlFor="postalCode">{t('admin.postalCode')}</Label>
               <Input
                 id="postalCode"
                 value={formData.postalCode}
@@ -393,7 +395,7 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
             <div>
-              <Label htmlFor="city">Ville</Label>
+              <Label htmlFor="city">{t('admin.city')}</Label>
               <Input
                 id="city"
                 value={formData.city}
@@ -410,13 +412,13 @@ export default function FicheAdministrativeTab({ patient }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Phone className="w-5 h-5 text-blue-600" />
-            Contact (FHIR)
+            {t('admin.contactFhir')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="phone">Téléphone</Label>
+              <Label htmlFor="phone">{t('admin.phone')}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -443,13 +445,13 @@ export default function FicheAdministrativeTab({ patient }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-blue-600" />
-            Assurance
+            {t('admin.insuranceTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="mutuelle">Mutuelle</Label>
+              <Label htmlFor="mutuelle">{t('admin.mutuelle')}</Label>
               <Input
                 id="mutuelle"
                 value={formData.mutuelle}
@@ -458,7 +460,7 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
             <div>
-              <Label htmlFor="numero_mutuelle">Numéro d'affiliation</Label>
+              <Label htmlFor="numero_mutuelle">{t('admin.affiliationNumber')}</Label>
               <Input
                 id="numero_mutuelle"
                 value={formData.numero_mutuelle}
@@ -475,7 +477,7 @@ export default function FicheAdministrativeTab({ patient }) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-red-600" />
-            Antécédents médicaux
+            {t('admin.medicalHistoryTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
