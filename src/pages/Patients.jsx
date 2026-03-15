@@ -13,7 +13,8 @@ import {
   FileText,
   Globe,
   CreditCard as EIDIcon,
-  Shield
+  Shield,
+  UserPlus
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -45,6 +46,7 @@ import QuickVaccination from '../components/vaccinations/QuickVaccination';
 import SumehrEditor from '../components/sumehr/SumehrEditor';
 import EIDReaderButton from '../components/patients/EIDReaderButton';
 import MedicalDocumentGenerator from '../components/documents/MedicalDocumentGenerator';
+import NewPatientDialog from '../components/patients/NewPatientDialog';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -75,6 +77,7 @@ export default function Patients() {
   const [showQuickVaccination, setShowQuickVaccination] = useState(false);
   const [showSumehrEditor, setShowSumehrEditor] = useState(false);
   const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
+  const [showNewPatientDialog, setShowNewPatientDialog] = useState(false);
   
   const { readEID, isReading } = useEIDReader();
 
@@ -133,13 +136,19 @@ export default function Patients() {
             <h2 className="text-2xl font-bold">Tous les patients</h2>
             <Badge variant="outline">{allPatients.length} patients</Badge>
           </div>
-          <EIDReaderButton
-            onPatientFound={(p) => navigate(createPageUrl(`Patients?patient=${p.id}`))}
-            onPatientCreated={(p) => {
-              if (p) navigate(createPageUrl(`Patients?patient=${p.id}`));
-            }}
-            className="bg-blue-600 hover:bg-blue-700"
-          />
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setShowNewPatientDialog(true)} className="gap-2">
+              <UserPlus className="w-4 h-4" />
+              Nouveau patient
+            </Button>
+            <EIDReaderButton
+              onPatientFound={(p) => navigate(createPageUrl(`Patients?patient=${p.id}`))}
+              onPatientCreated={(p) => {
+                if (p) navigate(createPageUrl(`Patients?patient=${p.id}`));
+              }}
+              variant="outline"
+            />
+          </div>
         </div>
         
         {isLoadingList ? (
@@ -451,6 +460,11 @@ export default function Patients() {
           patient={patient}
         />
       )}
+
+      <NewPatientDialog
+        isOpen={showNewPatientDialog}
+        onClose={() => setShowNewPatientDialog(false)}
+      />
     </div>
   );
 }
