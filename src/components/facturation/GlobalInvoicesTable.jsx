@@ -59,18 +59,25 @@ export default function GlobalInvoicesTable({
       ERROR_CORRECTED: 'bg-orange-100 text-orange-800',
       ACCEPTED: 'bg-green-100 text-green-800',
       REJECTED: 'bg-red-100 text-red-800',
-      PAID: 'bg-purple-100 text-purple-800'
+      PARTIAL: 'bg-yellow-100 text-yellow-800',
+      PAID: 'bg-purple-100 text-purple-800',
+      CANCELLED: 'bg-red-100 text-red-800',
+      CREDIT_NOTE: 'bg-orange-100 text-orange-800'
     };
 
     const labels = {
       DRAFT: 'Brouillon',
+      PENDING: 'En attente',
       NOT_SENT: 'Pas envoyé',
       SENT: 'Envoyé',
       ERROR: 'Erreur',
       ERROR_CORRECTED: 'Erreur corrigée',
       ACCEPTED: 'Acceptée',
       REJECTED: 'Refusée',
-      PAID: 'Payée'
+      PARTIAL: 'Partiel',
+      PAID: 'Payée',
+      CANCELLED: 'Annulée',
+      CREDIT_NOTE: 'Note de crédit'
     };
 
     return <Badge className={styles[status] || styles.DRAFT}>{labels[status] || status}</Badge>;
@@ -91,7 +98,9 @@ export default function GlobalInvoicesTable({
       CARD: 'Carte',
       CASH: 'Espèces',
       BANK: 'Virement',
-      PAPER: 'Papier'
+      PAPER: 'Papier',
+      DOMICILIATION: 'Domiciliation',
+      PAYCONIQ: 'Payconiq'
     };
     return labels[method] || method;
   };
@@ -240,7 +249,7 @@ export default function GlobalInvoicesTable({
                     <div className="text-xs text-slate-500 font-mono">{invoice.patient_niss_masked}</div>
                   </td>
                   <td className="py-3 px-4 text-sm font-mono text-slate-600">
-                    {invoice.id.substring(0, 8)}...
+                    {invoice.invoice_number || `${invoice.id.substring(0, 8)}...`}
                   </td>
                   <td className="py-3 px-4">
                     {getTypeBadge(invoice.type)}
