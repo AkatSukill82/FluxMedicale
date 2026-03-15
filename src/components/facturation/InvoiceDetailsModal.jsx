@@ -21,7 +21,9 @@ import {
   User,
   CreditCard,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Undo2,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -96,8 +98,25 @@ export default function InvoiceDetailsModal({ invoice, patient, isOpen, onClose 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['facturation_initial_data'] });
+      queryClient.invalidateQueries({ queryKey: ['facturation_data'] });
       toast.success('Facture renvoyée');
+      onClose();
+    }
+  });
+
+  const requeueMutation = useMutation({
+    mutationFn: async (invoiceId) => {
+      await base44.entities.Invoice.update(invoiceId, {
+        status: 'PENDING',
+        oa_error_code: null,
+        oa_response: null,
+        batch_id: null,
+        sent_at: null
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['facturation_data'] });
+      toast.success('Facture remise en attente d\'envoi');
       onClose();
     }
   });
@@ -434,6 +453,20 @@ export default function InvoiceDetailsModal({ invoice, patient, isOpen, onClose 
             />
           </div>
           <div className="flex gap-2">
+            {['ERROR', 'REJECTED', 'PARTIAL'].includes(invoice.status) && (
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => requeueMutation.mutate(invoice.id)} 
+                disabled={requeueMutation.isPending}
+              >
+                {requeueMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Undo2 className="w-4 h-4 mr-2" />
+                )}
+                Remettre en attente
+              </Button>
+            )}
             <Button variant="outline" onClick={handleResend} disabled={resendInvoiceMutation.isPending}>
               <Send className="w-4 h-4 mr-2" />
               Renvoyer
