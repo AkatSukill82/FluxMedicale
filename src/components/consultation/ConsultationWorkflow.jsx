@@ -30,6 +30,8 @@ import NomenSearch from '../nomenclature/NomenSearch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { recipE } from '@/functions/recipE';
 import InvoiceReceipt from '../facturation/InvoiceReceipt';
+import ETarification from '../facturation/ETarification';
+import PayconiqQR from '../facturation/PayconiqQR';
 import VitalSignsInput from './VitalSignsInput';
 import DiagnosisCodeSearch from './DiagnosisCodeSearch';
 import VoiceDictation from './VoiceDictation';
@@ -105,6 +107,8 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [isConventionne, setIsConventionne] = useState(true);
   const [editingCodeId, setEditingCodeId] = useState(null);
   const [printInvoice, setPrintInvoice] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState('CARD');
+  const [showPayconiq, setShowPayconiq] = useState(false);
   const receiptRef = useRef(null);
 
   // Auto-save draft
