@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Clock, Plus, WifiOff } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
+import { useI18n } from '../../i18n/i18nContext';
 import CareGoalsPanel from '../../clinical/CareGoalsPanel';
 import ConsultationWorkflow from '../../consultation/ConsultationWorkflow';
 import GrowthChart from '../GrowthChart';
@@ -17,6 +18,8 @@ import { differenceInYears } from 'date-fns';
 import { useOfflineConsultations } from '../../offline/useOfflineData';
 
 export default function ConsultationTab({ patient }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const [selectedConsultation, setSelectedConsultation] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -30,38 +33,38 @@ export default function ConsultationTab({ patient }) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Détails de la consultation</CardTitle>
+          <CardTitle>{t('consultation.details')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <p className="text-sm text-muted-foreground">Motif</p>
+            <p className="text-sm text-muted-foreground">{t('consultation.reason')}</p>
             <p className="font-medium">{selectedConsultation.motif || '-'}</p>
           </div>
           {selectedConsultation.anamnese && (
             <div>
-              <p className="text-sm text-muted-foreground">Anamnèse</p>
+              <p className="text-sm text-muted-foreground">{t('consultation.anamnesis')}</p>
               <p>{selectedConsultation.anamnese}</p>
             </div>
           )}
           {selectedConsultation.examen_clinique && (
             <div>
-              <p className="text-sm text-muted-foreground">Examen clinique</p>
+              <p className="text-sm text-muted-foreground">{t('consultation.clinicalExam')}</p>
               <p>{selectedConsultation.examen_clinique}</p>
             </div>
           )}
           {selectedConsultation.diagnostic && (
             <div>
-              <p className="text-sm text-muted-foreground">Diagnostic</p>
+              <p className="text-sm text-muted-foreground">{t('consultation.diagnostic')}</p>
               <p className="font-medium">{selectedConsultation.diagnostic}</p>
             </div>
           )}
           {selectedConsultation.prescriptions && (
             <div>
-              <p className="text-sm text-muted-foreground">Prescriptions</p>
+              <p className="text-sm text-muted-foreground">{t('consultation.prescriptions')}</p>
               <p>{selectedConsultation.prescriptions}</p>
             </div>
           )}
-          <Button onClick={() => setSelectedConsultation(null)}>Retour</Button>
+          <Button onClick={() => setSelectedConsultation(null)}>{t('patient.back')}</Button>
         </CardContent>
       </Card>
     );
@@ -73,7 +76,7 @@ export default function ConsultationTab({ patient }) {
       <div className="flex justify-end">
         <Button onClick={() => setIsFormOpen(true)} size="lg" className="gap-2">
           <Plus className="w-5 h-5" />
-          Nouvelle Consultation
+          {t('consultation.new')}
         </Button>
       </div>
 
@@ -103,7 +106,7 @@ export default function ConsultationTab({ patient }) {
 
       {/* Liste des consultations */}
       {consultations.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">Aucune consultation enregistrée pour ce patient.</p>
+        <p className="text-center text-muted-foreground py-8">{t('consultation.none')}</p>
       ) : (
         <div className="space-y-3">
           {consultations.map(consult => {
@@ -116,7 +119,7 @@ export default function ConsultationTab({ patient }) {
                   <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-primary">{consult.motif || "Consultation générale"}</p>
+                        <p className="font-semibold text-primary">{consult.motif || t('consultation.general')}</p>
                         {consult.isOffline && (
                           <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
                             <WifiOff className="w-3 h-3 mr-1" /> Local
@@ -127,14 +130,14 @@ export default function ConsultationTab({ patient }) {
                         <Clock className="w-3 h-3" />
                         <span>
                           {isValidDate 
-                            ? format(consultDate, 'd MMMM yyyy, HH:mm', { locale: fr })
-                            : 'Date non disponible'
+                            ? format(consultDate, 'd MMMM yyyy, HH:mm', { locale: dateLocale })
+                            : t('consultation.dateUnavailable')
                           }
                         </span>
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {consult.medecin_email ? `Dr. ${consult.medecin_email.split('@')[0]}` : 'Médecin inconnu'}
+                      {consult.medecin_email ? `Dr. ${consult.medecin_email.split('@')[0]}` : t('consultation.unknownDoctor')}
                     </div>
                   </div>
                 </CardContent>
