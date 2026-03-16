@@ -10,8 +10,10 @@ import { UserPlus, Loader2 } from 'lucide-react';
 import { handleError, handleSuccess } from '../utils/ErrorHandler';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function NewPatientDialog({ isOpen, onClose }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
@@ -74,14 +76,14 @@ export default function NewPatientDialog({ isOpen, onClose }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="w-5 h-5" />
-            Nouveau patient
+            {t('newPatient.title')}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Nom *</Label>
+              <Label>{t('newPatient.lastName')} *</Label>
               <Input
                 value={formData.nom}
                 onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
@@ -90,7 +92,7 @@ export default function NewPatientDialog({ isOpen, onClose }) {
               />
             </div>
             <div>
-              <Label>Prénom *</Label>
+              <Label>{t('newPatient.firstName')} *</Label>
               <Input
                 value={formData.prenom}
                 onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
@@ -102,7 +104,7 @@ export default function NewPatientDialog({ isOpen, onClose }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Date de naissance *</Label>
+              <Label>{t('newPatient.birthDate')} *</Label>
               <Input
                 type="date"
                 value={formData.date_naissance}
@@ -111,22 +113,22 @@ export default function NewPatientDialog({ isOpen, onClose }) {
               />
             </div>
             <div>
-              <Label>Sexe</Label>
+              <Label>{t('newPatient.gender')}</Label>
               <Select value={formData.sexe} onValueChange={(value) => setFormData({ ...formData, sexe: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="male">Homme</SelectItem>
-                  <SelectItem value="female">Femme</SelectItem>
-                  <SelectItem value="other">Autre</SelectItem>
+                  <SelectItem value="male">{t('newPatient.male')}</SelectItem>
+                  <SelectItem value="female">{t('newPatient.female')}</SelectItem>
+                  <SelectItem value="other">{t('newPatient.other')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div>
-            <Label>NISS (optionnel)</Label>
+            <Label>{t('newPatient.niss')}</Label>
             <Input
               value={formData.niss}
               onChange={(e) => setFormData({ ...formData, niss: e.target.value })}
@@ -134,13 +136,13 @@ export default function NewPatientDialog({ isOpen, onClose }) {
               maxLength={15}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Format: 00.00.00-000.00 (peut être ajouté plus tard)
+              {t('newPatient.nissFormat')}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Email (optionnel)</Label>
+              <Label>{t('newPatient.email')}</Label>
               <Input
                 type="email"
                 value={formData.email}
@@ -149,7 +151,7 @@ export default function NewPatientDialog({ isOpen, onClose }) {
               />
             </div>
             <div>
-              <Label>Téléphone (optionnel)</Label>
+              <Label>{t('newPatient.phone')}</Label>
               <Input
                 type="tel"
                 value={formData.telephone}
@@ -161,18 +163,18 @@ export default function NewPatientDialog({ isOpen, onClose }) {
 
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
-              Annuler
+              {t('actions.cancel')}
             </Button>
             <Button type="submit" disabled={createPatientMutation.isPending}>
               {createPatientMutation.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Création...
+                  {t('newPatient.creating')}
                 </>
               ) : (
                 <>
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Créer le patient
+                  {t('newPatient.create')}
                 </>
               )}
             </Button>

@@ -11,10 +11,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Upload, Download, Eye, FileText, Trash2, Lock, File, Filter, Search } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function SecureDocuments({ patient }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -127,14 +130,14 @@ export default function SecureDocuments({ patient }) {
   };
 
   const typeLabels = {
-    MEDICAL_REPORT: { label: 'Rapport médical', icon: FileText, color: 'text-blue-600' },
-    LAB_RESULT: { label: 'Résultats labo', icon: FileText, color: 'text-purple-600' },
-    IMAGING: { label: 'Imagerie', icon: FileText, color: 'text-cyan-600' },
-    CONSENT_FORM: { label: 'Consentement', icon: File, color: 'text-green-600' },
-    INSURANCE: { label: 'Assurance', icon: FileText, color: 'text-orange-600' },
-    PRESCRIPTION: { label: 'Ordonnance', icon: FileText, color: 'text-pink-600' },
-    IDENTITY: { label: 'Identité', icon: File, color: 'text-slate-600' },
-    OTHER: { label: 'Autre', icon: File, color: 'text-slate-500' }
+    MEDICAL_REPORT: { label: t('secure.medicalReport'), icon: FileText, color: 'text-blue-600' },
+    LAB_RESULT: { label: t('secure.labResult'), icon: FileText, color: 'text-purple-600' },
+    IMAGING: { label: t('secure.imaging'), icon: FileText, color: 'text-cyan-600' },
+    CONSENT_FORM: { label: t('secure.consentForm'), icon: File, color: 'text-green-600' },
+    INSURANCE: { label: t('secure.insuranceDoc'), icon: FileText, color: 'text-orange-600' },
+    PRESCRIPTION: { label: t('secure.prescription'), icon: FileText, color: 'text-pink-600' },
+    IDENTITY: { label: t('secure.identity'), icon: File, color: 'text-slate-600' },
+    OTHER: { label: t('secure.other'), icon: File, color: 'text-slate-500' }
   };
 
   const filteredDocuments = documents.filter(doc => {
@@ -157,11 +160,11 @@ export default function SecureDocuments({ patient }) {
       <div className="flex items-center justify-between">
         <h3 className="font-semibold flex items-center gap-2">
           <Lock className="w-5 h-5" />
-          Documents sécurisés ({documents.length})
+          {t('secure.title')} ({documents.length})
         </h3>
         <Button onClick={() => setShowUploadDialog(true)} size="sm">
           <Upload className="w-4 h-4 mr-2" />
-          Télécharger un document
+          {t('secure.upload')}
         </Button>
       </div>
 
@@ -174,7 +177,7 @@ export default function SecureDocuments({ patient }) {
               <Input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Rechercher un document..."
+                placeholder={t('secure.searchPlaceholder')}
                 className="pl-10"
               />
             </div>
@@ -183,15 +186,15 @@ export default function SecureDocuments({ patient }) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tous les types</SelectItem>
-                <SelectItem value="MEDICAL_REPORT">Rapports médicaux</SelectItem>
-                <SelectItem value="LAB_RESULT">Résultats labo</SelectItem>
-                <SelectItem value="IMAGING">Imagerie</SelectItem>
-                <SelectItem value="CONSENT_FORM">Consentements</SelectItem>
-                <SelectItem value="INSURANCE">Assurance</SelectItem>
-                <SelectItem value="PRESCRIPTION">Ordonnances</SelectItem>
-                <SelectItem value="IDENTITY">Identité</SelectItem>
-                <SelectItem value="OTHER">Autres</SelectItem>
+                <SelectItem value="ALL">{t('secure.allTypes')}</SelectItem>
+                <SelectItem value="MEDICAL_REPORT">{t('secure.medicalReport')}</SelectItem>
+                <SelectItem value="LAB_RESULT">{t('secure.labResult')}</SelectItem>
+                <SelectItem value="IMAGING">{t('secure.imaging')}</SelectItem>
+                <SelectItem value="CONSENT_FORM">{t('secure.consentForm')}</SelectItem>
+                <SelectItem value="INSURANCE">{t('secure.insuranceDoc')}</SelectItem>
+                <SelectItem value="PRESCRIPTION">{t('secure.prescription')}</SelectItem>
+                <SelectItem value="IDENTITY">{t('secure.identity')}</SelectItem>
+                <SelectItem value="OTHER">{t('secure.other')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -237,7 +240,7 @@ export default function SecureDocuments({ patient }) {
                                 </span>
                               )}
                               <span className="text-xs text-slate-500">
-                                Uploadé: {format(uploadDate, 'dd MMM yyyy', { locale: fr })}
+                                {t('secure.uploaded')}: {format(uploadDate, 'dd MMM yyyy', { locale: dateLocale })}
                               </span>
                               {doc.file_size && (
                                 <span className="text-xs text-slate-500">
@@ -293,14 +296,14 @@ export default function SecureDocuments({ patient }) {
       {filteredDocuments.length === 0 && documents.length > 0 && (
         <div className="text-center py-8 text-slate-500">
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun document ne correspond aux filtres</p>
+          <p>{t('secure.noMatchFilter')}</p>
         </div>
       )}
 
       {documents.length === 0 && (
         <div className="text-center py-8 text-slate-500">
           <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun document téléchargé</p>
+          <p>{t('secure.noDocuments')}</p>
         </div>
       )}
 
@@ -308,11 +311,11 @@ export default function SecureDocuments({ patient }) {
       <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Télécharger un document sécurisé</DialogTitle>
+            <DialogTitle>{t('secure.uploadTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Type de document *</Label>
+              <Label>{t('secure.docType')} *</Label>
               <Select 
                 value={uploadData.document_type} 
                 onValueChange={(v) => setUploadData({...uploadData, document_type: v})}
@@ -321,20 +324,20 @@ export default function SecureDocuments({ patient }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MEDICAL_REPORT">Rapport médical</SelectItem>
-                  <SelectItem value="LAB_RESULT">Résultats de laboratoire</SelectItem>
-                  <SelectItem value="IMAGING">Imagerie</SelectItem>
-                  <SelectItem value="CONSENT_FORM">Formulaire de consentement</SelectItem>
-                  <SelectItem value="INSURANCE">Document d'assurance</SelectItem>
-                  <SelectItem value="PRESCRIPTION">Ordonnance</SelectItem>
-                  <SelectItem value="IDENTITY">Pièce d'identité</SelectItem>
-                  <SelectItem value="OTHER">Autre</SelectItem>
+                  <SelectItem value="MEDICAL_REPORT">{t('secure.medicalReport')}</SelectItem>
+                  <SelectItem value="LAB_RESULT">{t('secure.labResults')}</SelectItem>
+                  <SelectItem value="IMAGING">{t('secure.imaging')}</SelectItem>
+                  <SelectItem value="CONSENT_FORM">{t('secure.consentFormFull')}</SelectItem>
+                  <SelectItem value="INSURANCE">{t('secure.insuranceDocument')}</SelectItem>
+                  <SelectItem value="PRESCRIPTION">{t('secure.prescription')}</SelectItem>
+                  <SelectItem value="IDENTITY">{t('secure.identityDoc')}</SelectItem>
+                  <SelectItem value="OTHER">{t('secure.other')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label>Date du document</Label>
+              <Label>{t('secure.docDate')}</Label>
               <Input
                 type="date"
                 value={uploadData.document_date}
@@ -343,7 +346,7 @@ export default function SecureDocuments({ patient }) {
             </div>
 
             <div>
-              <Label>Fichier * (PDF, JPG, PNG - Max 25 Mo)</Label>
+              <Label>{t('secure.file')} * ({t('secure.fileFormats')})</Label>
               <Input
                 type="file"
                 onChange={handleFileSelect}
@@ -361,19 +364,19 @@ export default function SecureDocuments({ patient }) {
             </div>
 
             <div>
-              <Label>Notes</Label>
+              <Label>{t('secure.notes')}</Label>
               <Textarea
                 value={uploadData.notes}
                 onChange={(e) => setUploadData({...uploadData, notes: e.target.value})}
-                placeholder="Ajoutez des notes sur ce document..."
+                placeholder={t('secure.notesPlaceholder')}
                 rows={3}
               />
             </div>
 
             <div>
-              <Label>Tags (séparés par des virgules)</Label>
+              <Label>{t('secure.tags')}</Label>
               <Input
-                placeholder="urgent, confidentiel, suivi..."
+                placeholder={t('secure.tagsPlaceholder')}
                 onChange={(e) => setUploadData({...uploadData, tags: e.target.value.split(',').map(t => t.trim())})}
               />
             </div>
@@ -386,13 +389,13 @@ export default function SecureDocuments({ patient }) {
                   setSelectedFile(null);
                 }}
               >
-                Annuler
+                {t('actions.cancel')}
               </Button>
               <Button 
                 onClick={handleUpload}
                 disabled={!selectedFile || uploading}
               >
-                {uploading ? 'Upload en cours...' : 'Télécharger'}
+                {uploading ? t('secure.uploading') : t('secure.upload')}
               </Button>
             </div>
           </div>

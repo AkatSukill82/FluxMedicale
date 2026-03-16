@@ -10,10 +10,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Bell, Plus, Check, X, Calendar, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function PatientNotifications({ patient }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,7 +52,7 @@ export default function PatientNotifications({ patient }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      toast.success('Rappel créé');
+      toast.success(t('reminders.created'));
       setShowForm(false);
       setFormData({ type: 'FOLLOW_UP', due_date: '', title: '', description: '' });
     }
@@ -59,16 +62,16 @@ export default function PatientNotifications({ patient }) {
     mutationFn: (id) => base44.entities.PatientReminder.update(id, { status: 'COMPLETED' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      toast.success('Rappel marqué comme complété');
+      toast.success(t('reminders.markedComplete'));
     }
   });
 
   const typeLabels = {
-    FOLLOW_UP: { label: 'Contrôle', color: 'bg-blue-100 text-blue-800' },
-    LAB_RESULTS: { label: 'Résultats labo', color: 'bg-purple-100 text-purple-800' },
-    VACCINATION: { label: 'Vaccination', color: 'bg-green-100 text-green-800' },
-    MEDICATION: { label: 'Médicaments', color: 'bg-orange-100 text-orange-800' },
-    GENERAL: { label: 'Général', color: 'bg-slate-100 text-slate-800' }
+    FOLLOW_UP: { label: t('reminders.followUp'), color: 'bg-blue-100 text-blue-800' },
+    LAB_RESULTS: { label: t('reminders.labResults'), color: 'bg-purple-100 text-purple-800' },
+    VACCINATION: { label: t('reminders.vaccination'), color: 'bg-green-100 text-green-800' },
+    MEDICATION: { label: t('reminders.medication'), color: 'bg-orange-100 text-orange-800' },
+    GENERAL: { label: t('reminders.general'), color: 'bg-slate-100 text-slate-800' }
   };
 
   const pendingReminders = reminders.filter(r => r.status === 'PENDING');
@@ -79,11 +82,11 @@ export default function PatientNotifications({ patient }) {
       <div className="flex items-center justify-between">
         <h3 className="font-semibold flex items-center gap-2">
           <Bell className="w-5 h-5" />
-          Notifications & Rappels
+          {t('reminders.title')}
         </h3>
         <Button onClick={() => setShowForm(!showForm)} size="sm">
           <Plus className="w-4 h-4 mr-2" />
-          Nouveau rappel
+          {t('reminders.new')}
         </Button>
       </div>
 
@@ -91,22 +94,22 @@ export default function PatientNotifications({ patient }) {
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-6 space-y-4">
             <div>
-              <Label>Type de rappel</Label>
+              <Label>{t('reminders.type')}</Label>
               <Select value={formData.type} onValueChange={(v) => setFormData({...formData, type: v})}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="FOLLOW_UP">Contrôle de suivi</SelectItem>
-                  <SelectItem value="LAB_RESULTS">Résultats d'examens</SelectItem>
-                  <SelectItem value="VACCINATION">Vaccination</SelectItem>
-                  <SelectItem value="MEDICATION">Renouvellement médicaments</SelectItem>
-                  <SelectItem value="GENERAL">Général</SelectItem>
+                  <SelectItem value="FOLLOW_UP">{t('reminders.followUp')}</SelectItem>
+                  <SelectItem value="LAB_RESULTS">{t('reminders.labResults')}</SelectItem>
+                  <SelectItem value="VACCINATION">{t('reminders.vaccination')}</SelectItem>
+                  <SelectItem value="MEDICATION">{t('reminders.medication')}</SelectItem>
+                  <SelectItem value="GENERAL">{t('reminders.general')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Date d'échéance</Label>
+              <Label>{t('reminders.dueDate')}</Label>
               <Input
                 type="date"
                 value={formData.due_date}
@@ -114,19 +117,19 @@ export default function PatientNotifications({ patient }) {
               />
             </div>
             <div>
-              <Label>Titre</Label>
+              <Label>{t('reminders.titleField')}</Label>
               <Input
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
-                placeholder="Ex: Contrôle après traitement"
+                placeholder={t('reminders.titlePlaceholder')}
               />
             </div>
             <div>
-              <Label>Description</Label>
+              <Label>{t('reminders.description')}</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Détails du rappel..."
+                placeholder={t('reminders.descPlaceholder')}
               />
             </div>
             <div className="flex gap-2">
@@ -135,10 +138,10 @@ export default function PatientNotifications({ patient }) {
                 disabled={!formData.title || !formData.due_date}
                 className="flex-1"
               >
-                Créer le rappel
+                {t('reminders.create')}
               </Button>
               <Button variant="outline" onClick={() => setShowForm(false)}>
-                Annuler
+                {t('actions.cancel')}
               </Button>
             </div>
           </CardContent>
@@ -148,7 +151,7 @@ export default function PatientNotifications({ patient }) {
       {/* Rappels en attente */}
       {pendingReminders.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-slate-700">En attente ({pendingReminders.length})</h4>
+          <h4 className="text-sm font-semibold text-slate-700">{t('reminders.pendingCount')} ({pendingReminders.length})</h4>
           {pendingReminders.map(reminder => {
             const typeInfo = typeLabels[reminder.type] || typeLabels.GENERAL;
             const dueDate = new Date(reminder.due_date);
@@ -164,7 +167,7 @@ export default function PatientNotifications({ patient }) {
                         {isOverdue && (
                           <Badge variant="destructive" className="text-xs">
                             <AlertCircle className="w-3 h-3 mr-1" />
-                            En retard
+                            {t('reminders.overdue')}
                           </Badge>
                         )}
                       </div>
@@ -174,7 +177,7 @@ export default function PatientNotifications({ patient }) {
                       )}
                       <p className="text-xs text-slate-500 flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        {format(dueDate, 'dd MMMM yyyy', { locale: fr })}
+                        {format(dueDate, 'dd MMMM yyyy', { locale: dateLocale })}
                       </p>
                     </div>
                     <Button
@@ -197,7 +200,7 @@ export default function PatientNotifications({ patient }) {
       {completedReminders.length > 0 && (
         <details className="mt-4">
           <summary className="text-sm font-semibold text-slate-700 cursor-pointer">
-            Complétés ({completedReminders.length})
+            {t('reminders.completedCount')} ({completedReminders.length})
           </summary>
           <div className="space-y-2 mt-2">
             {completedReminders.slice(0, 5).map(reminder => {
@@ -221,7 +224,7 @@ export default function PatientNotifications({ patient }) {
       {reminders.length === 0 && !showForm && (
         <div className="text-center py-8 text-slate-500">
           <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aucun rappel configuré</p>
+          <p>{t('reminders.noReminders')}</p>
         </div>
       )}
     </div>
