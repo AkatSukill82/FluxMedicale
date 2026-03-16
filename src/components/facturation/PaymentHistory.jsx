@@ -4,10 +4,13 @@ import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import { Euro, Calendar, CreditCard, Banknote, FileText } from 'lucide-react';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function PaymentHistory({ patient }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const { data: payments = [], isLoading } = useQuery({
     queryKey: ['payments', patient.id],
     queryFn: () => base44.entities.Payment.filter({ patient_id: patient.id }, '-payment_date', 100)
@@ -31,11 +34,11 @@ export default function PaymentHistory({ patient }) {
 
   const getPaymentMethodLabel = (method) => {
     const labels = {
-      CARD: 'Carte',
-      CASH: 'Espèces',
-      BANK_TRANSFER: 'Virement',
-      INSURANCE: 'Mutuelle',
-      CREDIT_NOTE: 'Avoir'
+      CARD: t('billing.payMethod.card'),
+      CASH: t('billing.payMethod.cash'),
+      BANK_TRANSFER: t('billing.payMethod.transfer'),
+      INSURANCE: t('billing.payMethod.insurance'),
+      CREDIT_NOTE: t('billing.payMethod.creditNote')
     };
     return labels[method] || method;
   };
@@ -49,7 +52,7 @@ export default function PaymentHistory({ patient }) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">Chargement de l'historique...</p>
+          <p className="text-muted-foreground">{t('billing.loadingHistory')}</p>
         </CardContent>
       </Card>
     );
@@ -61,24 +64,24 @@ export default function PaymentHistory({ patient }) {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Total payé</p>
+            <p className="text-sm text-muted-foreground mb-1">{t('billing.totalPaidLabel')}</p>
             <p className="text-2xl font-bold text-green-600">
               {(totalPaid / 100).toFixed(2)}€
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {payments.length} paiement(s)
+              {t('billing.paymentsCount', { count: payments.length })}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Avoirs appliqués</p>
+            <p className="text-sm text-muted-foreground mb-1">{t('billing.creditsApplied')}</p>
             <p className="text-2xl font-bold text-blue-600">
               {(totalCredits / 100).toFixed(2)}€
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              {creditNotes.filter(cn => cn.status === 'APPLIED').length} avoir(s)
+              {t('billing.creditsCount', { count: creditNotes.filter(cn => cn.status === 'APPLIED').length })}
             </p>
           </CardContent>
         </Card>
@@ -87,12 +90,12 @@ export default function PaymentHistory({ patient }) {
       {/* Liste des paiements */}
       <Card>
         <CardHeader>
-          <CardTitle>Historique des paiements</CardTitle>
+          <CardTitle>{t('billing.paymentHistory')}</CardTitle>
         </CardHeader>
         <CardContent>
           {payments.length === 0 ? (
             <p className="text-center text-muted-foreground py-6">
-              Aucun paiement enregistré
+              {t('billing.noPayments')}
             </p>
           ) : (
             <div className="space-y-3">
@@ -111,11 +114,11 @@ export default function PaymentHistory({ patient }) {
                       </p>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="w-3 h-3" />
-                        {format(new Date(payment.payment_date), 'dd MMMM yyyy', { locale: fr })}
+                        {format(new Date(payment.payment_date), 'dd MMMM yyyy', { locale: dateLocale })}
                       </div>
                       {payment.reference && (
                         <p className="text-xs text-muted-foreground font-mono">
-                          Réf: {payment.reference}
+                          {t('billing.ref')}: {payment.reference}
                         </p>
                       )}
                     </div>
@@ -126,7 +129,7 @@ export default function PaymentHistory({ patient }) {
                     </Badge>
                     {payment.reconciled && (
                       <Badge className="ml-2 bg-green-100 text-green-800">
-                        Rapproché
+                        {t('billing.reconciled')}
                       </Badge>
                     )}
                   </div>
@@ -141,7 +144,7 @@ export default function PaymentHistory({ patient }) {
       {creditNotes.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Avoirs et notes de crédit</CardTitle>
+            <CardTitle>{t('billing.creditNotes')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">

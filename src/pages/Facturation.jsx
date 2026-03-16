@@ -18,8 +18,10 @@ import InvoiceCreator from '../components/facturation/InvoiceCreator';
 import PaymentRecorder from '../components/facturation/PaymentRecorder';
 import AccountingExport from '../components/facturation/AccountingExport';
 import ErrorInvoicesPanel from '../components/facturation/ErrorInvoicesPanel';
+import { useI18n } from '../components/i18n/i18nContext';
 
 export default function FacturationPage() {
+  const { t } = useI18n();
   const [showInvoiceCreator, setShowInvoiceCreator] = useState(false);
   const [showNewPayment, setShowNewPayment] = useState(false);
   const [showAccountingExport, setShowAccountingExport] = useState(false);
@@ -57,21 +59,21 @@ export default function FacturationPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Facturation</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Gestion des attestations et envoi aux mutuelles</p>
+          <h1 className="text-2xl font-bold text-slate-900">{t('billing.invoicing')}</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{t('billing.management')}</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowInvoiceCreator(true)} className="bg-blue-600 hover:bg-blue-700">
             <PlusCircle className="w-4 h-4 mr-2" />
-            Nouvelle facture
+            {t('billing.newInvoice')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setShowNewPayment(true)}>
             <Euro className="w-4 h-4 mr-2" />
-            Paiement
+            {t('billing.payment')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setShowAccountingExport(true)}>
             <Download className="w-4 h-4 mr-2" />
-            Export
+            {t('billing.export')}
           </Button>
         </div>
       </div>
@@ -80,22 +82,22 @@ export default function FacturationPage() {
       <Tabs defaultValue="pending">
         <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="pending" className="relative">
-            ⏳ En attente
+            ⏳ {t('billing.pendingTab')}
             {pendingCount > 0 && (
               <Badge className="ml-1.5 bg-blue-500 text-white text-[10px] px-1.5 py-0">{pendingCount}</Badge>
             )}
           </TabsTrigger>
           <TabsTrigger value="errors" className="relative">
-            ❌ Erreurs
+            ❌ {t('billing.errorsTab')}
             {errorCount > 0 && (
               <Badge className="ml-1.5 bg-red-500 text-white text-[10px] px-1.5 py-0">{errorCount}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="batches">📦 Lots envoyés</TabsTrigger>
-          <TabsTrigger value="search">🔍 Recherche</TabsTrigger>
-          <TabsTrigger value="dashboard">📊 Revenus</TabsTrigger>
-          <TabsTrigger value="payments">💳 Paiements</TabsTrigger>
-          <TabsTrigger value="settings">⚙️ Config</TabsTrigger>
+          <TabsTrigger value="batches">📦 {t('billing.sentBatches')}</TabsTrigger>
+          <TabsTrigger value="search">🔍 {t('billing.searchTab')}</TabsTrigger>
+          <TabsTrigger value="dashboard">📊 {t('billing.revenue')}</TabsTrigger>
+          <TabsTrigger value="payments">💳 {t('billing.paymentsTab')}</TabsTrigger>
+          <TabsTrigger value="settings">⚙️ {t('billing.config')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-4">
@@ -125,9 +127,9 @@ export default function FacturationPage() {
         <TabsContent value="settings" className="mt-4">
           <Tabs defaultValue="tarifs">
             <TabsList>
-              <TabsTrigger value="tarifs">🏷️ Tarifs</TabsTrigger>
-              <TabsTrigger value="recurring">🔄 Récurrentes</TabsTrigger>
-              <TabsTrigger value="reminders">⏰ Relances</TabsTrigger>
+              <TabsTrigger value="tarifs">🏷️ {t('billing.tariffs')}</TabsTrigger>
+              <TabsTrigger value="recurring">🔄 {t('billing.recurring')}</TabsTrigger>
+              <TabsTrigger value="reminders">⏰ {t('billing.reminders')}</TabsTrigger>
             </TabsList>
             <TabsContent value="tarifs"><TarifManager /></TabsContent>
             <TabsContent value="recurring"><RecurringInvoiceManager /></TabsContent>

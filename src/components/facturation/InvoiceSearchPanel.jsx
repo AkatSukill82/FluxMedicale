@@ -6,29 +6,34 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, AlertTriangle, XCircle, Clock, CheckCircle, Send, FileX2, Loader2 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
+import { useI18n } from '../i18n/i18nContext';
+
+export default function InvoiceSearchPanel({ invoices, isLoading }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
 
 const STATUS_CONFIG = {
-  DRAFT: { label: 'Brouillon', color: 'bg-slate-100 text-slate-700', icon: FileX2 },
-  PENDING: { label: 'En attente', color: 'bg-blue-100 text-blue-700', icon: Clock },
-  NOT_SENT: { label: 'Non envoyé', color: 'bg-slate-100 text-slate-700', icon: FileX2 },
-  SENT: { label: 'Envoyé', color: 'bg-blue-100 text-blue-700', icon: Send },
-  ERROR: { label: 'Erreur', color: 'bg-red-100 text-red-700', icon: XCircle },
-  ERROR_CORRECTED: { label: 'Corrigé', color: 'bg-orange-100 text-orange-700', icon: AlertTriangle },
-  ACCEPTED: { label: 'Accepté', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-  REJECTED: { label: 'Refusé', color: 'bg-red-100 text-red-700', icon: XCircle },
-  PAID: { label: 'Payé', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  PARTIAL: { label: 'Partiel', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
-  CANCELLED: { label: 'Annulé', color: 'bg-slate-100 text-slate-500', icon: FileX2 },
-  CREDIT_NOTE: { label: 'Note de crédit', color: 'bg-orange-100 text-orange-700', icon: FileX2 },
+  DRAFT: { label: t('billing.draft'), color: 'bg-slate-100 text-slate-700', icon: FileX2 },
+  PENDING: { label: t('billing.pending'), color: 'bg-blue-100 text-blue-700', icon: Clock },
+  NOT_SENT: { label: t('billing.notSent'), color: 'bg-slate-100 text-slate-700', icon: FileX2 },
+  SENT: { label: t('billing.sent'), color: 'bg-blue-100 text-blue-700', icon: Send },
+  ERROR: { label: t('billing.error'), color: 'bg-red-100 text-red-700', icon: XCircle },
+  ERROR_CORRECTED: { label: t('billing.corrected'), color: 'bg-orange-100 text-orange-700', icon: AlertTriangle },
+  ACCEPTED: { label: t('billing.accepted'), color: 'bg-green-100 text-green-700', icon: CheckCircle },
+  REJECTED: { label: t('billing.rejected'), color: 'bg-red-100 text-red-700', icon: XCircle },
+  PAID: { label: t('billing.paid'), color: 'bg-green-100 text-green-800', icon: CheckCircle },
+  PARTIAL: { label: t('billing.partial'), color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+  CANCELLED: { label: t('billing.cancelled'), color: 'bg-slate-100 text-slate-500', icon: FileX2 },
+  CREDIT_NOTE: { label: t('billing.creditNote'), color: 'bg-orange-100 text-orange-700', icon: FileX2 },
 };
 
 const QUICK_FILTERS = [
-  { id: 'unpaid', label: '💸 Impayées', filter: inv => ['SENT', 'ACCEPTED', 'NOT_SENT'].includes(inv.status) },
-  { id: 'errors', label: '❌ Erreurs', filter: inv => ['ERROR', 'REJECTED'].includes(inv.status) },
-  { id: 'pending', label: '⏳ En attente', filter: inv => inv.status === 'PENDING' },
-  { id: 'paid', label: '✅ Payées', filter: inv => inv.status === 'PAID' },
-  { id: 'overdue', label: '⚠️ Échues', filter: inv => {
+  { id: 'unpaid', label: `💸 ${t('billing.unpaid')}`, filter: inv => ['SENT', 'ACCEPTED', 'NOT_SENT'].includes(inv.status) },
+  { id: 'errors', label: `❌ ${t('billing.errors')}`, filter: inv => ['ERROR', 'REJECTED'].includes(inv.status) },
+  { id: 'pending', label: `⏳ ${t('billing.pendingTab')}`, filter: inv => inv.status === 'PENDING' },
+  { id: 'paid', label: `✅ ${t('billing.paid')}`, filter: inv => inv.status === 'PAID' },
+  { id: 'overdue', label: `⚠️ ${t('billing.overdue')}`, filter: inv => {
     if (inv.status === 'PAID' || inv.status === 'CANCELLED') return false;
     const due = new Date(inv.invoice_date);
     due.setDate(due.getDate() + 30);
@@ -41,7 +46,6 @@ const formatAmount = (cents) => {
   return `${(cents / 100).toFixed(2).replace('.', ',')} €`;
 };
 
-export default function InvoiceSearchPanel({ invoices, isLoading }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [periodFilter, setPeriodFilter] = useState('30');
@@ -115,7 +119,7 @@ export default function InvoiceSearchPanel({ invoices, isLoading }) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
-                placeholder="Rechercher par patient, n° facture, mutuelle..."
+                placeholder={t('billing.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -124,25 +128,25 @@ export default function InvoiceSearchPanel({ invoices, isLoading }) {
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Tous statuts</SelectItem>
-                <SelectItem value="PENDING">En attente</SelectItem>
-                <SelectItem value="SENT">Envoyé</SelectItem>
-                <SelectItem value="ACCEPTED">Accepté</SelectItem>
-                <SelectItem value="REJECTED">Refusé</SelectItem>
-                <SelectItem value="ERROR">Erreur</SelectItem>
-                <SelectItem value="PAID">Payé</SelectItem>
-                <SelectItem value="CANCELLED">Annulé</SelectItem>
-                <SelectItem value="CREDIT_NOTE">Note de crédit</SelectItem>
+                <SelectItem value="ALL">{t('billing.allStatuses')}</SelectItem>
+                <SelectItem value="PENDING">{t('billing.pending')}</SelectItem>
+                <SelectItem value="SENT">{t('billing.sent')}</SelectItem>
+                <SelectItem value="ACCEPTED">{t('billing.accepted')}</SelectItem>
+                <SelectItem value="REJECTED">{t('billing.rejected')}</SelectItem>
+                <SelectItem value="ERROR">{t('billing.error')}</SelectItem>
+                <SelectItem value="PAID">{t('billing.paid')}</SelectItem>
+                <SelectItem value="CANCELLED">{t('billing.cancelled')}</SelectItem>
+                <SelectItem value="CREDIT_NOTE">{t('billing.creditNote')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={periodFilter} onValueChange={setPeriodFilter}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">Aujourd'hui</SelectItem>
-                <SelectItem value="7">7 jours</SelectItem>
-                <SelectItem value="30">30 jours</SelectItem>
-                <SelectItem value="90">3 mois</SelectItem>
-                <SelectItem value="all">Tout</SelectItem>
+                <SelectItem value="today">{t('billing.today')}</SelectItem>
+                <SelectItem value="7">{t('billing.7days')}</SelectItem>
+                <SelectItem value="30">{t('billing.30days')}</SelectItem>
+                <SelectItem value="90">{t('billing.3months')}</SelectItem>
+                <SelectItem value="all">{t('billing.everything')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -151,7 +155,7 @@ export default function InvoiceSearchPanel({ invoices, isLoading }) {
 
       {/* Results summary */}
       <div className="flex items-center justify-between text-sm text-slate-600">
-        <span>{filtered.length} résultat(s)</span>
+        <span>{t('billing.resultsCount', { count: filtered.length })}</span>
         <span>Total: <strong>{formatAmount(totalFiltered)}</strong></span>
       </div>
 
@@ -160,7 +164,7 @@ export default function InvoiceSearchPanel({ invoices, isLoading }) {
         <Card className="border-dashed">
           <CardContent className="p-12 text-center">
             <Search className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-            <p className="text-slate-500">Aucune facture ne correspond à vos critères</p>
+            <p className="text-slate-500">{t('billing.noResults')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -169,13 +173,13 @@ export default function InvoiceSearchPanel({ invoices, isLoading }) {
             <table className="w-full">
               <thead>
                 <tr className="border-b bg-slate-50">
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">Date</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">Patient</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">Mutuelle</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">Type</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">Statut</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-slate-600">Montant</th>
-                  <th className="text-right py-3 px-4 text-xs font-semibold text-slate-600">Lot</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">{t('billing.date')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">{t('billing.patient')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">{t('billing.mutuelle')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">{t('billing.type')}</th>
+                  <th className="text-left py-3 px-4 text-xs font-semibold text-slate-600">{t('common.status')}</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-slate-600">{t('billing.amount')}</th>
+                  <th className="text-right py-3 px-4 text-xs font-semibold text-slate-600">{t('billing.batch')}</th>
                 </tr>
               </thead>
               <tbody>

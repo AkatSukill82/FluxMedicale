@@ -12,12 +12,16 @@ import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InsuranceVerification from './InsuranceVerification';
 import PayconiqQR from './PayconiqQR';
+import { useI18n } from '../i18n/i18nContext';
+
+export default function QuickBilling({ patient, isOpen, onClose }) {
+  const { t } = useI18n();
 
 // Modèles de facturation rapide pour consultations courantes
 const QUICK_BILLING_TEMPLATES = [
   {
     id: 'consultation_simple',
-    name: 'Consultation simple',
+    name: t('billing.consultSimple'),
     icon: Clock,
     color: 'bg-blue-100 text-blue-800',
     codes: ['101010'],
@@ -26,7 +30,7 @@ const QUICK_BILLING_TEMPLATES = [
   },
   {
     id: 'consultation_longue',
-    name: 'Consultation longue',
+    name: t('billing.consultLong'),
     icon: Clock,
     color: 'bg-purple-100 text-purple-800',
     codes: ['101032'],
@@ -35,16 +39,16 @@ const QUICK_BILLING_TEMPLATES = [
   },
   {
     id: 'visite_domicile',
-    name: 'Visite à domicile',
+    name: t('billing.homeVisit'),
     icon: Clock,
     color: 'bg-orange-100 text-orange-800',
     codes: ['103132'],
     amount: 35.00,
-    duration: 'Variable'
+    duration: t('billing.variable')
   },
   {
     id: 'certificat',
-    name: 'Certificat médical',
+    name: t('billing.medicalCert'),
     icon: CreditCard,
     color: 'bg-green-100 text-green-800',
     codes: [],
@@ -53,7 +57,6 @@ const QUICK_BILLING_TEMPLATES = [
   }
 ];
 
-export default function QuickBilling({ patient, isOpen, onClose }) {
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('CARD');
@@ -179,7 +182,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      handleSuccess('Facturation enregistrée avec succès');
+      handleSuccess(t('billing.savedSuccess'));
       
       // Imprimer si demandé
       if (result.shouldPrint) {
@@ -202,7 +205,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
               <Euro className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Facturation</h2>
+              <h2 className="text-xl font-bold">{t('billing.invoicing')}</h2>
               <p className="text-sm font-normal text-muted-foreground">
                 {patient?.name?.[0] ? `${patient.name[0].given?.join(' ')} ${patient.name[0].family}` : 'Patient'}
               </p>
@@ -213,7 +216,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
         {/* Vérification d'assurance obligatoire */}
         <div className="mb-4 p-4 bg-slate-50 rounded-lg border">
           <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            🔍 Vérification d'assurabilité
+            🔍 {t('billing.insuranceCheck')}
           </h3>
           <InsuranceVerification 
             patient={patient} 
@@ -227,16 +230,15 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
           <Alert className="mb-4 bg-red-50 border-red-300">
             <AlertTriangle className="w-4 h-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              <strong>Attention:</strong> Le patient n'est pas en ordre d'assurance. 
-              L'intégralité des frais sera à sa charge. Assurez-vous qu'il en soit informé.
+              <span dangerouslySetInnerHTML={{ __html: t('billing.insuranceWarning') }} />
             </AlertDescription>
           </Alert>
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="quick" disabled={!insuranceVerified}>Facturation rapide</TabsTrigger>
-            <TabsTrigger value="custom" disabled={!insuranceVerified}>Codes INAMI</TabsTrigger>
+            <TabsTrigger value="quick" disabled={!insuranceVerified}>{t('billing.quickBilling')}</TabsTrigger>
+            <TabsTrigger value="custom" disabled={!insuranceVerified}>{t('billing.inamiCodes')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="quick" className="space-y-4">
@@ -283,71 +285,37 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
             {selectedTemplate && (
           <div className="space-y-6 pt-6 border-t">
             <div>
-              <p className="text-sm font-semibold mb-3">Type de facturation</p>
+              <p className="text-sm font-semibold mb-3">{t('billing.billingType')}</p>
               <div className="grid grid-cols-3 gap-3">
-                <Button
-                  variant={invoiceType === 'EATTEST' ? 'default' : 'outline'}
-                  onClick={() => setInvoiceType('EATTEST')}
-                  className="h-16 flex flex-col gap-1"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span className="text-xs">eAttest</span>
+                <Button variant={invoiceType === 'EATTEST' ? 'default' : 'outline'} onClick={() => setInvoiceType('EATTEST')} className="h-16 flex flex-col gap-1">
+                  <FileText className="w-5 h-5" /><span className="text-xs">eAttest</span>
                 </Button>
-                <Button
-                  variant={invoiceType === 'EFACT' ? 'default' : 'outline'}
-                  onClick={() => setInvoiceType('EFACT')}
-                  className="h-16 flex flex-col gap-1"
-                >
-                  <FileText className="w-5 h-5" />
-                  <span className="text-xs">eFact</span>
+                <Button variant={invoiceType === 'EFACT' ? 'default' : 'outline'} onClick={() => setInvoiceType('EFACT')} className="h-16 flex flex-col gap-1">
+                  <FileText className="w-5 h-5" /><span className="text-xs">eFact</span>
                 </Button>
-                <Button
-                  variant={invoiceType === 'PAPER' ? 'default' : 'outline'}
-                  onClick={() => setInvoiceType('PAPER')}
-                  className="h-16 flex flex-col gap-1"
-                >
-                  <Printer className="w-5 h-5" />
-                  <span className="text-xs">Papier</span>
+                <Button variant={invoiceType === 'PAPER' ? 'default' : 'outline'} onClick={() => setInvoiceType('PAPER')} className="h-16 flex flex-col gap-1">
+                  <Printer className="w-5 h-5" /><span className="text-xs">{t('billing.paper')}</span>
                 </Button>
               </div>
             </div>
 
             <div>
-              <p className="text-sm font-semibold mb-3">Mode de paiement</p>
+              <p className="text-sm font-semibold mb-3">{t('billing.paymentMode')}</p>
               <div className="grid grid-cols-4 gap-3">
-                <Button
-                  variant={paymentMethod === 'CARD' ? 'default' : 'outline'}
-                  onClick={() => { setPaymentMethod('CARD'); setShowPayconiq(false); }}
-                  className="h-16 flex flex-col gap-1"
-                >
-                  <CreditCard className="w-5 h-5" />
-                  <span className="text-xs">Bancontact</span>
+                <Button variant={paymentMethod === 'CARD' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('CARD'); setShowPayconiq(false); }} className="h-16 flex flex-col gap-1">
+                  <CreditCard className="w-5 h-5" /><span className="text-xs">Bancontact</span>
                 </Button>
-                <Button
-                  variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
-                  onClick={() => { setPaymentMethod('CASH'); setShowPayconiq(false); }}
-                  className="h-16 flex flex-col gap-1"
-                >
-                  <Euro className="w-5 h-5" />
-                  <span className="text-xs">Comptant</span>
+                <Button variant={paymentMethod === 'CASH' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('CASH'); setShowPayconiq(false); }} className="h-16 flex flex-col gap-1">
+                  <Euro className="w-5 h-5" /><span className="text-xs">{t('billing.cash')}</span>
                 </Button>
-                <Button
-                  variant={paymentMethod === 'BANK' ? 'default' : 'outline'}
-                  onClick={() => { setPaymentMethod('BANK'); setShowPayconiq(false); }}
-                  className="h-16 flex flex-col gap-1"
-                >
+                <Button variant={paymentMethod === 'BANK' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('BANK'); setShowPayconiq(false); }} className="h-16 flex flex-col gap-1">
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
-                  <span className="text-xs">Virement</span>
+                  <span className="text-xs">{t('billing.transfer')}</span>
                 </Button>
-                <Button
-                  variant={paymentMethod === 'PAYCONIQ' ? 'default' : 'outline'}
-                  onClick={() => { setPaymentMethod('PAYCONIQ'); setShowPayconiq(true); }}
-                  className="h-16 flex flex-col gap-1"
-                >
-                  <QrCode className="w-5 h-5" />
-                  <span className="text-xs">Payconiq QR</span>
+                <Button variant={paymentMethod === 'PAYCONIQ' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('PAYCONIQ'); setShowPayconiq(true); }} className="h-16 flex flex-col gap-1">
+                  <QrCode className="w-5 h-5" /><span className="text-xs">Payconiq QR</span>
                 </Button>
               </div>
 
@@ -370,7 +338,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                 onCheckedChange={setPrintOnClose}
               />
               <Label htmlFor="printOnClose" className="text-sm cursor-pointer">
-                Imprimer la facture à la fermeture
+                {t('billing.printOnClose')}
               </Label>
             </div>
 
@@ -383,12 +351,12 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
               {billMutation.isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Enregistrement en cours...
+                  {t('billing.saving')}
                 </>
               ) : (
                 <>
                   <CreditCard className="w-5 h-5 mr-2" />
-                  Facturer {selectedTemplate.amount.toFixed(2)}€
+                  {t('billing.billAmount', { amount: selectedTemplate.amount.toFixed(2) })}
                 </>
               )}
             </Button>
@@ -407,71 +375,37 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
             {selectedCodes.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
                 <div>
-                  <p className="text-sm font-semibold mb-3">Type de facturation</p>
+                  <p className="text-sm font-semibold mb-3">{t('billing.billingType')}</p>
                   <div className="grid grid-cols-3 gap-3">
-                    <Button
-                      variant={invoiceType === 'EATTEST' ? 'default' : 'outline'}
-                      onClick={() => setInvoiceType('EATTEST')}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <FileText className="w-5 h-5" />
-                      <span className="text-xs">eAttest</span>
+                    <Button variant={invoiceType === 'EATTEST' ? 'default' : 'outline'} onClick={() => setInvoiceType('EATTEST')} className="h-16 flex flex-col gap-1">
+                      <FileText className="w-5 h-5" /><span className="text-xs">eAttest</span>
                     </Button>
-                    <Button
-                      variant={invoiceType === 'EFACT' ? 'default' : 'outline'}
-                      onClick={() => setInvoiceType('EFACT')}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <FileText className="w-5 h-5" />
-                      <span className="text-xs">eFact</span>
+                    <Button variant={invoiceType === 'EFACT' ? 'default' : 'outline'} onClick={() => setInvoiceType('EFACT')} className="h-16 flex flex-col gap-1">
+                      <FileText className="w-5 h-5" /><span className="text-xs">eFact</span>
                     </Button>
-                    <Button
-                      variant={invoiceType === 'PAPER' ? 'default' : 'outline'}
-                      onClick={() => setInvoiceType('PAPER')}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <Printer className="w-5 h-5" />
-                      <span className="text-xs">Papier</span>
+                    <Button variant={invoiceType === 'PAPER' ? 'default' : 'outline'} onClick={() => setInvoiceType('PAPER')} className="h-16 flex flex-col gap-1">
+                      <Printer className="w-5 h-5" /><span className="text-xs">{t('billing.paper')}</span>
                     </Button>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold mb-3">Mode de paiement</p>
+                  <p className="text-sm font-semibold mb-3">{t('billing.paymentMode')}</p>
                   <div className="grid grid-cols-4 gap-3">
-                    <Button
-                      variant={paymentMethod === 'CARD' ? 'default' : 'outline'}
-                      onClick={() => { setPaymentMethod('CARD'); setShowPayconiq(false); }}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <CreditCard className="w-5 h-5" />
-                      <span className="text-xs">Bancontact</span>
+                    <Button variant={paymentMethod === 'CARD' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('CARD'); setShowPayconiq(false); }} className="h-16 flex flex-col gap-1">
+                      <CreditCard className="w-5 h-5" /><span className="text-xs">Bancontact</span>
                     </Button>
-                    <Button
-                      variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
-                      onClick={() => { setPaymentMethod('CASH'); setShowPayconiq(false); }}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <Euro className="w-5 h-5" />
-                      <span className="text-xs">Comptant</span>
+                    <Button variant={paymentMethod === 'CASH' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('CASH'); setShowPayconiq(false); }} className="h-16 flex flex-col gap-1">
+                      <Euro className="w-5 h-5" /><span className="text-xs">{t('billing.cash')}</span>
                     </Button>
-                    <Button
-                      variant={paymentMethod === 'BANK' ? 'default' : 'outline'}
-                      onClick={() => { setPaymentMethod('BANK'); setShowPayconiq(false); }}
-                      className="h-16 flex flex-col gap-1"
-                    >
+                    <Button variant={paymentMethod === 'BANK' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('BANK'); setShowPayconiq(false); }} className="h-16 flex flex-col gap-1">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                       </svg>
-                      <span className="text-xs">Virement</span>
+                      <span className="text-xs">{t('billing.transfer')}</span>
                     </Button>
-                    <Button
-                      variant={paymentMethod === 'PAYCONIQ' ? 'default' : 'outline'}
-                      onClick={() => { setPaymentMethod('PAYCONIQ'); setShowPayconiq(true); }}
-                      className="h-16 flex flex-col gap-1"
-                    >
-                      <QrCode className="w-5 h-5" />
-                      <span className="text-xs">Payconiq QR</span>
+                    <Button variant={paymentMethod === 'PAYCONIQ' ? 'default' : 'outline'} onClick={() => { setPaymentMethod('PAYCONIQ'); setShowPayconiq(true); }} className="h-16 flex flex-col gap-1">
+                      <QrCode className="w-5 h-5" /><span className="text-xs">Payconiq QR</span>
                     </Button>
                   </div>
 
@@ -494,7 +428,7 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                     onCheckedChange={setPrintOnClose}
                   />
                   <Label htmlFor="printOnCloseCustom" className="text-sm cursor-pointer">
-                    Imprimer la facture à la fermeture
+                    {t('billing.printOnClose')}
                   </Label>
                 </div>
 
@@ -507,12 +441,12 @@ export default function QuickBilling({ patient, isOpen, onClose }) {
                   {billMutation.isPending ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Enregistrement en cours...
+                      {t('billing.saving')}
                     </>
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5 mr-2" />
-                      Créer la facture
+                      {t('billing.createInvoice')}
                     </>
                   )}
                 </Button>

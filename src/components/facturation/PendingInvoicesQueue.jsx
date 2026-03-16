@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import BatchSendDialog from './BatchSendDialog';
+import { useI18n } from '../i18n/i18nContext';
 
 const formatAmount = (cents) => {
   if (!cents) return '0,00 €';
@@ -15,6 +16,7 @@ const formatAmount = (cents) => {
 };
 
 export default function PendingInvoicesQueue({ invoices, isLoading }) {
+  const { t } = useI18n();
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const queryClient = useQueryClient();
@@ -66,8 +68,8 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
       totalSent += group.invoices.length;
     }
 
-    toast.success(`${totalSent} attestation(s) envoyée(s)`, {
-      description: `${enrichedGroups.length} lot(s) créé(s) avec succès`
+    toast.success(t('billing.sentSuccess', { count: totalSent }), {
+      description: t('billing.batchCreated', { count: enrichedGroups.length })
     });
     queryClient.invalidateQueries({ queryKey: ['facturation_data'] });
     setIsSending(false);
@@ -87,9 +89,9 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
       <Card className="border-dashed">
         <CardContent className="p-12 text-center">
           <Package className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-700">File d'attente vide</h3>
+          <h3 className="text-lg font-semibold text-slate-700">{t('billing.queueEmpty')}</h3>
           <p className="text-sm text-slate-500 mt-1">
-            Les attestations créées depuis le dossier patient apparaîtront ici automatiquement.
+            {t('billing.queueEmptyDesc')}
           </p>
         </CardContent>
       </Card>
@@ -111,10 +113,10 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-blue-900">
-                    {pendingInvoices.length} attestation(s) en attente
+                    {t('billing.attestPending', { count: pendingInvoices.length })}
                   </h2>
                   <p className="text-sm text-blue-700">
-                    {groups.length} mutuelle(s) • Total: {formatAmount(totalAmount)}
+                    {t('billing.mutuelles', { count: groups.length })} • Total: {formatAmount(totalAmount)}
                   </p>
                 </div>
               </div>
@@ -123,7 +125,7 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
                 className="bg-blue-600 hover:bg-blue-700 h-12 px-6 text-base gap-2"
               >
                 <Send className="w-5 h-5" />
-                Tout envoyer
+                {t('billing.sendAll')}
               </Button>
             </div>
           </CardContent>
@@ -133,12 +135,12 @@ export default function PendingInvoicesQueue({ invoices, isLoading }) {
         <Card>
           <CardContent className="p-0">
             <div className="grid grid-cols-6 gap-4 text-xs font-semibold text-slate-500 px-4 py-3 border-b bg-slate-50">
-              <span>N° Facture</span>
-              <span>Patient</span>
-              <span>Date</span>
-              <span>Mutuelle</span>
-              <span>Type</span>
-              <span className="text-right">Montant</span>
+              <span>{t('billing.invoiceNumber')}</span>
+              <span>{t('billing.patient')}</span>
+              <span>{t('billing.date')}</span>
+              <span>{t('billing.mutuelle')}</span>
+              <span>{t('billing.type')}</span>
+              <span className="text-right">{t('billing.amount')}</span>
             </div>
             {pendingInvoices.map(inv => (
               <div key={inv.id} className="grid grid-cols-6 gap-4 text-sm py-3 px-4 border-b last:border-0 hover:bg-slate-50">
