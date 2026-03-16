@@ -6,8 +6,10 @@ import { BookOpen, Search, ArrowRight, User } from 'lucide-react';
 import { CARE_PROTOCOLS, PROTOCOL_CATEGORIES } from '../../protocols/protocolsData';
 import ProtocolViewer from '../../protocols/ProtocolViewer';
 import { differenceInYears } from 'date-fns';
+import { useI18n } from '../../i18n/i18nContext';
 
 export default function ProtocolesTab({ patient }) {
+  const { t } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeProtocol, setActiveProtocol] = useState(null);
@@ -49,7 +51,7 @@ export default function ProtocolesTab({ patient }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher un protocole..."
+            placeholder={t('protocols.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -61,7 +63,7 @@ export default function ProtocolesTab({ patient }) {
             className="cursor-pointer"
             onClick={() => setSelectedCategory('all')}
           >
-            Tous ({CARE_PROTOCOLS.length})
+            {t('protocols.all')} ({CARE_PROTOCOLS.length})
           </Badge>
           {PROTOCOL_CATEGORIES.map(cat => (
             <Badge
@@ -80,7 +82,7 @@ export default function ProtocolesTab({ patient }) {
       {Object.keys(groupedByCategory).length === 0 && (
         <div className="text-center py-12">
           <BookOpen className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-          <p className="text-muted-foreground">Aucun protocole trouvé</p>
+          <p className="text-muted-foreground">{t('protocols.noResults')}</p>
         </div>
       )}
 
@@ -105,7 +107,7 @@ export default function ProtocolesTab({ patient }) {
                         {protocol.description}
                       </p>
                       <Badge variant="secondary" className="text-xs mt-2">
-                        {protocol.steps.length} étapes
+                        {protocol.steps.length} {t('protocols.steps')}
                       </Badge>
                     </div>
                     <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors mt-1" />
