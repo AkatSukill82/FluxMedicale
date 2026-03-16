@@ -15,11 +15,11 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import { fr, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { useI18n } from '../../i18n/i18nContext';
 import ChapterIVRequestForm from '../../chapterIV/ChapterIVRequestForm';
 import ChapterIVRequestDetail from '../../chapterIV/ChapterIVRequestDetail';
+import { useI18n } from '../../i18n/i18nContext';
 
-const STATUS_ICONS = {
+const STATUS_COLORS = {
   DRAFT: { color: 'bg-slate-100 text-slate-800', icon: FileText },
   PENDING: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
   SUBMITTED: { color: 'bg-blue-100 text-blue-800', icon: RefreshCw },
@@ -32,6 +32,16 @@ const STATUS_ICONS = {
 export default function ChapitreIVTab({ patient }) {
   const { t, locale } = useI18n();
   const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
+  
+  const STATUS_CONFIG = {
+    DRAFT: { label: t('chapter4.status.draft'), ...STATUS_COLORS.DRAFT },
+    PENDING: { label: t('chapter4.status.pending'), ...STATUS_COLORS.PENDING },
+    SUBMITTED: { label: t('chapter4.status.submitted'), ...STATUS_COLORS.SUBMITTED },
+    APPROVED: { label: t('chapter4.status.approved'), ...STATUS_COLORS.APPROVED },
+    REJECTED: { label: t('chapter4.status.rejected'), ...STATUS_COLORS.REJECTED },
+    EXPIRED: { label: t('chapter4.status.expired'), ...STATUS_COLORS.EXPIRED },
+    CANCELLED: { label: t('chapter4.status.cancelled'), ...STATUS_COLORS.CANCELLED }
+  };
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState('all');
   const [showRequestForm, setShowRequestForm] = useState(false);
@@ -169,7 +179,7 @@ export default function ChapitreIVTab({ patient }) {
       ) : (
         <div className="space-y-3">
           {requests.map(request => {
-            const statusConfig = STATUS_ICONS[request.status] || STATUS_ICONS.PENDING;
+            const statusConfig = STATUS_CONFIG[request.status] || STATUS_CONFIG.PENDING;
             const StatusIcon = statusConfig.icon;
             const approvalEndDate = request.approval_end_date ? new Date(request.approval_end_date) : null;
             const daysRemaining = approvalEndDate ? differenceInDays(approvalEndDate, new Date()) : null;
@@ -188,7 +198,7 @@ export default function ChapitreIVTab({ patient }) {
                         <span className="font-semibold">{request.medication_name || t('chapter4.medicationUnspecified')}</span>
                         <Badge className={statusConfig.color}>
                           <StatusIcon className="w-3 h-3 mr-1" />
-                          {t(`chapter4.status.${request.status?.toLowerCase() || 'pending'}`)}
+                          {statusConfig.label}
                         </Badge>
                         {isExpiringSoon && (
                           <Badge className="bg-orange-100 text-orange-800">
