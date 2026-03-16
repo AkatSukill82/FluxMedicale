@@ -70,11 +70,11 @@ export default function FicheAdministrativeTab({ patient }) {
     mutationFn: (data) => base44.entities.Patient.update(patient.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
-      toast.success('Fiche administrative mise à jour');
+      toast.success(t('admin.updateSuccess'));
       setIsEditing(false);
     },
     onError: () => {
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(t('errors.savingData'));
     }
   });
 
@@ -90,7 +90,7 @@ export default function FicheAdministrativeTab({ patient }) {
     const normalized = nissValidator.normalize(value);
 
     if (normalized.length < 11) {
-      setNissValidation({ isValid: false, error: 'NISS incomplet (11 chiffres requis)' });
+      setNissValidation({ isValid: false, error: t('admin.nissIncomplete') });
       return;
     }
 
@@ -106,9 +106,9 @@ export default function FicheAdministrativeTab({ patient }) {
     setNissValidation(validation);
 
     if (validation.isValid) {
-      toast.success('NISS valide');
+      toast.success(t('admin.nissValid'));
     } else {
-      toast.error(validation.error || 'NISS invalide');
+      toast.error(validation.error || t('admin.nissInvalid'));
     }
   };
 
@@ -117,7 +117,7 @@ export default function FicheAdministrativeTab({ patient }) {
     if (formData.niss) {
       const validation = nissValidator.validate(formData.niss);
       if (!validation.isValid) {
-        toast.error(validation.error || 'NISS invalide');
+        toast.error(validation.error || t('admin.nissInvalid'));
         return;
       }
     }
@@ -137,7 +137,7 @@ export default function FicheAdministrativeTab({ patient }) {
         );
 
         if (duplicates.length > 0) {
-          toast.error(`NISS déjà utilisé par ${duplicates.length} autre(s) patient(s). Fusion requise.`);
+          toast.error(t('admin.nissDuplicate', { count: duplicates.length }));
           return;
         }
       }
@@ -196,8 +196,8 @@ export default function FicheAdministrativeTab({ patient }) {
         }).catch(console.error);
       }
     } catch (error) {
-      console.error('Erreur sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      console.error('Save error:', error);
+      toast.error(t('errors.savingData'));
     }
   };
 
@@ -317,7 +317,7 @@ export default function FicheAdministrativeTab({ patient }) {
                     value={formData.niss}
                     onChange={(e) => handleNissChange(e.target.value)}
                     disabled={!isEditing}
-                    placeholder="YY.MM.DD-XXX.XX ou 11 chiffres"
+                    placeholder={t('admin.nissPlaceholder')}
                     className="font-mono"
                     maxLength={13}
                   />
@@ -344,14 +344,14 @@ export default function FicheAdministrativeTab({ patient }) {
 
                 {formData.niss && nissValidation.isValid && (
                   <p className="text-sm text-slate-600">
-                    Format normalisé: <code className="bg-slate-100 px-2 py-1 rounded font-mono text-xs">
+                    {t('admin.normalizedFormat')}: <code className="bg-slate-100 px-2 py-1 rounded font-mono text-xs">
                       {nissValidator.format(formData.niss)}
                     </code>
                   </p>
                 )}
 
                 <p className="text-xs text-slate-500">
-                  Règles de validation: mod 97 + règle 2000 pour naissances ≥ 01/01/2000
+                  {t('admin.nissValidationRules')}
                 </p>
               </div>
 
@@ -427,7 +427,7 @@ export default function FicheAdministrativeTab({ patient }) {
               />
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('admin.email')}</Label>
               <Input
                 id="email"
                 type="email"

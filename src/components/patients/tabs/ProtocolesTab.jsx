@@ -39,10 +39,10 @@ export default function ProtocolesTab({ patient }) {
         <User className="w-5 h-5 text-indigo-600" />
         <div>
           <span className="font-semibold text-indigo-900">{fullName}</span>
-          {age && <span className="text-sm text-indigo-700 ml-2">({age} ans{patient?.gender === 'male' ? ', M' : patient?.gender === 'female' ? ', F' : ''})</span>}
+          {age && <span className="text-sm text-indigo-700 ml-2">({age} {t('patient.years')}{patient?.gender === 'male' ? ', M' : patient?.gender === 'female' ? ', F' : ''})</span>}
         </div>
         {patient?.allergies && (
-          <Badge variant="destructive" className="ml-auto text-xs">⚠️ Allergies : {patient.allergies}</Badge>
+          <Badge variant="destructive" className="ml-auto text-xs">⚠️ {t('patient.allergies')}: {patient.allergies}</Badge>
         )}
       </div>
 

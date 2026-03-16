@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../../i18n/i18nContext';
 import { format, isAfter } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import HubAccessPanel from '../../hub/HubAccessPanel';
 import ConsultRNPanel from '../../ehealth/ConsultRNPanel';
 import MyCareNetDataPanel from '../../ehealth/MyCareNetDataPanel';
@@ -29,7 +29,8 @@ import MediPrimaCheck from '../../mediprima/MediPrimaCheck';
 import VaccinationsPanel from '../../vaccinations/VaccinationsPanel';
 
 export default function HubsTab({ patient, onOpenSumehr }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hubAccessAttempted, setHubAccessAttempted] = useState(false);
@@ -82,7 +83,7 @@ export default function HubsTab({ patient, onOpenSumehr }) {
 
   const formatExpiryDate = (dateStr) => {
     if (!dateStr) return null;
-    return format(new Date(dateStr), 'dd/MM/yyyy', { locale: fr });
+    return format(new Date(dateStr), 'dd/MM/yyyy', { locale: dateLocale });
   };
 
   return (

@@ -62,16 +62,16 @@ export default function DocumentsTab({ patient }) {
 
   const getTypeBadge = (type) => {
     const config = {
-      ATTESTATION: { label: 'Attestation', color: 'bg-blue-100 text-blue-800' },
-      LETTER: { label: 'Courrier', color: 'bg-purple-100 text-purple-800' },
-      LAB_ORDER: { label: 'Prescription labo', color: 'bg-green-100 text-green-800' },
-      IMAGING_ORDER: { label: 'Imagerie', color: 'bg-yellow-100 text-yellow-800' },
-      CERTIFICATE: { label: 'Certificat', color: 'bg-pink-100 text-pink-800' },
-      PRESCRIPTION: { label: 'Ordonnance', color: 'bg-indigo-100 text-indigo-800' },
-      REPORT: { label: 'Rapport', color: 'bg-slate-100 text-slate-800' },
-      DEMANDE_EXAMEN: { label: 'Demande examen', color: 'bg-orange-100 text-orange-800' },
-      LETTRE_LIAISON: { label: 'Lettre liaison', color: 'bg-teal-100 text-teal-800' },
-      CERTIFICAT_MEDICAL: { label: 'Certificat', color: 'bg-rose-100 text-rose-800' }
+      ATTESTATION: { label: t('docs.type.attestation'), color: 'bg-blue-100 text-blue-800' },
+      LETTER: { label: t('docs.type.letter'), color: 'bg-purple-100 text-purple-800' },
+      LAB_ORDER: { label: t('docs.type.labOrder'), color: 'bg-green-100 text-green-800' },
+      IMAGING_ORDER: { label: t('docs.type.imagingOrder'), color: 'bg-yellow-100 text-yellow-800' },
+      CERTIFICATE: { label: t('docs.type.certificate'), color: 'bg-pink-100 text-pink-800' },
+      PRESCRIPTION: { label: t('docs.type.prescription'), color: 'bg-indigo-100 text-indigo-800' },
+      REPORT: { label: t('docs.type.report'), color: 'bg-slate-100 text-slate-800' },
+      DEMANDE_EXAMEN: { label: t('docs.type.examRequest'), color: 'bg-orange-100 text-orange-800' },
+      LETTRE_LIAISON: { label: t('docs.type.liaisonLetter'), color: 'bg-teal-100 text-teal-800' },
+      CERTIFICAT_MEDICAL: { label: t('docs.type.certificate'), color: 'bg-rose-100 text-rose-800' }
     };
     
     const c = config[type] || config.REPORT;
@@ -80,11 +80,11 @@ export default function DocumentsTab({ patient }) {
 
   const getStatusBadge = (status) => {
     const config = {
-      DRAFT: { icon: Clock, label: 'Brouillon', color: 'bg-slate-100 text-slate-800' },
-      SIGNED: { icon: CheckCircle, label: 'Signé', color: 'bg-green-100 text-green-800' },
-      SENT: { icon: Send, label: 'Envoyé', color: 'bg-blue-100 text-blue-800' },
-      ACKNOWLEDGED: { icon: CheckCircle, label: 'Reçu', color: 'bg-green-100 text-green-800' },
-      ARCHIVED: { icon: FileText, label: 'Archivé', color: 'bg-gray-100 text-gray-800' }
+      DRAFT: { icon: Clock, label: t('docs.status.draft'), color: 'bg-slate-100 text-slate-800' },
+      SIGNED: { icon: CheckCircle, label: t('docs.status.signed'), color: 'bg-green-100 text-green-800' },
+      SENT: { icon: Send, label: t('docs.status.sent'), color: 'bg-blue-100 text-blue-800' },
+      ACKNOWLEDGED: { icon: CheckCircle, label: t('docs.status.acknowledged'), color: 'bg-green-100 text-green-800' },
+      ARCHIVED: { icon: FileText, label: t('docs.status.archived'), color: 'bg-gray-100 text-gray-800' }
     };
     
     const c = config[status] || config.DRAFT;
@@ -105,13 +105,13 @@ export default function DocumentsTab({ patient }) {
   }, {});
 
   const categoryNames = {
-    DEMANDE_EXAMEN: 'Demandes d\'examen',
-    LETTRE_LIAISON: 'Lettres de liaison',
-    CERTIFICAT_MEDICAL: 'Certificats médicaux',
-    RAPPORT_CONSULTATION: 'Rapports',
-    ATTESTATION: 'Attestations',
-    ORDONNANCE: 'Ordonnances',
-    AUTRE: 'Autre'
+    DEMANDE_EXAMEN: t('docs.cat.examRequests'),
+    LETTRE_LIAISON: t('docs.cat.liaisonLetters'),
+    CERTIFICAT_MEDICAL: t('docs.cat.certificates'),
+    RAPPORT_CONSULTATION: t('docs.cat.reports'),
+    ATTESTATION: t('docs.cat.attestations'),
+    ORDONNANCE: t('docs.cat.prescriptions'),
+    AUTRE: t('docs.cat.other')
   };
 
   return (
@@ -200,7 +200,7 @@ export default function DocumentsTab({ patient }) {
                             <CheckCircle className="w-4 h-4 text-green-600" />
                             <AlertDescription className="text-xs text-green-800">
                               <strong>{t('docs.signedDocument')}</strong>
-                              {doc.signature.qes_compliant && ' • Signature qualifiée eIDAS'}
+                              {doc.signature.qes_compliant && ` • ${t('docs.qualifiedSignature')}`}
                               <br />
                               {doc.signature.timestamp && format(new Date(doc.signature.timestamp), 'dd/MM/yyyy HH:mm', { locale: dateLocale })}
                             </AlertDescription>

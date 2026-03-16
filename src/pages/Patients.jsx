@@ -192,12 +192,12 @@ export default function Patients() {
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-slate-900 truncate">{fullName}</h3>
                       <div className="text-sm text-slate-600 mt-1">
-                        {age && <span>{age} ans</span>}
+                        {age && <span>{age} {t('patient.years')}</span>}
                         {age && niss && <span> • </span>}
                         {niss && <span className="font-mono text-xs">***-{niss.slice(-4)}</span>}
                       </div>
                       {p.allergies && (
-                        <Badge variant="destructive" className="mt-2 text-xs">⚠️ Allergies</Badge>
+                        <Badge variant="destructive" className="mt-2 text-xs">⚠️ {t('patient.allergies')}</Badge>
                       )}
                     </div>
                   </div>
@@ -251,7 +251,7 @@ export default function Patients() {
           <div className="space-y-2">
             <h2 className="text-xl font-bold">{fullName}</h2>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {age && <span>{age} ans</span>}
+              {age && <span>{age} {t('patient.years')}</span>}
               <span>•</span>
               <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
             </div>

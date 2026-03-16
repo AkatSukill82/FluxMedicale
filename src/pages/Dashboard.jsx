@@ -113,7 +113,7 @@ export default function Dashboard() {
           <span className="text-sm">{format(new Date(), "EEEE d MMMM", { locale: dateLocale })}</span>
         </div>
         <h1 className="text-3xl font-light text-slate-800">
-          {greeting}, <span className="font-medium">{user?.full_name?.split(' ')[0] || 'Docteur'}</span>
+          {greeting}, <span className="font-medium">{user?.full_name?.split(' ')[0] || 'Dr.'}</span>
         </h1>
       </div>
 
