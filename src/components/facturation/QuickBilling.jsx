@@ -12,6 +12,7 @@ import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InsuranceVerification from './InsuranceVerification';
 import PayconiqQR from './PayconiqQR';
+import BillingTypeSelector from './BillingTypeSelector';
 import { useI18n } from '../i18n/i18nContext';
 
 export default function QuickBilling({ patient, isOpen, onClose }) {
@@ -62,7 +63,7 @@ const QUICK_BILLING_TEMPLATES = [
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [selectedCodes, setSelectedCodes] = useState([]);
   const [activeTab, setActiveTab] = useState('quick');
-  const [invoiceType, setInvoiceType] = useState('EATTEST'); // EATTEST, EFACT, PAPER
+  const [invoiceType, setInvoiceType] = useState('EFACT');
   const [printOnClose, setPrintOnClose] = useState(true);
   const [insuranceVerified, setInsuranceVerified] = useState(false);
   const [insuranceResult, setInsuranceResult] = useState(null);
@@ -90,14 +91,31 @@ const QUICK_BILLING_TEMPLATES = [
         isCustom = true;
         codes = data.codes;
         totalAmount = data.codes.reduce((sum, code) => sum + (code.honorarium || 0), 0);
-        insuranceShare = data.codes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
-        patientShare = totalAmount - insuranceShare;
+        const totalReimbursed = data.codes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
+        
+        if (data.invoiceType === 'EFACT') {
+          // eFact (tiers payant): patient paie seulement le ticket modérateur
+          insuranceShare = totalReimbursed;
+          patientShare = totalAmount - insuranceShare;
+        } else {
+          // eAttest: patient paie la totalité, se fait rembourser après
+          insuranceShare = 0;
+          patientShare = totalAmount;
+        }
       } else {
         isCustom = false;
         codes = data.template.codes;
         totalAmount = data.template.amount * 100;
-        patientShare = totalAmount;
-        insuranceShare = 0;
+        
+        if (data.invoiceType === 'EFACT') {
+          // eFact: estimation 75% remboursé par mutuelle
+          insuranceShare = Math.round(totalAmount * 0.75);
+          patientShare = totalAmount - insuranceShare;
+        } else {
+          // eAttest: patient paie tout
+          insuranceShare = 0;
+          patientShare = totalAmount;
+        }
       }
 
       // Générer le numéro de facture
@@ -140,7 +158,7 @@ const QUICK_BILLING_TEMPLATES = [
         provider_id: currentUser.email,
         type: data.invoiceType,
         payment_method: paymentMethod,
-        status: data.invoiceType === 'PAPER' ? 'NOT_SENT' : 'PENDING',
+        status: data.invoiceType === 'PAPER' ? 'NOT_SENT' : data.invoiceType === 'EFACT' ? 'PENDING' : 'NOT_SENT',
         total_amount: totalAmount,
         patient_contribution: patientShare,
         insurance_contribution: insuranceShare,
