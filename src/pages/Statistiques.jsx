@@ -628,6 +628,7 @@ export default function Statistiques() {
             allergies={data?.allergies || []}
             medicalHistories={data?.medicalHistories || []}
             dmgs={data?.dmgs || []}
+            prescriptions={data?.prescriptions || []}
           />
         </TabsContent>
       </Tabs>
