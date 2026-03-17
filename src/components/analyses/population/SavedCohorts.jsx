@@ -2,21 +2,33 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bookmark, Trash2, Play, Clock } from 'lucide-react';
+import { Bookmark, Trash2, Play, Clock, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 const FILTER_LABELS = {
   age: 'Âge',
   gender: 'Sexe',
+  city: 'Ville/CP',
+  status: 'Statut',
   diagnosis: 'Diagnostic',
   medication: 'Médicament',
+  medication_class: 'Polypharmacie',
   allergy: 'Allergie',
+  allergy_severity: 'Sév. allergie',
   vaccination: 'Vaccination',
+  vaccination_overdue: 'Vaccin retard',
   lab: 'Labo',
+  lab_range: 'Labo valeur',
+  vital_signs: 'Signes vitaux',
+  bmi: 'IMC',
   insurance: 'Assurance',
   dmg: 'DMG',
+  sumehr: 'SUMEHR',
   consultation: 'Consultation',
+  consultation_count: 'Nb consultations',
+  prescription_recurring: 'Rx récurrente',
+  no_followup: 'Sans suivi',
 };
 
 export default function SavedCohorts({ cohorts, onLoad, onDelete }) {
@@ -39,6 +51,12 @@ export default function SavedCohorts({ cohorts, onLoad, onDelete }) {
                       {f.searchTerm ? `: ${f.searchTerm}` : ''}
                     </Badge>
                   ))}
+                  {cohort.resultCount != null && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      <Users className="w-2.5 h-2.5 mr-0.5" />
+                      {cohort.resultCount}
+                    </Badge>
+                  )}
                   <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                     <Clock className="w-2.5 h-2.5" />
                     {format(new Date(cohort.savedAt), 'dd MMM yyyy', { locale: fr })}
