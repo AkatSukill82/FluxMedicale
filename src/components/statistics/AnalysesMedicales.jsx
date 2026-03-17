@@ -414,9 +414,12 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
             )}
           </CardContent>
         </Card>
+        )}
       </div>
+      )}
 
       {/* Vaccination coverage barometers */}
+      {isVisible('couverture_vaccinale') && (
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
@@ -452,8 +455,10 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Allergies */}
+      {isVisible('allergies') && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
@@ -530,8 +535,10 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Maladies chroniques */}
+      {isVisible('maladies_chroniques') && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -586,6 +593,7 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
           </CardContent>
         </Card>
       </div>
+      )}
     </div>
   );
 }
