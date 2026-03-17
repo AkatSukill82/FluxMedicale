@@ -4,13 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Syringe, Heart, AlertTriangle, Users, FileCheck, Shield,
-  Pill, Stethoscope, Baby, Activity, Search, Play
+  Pill, Stethoscope, Baby, Activity, Search, Play, Award
 } from 'lucide-react';
 
 const ICONS = {
   syringe: Syringe, heart: Heart, alert: AlertTriangle, users: Users,
   filecheck: FileCheck, shield: Shield, pill: Pill, stethoscope: Stethoscope,
-  baby: Baby, activity: Activity, search: Search
+  baby: Baby, activity: Activity, search: Search, award: Award,
 };
 
 export const ANALYSIS_CATALOG = [
@@ -192,6 +192,55 @@ export const ANALYSIS_CATALOG = [
     category: 'Administration',
     icon: 'shield',
     color: 'bg-blue-700',
+    type: 'insurance_status',
+  },
+  // Baromètres INAMI
+  {
+    id: 'barometre_diabete',
+    name: 'Baromètre Diabète (INAMI)',
+    description: 'Patients diabétiques : suivi HbA1c, traitement, complications — critère prime INAMI',
+    category: 'Baromètres INAMI',
+    icon: 'stethoscope',
+    color: 'bg-red-700',
+    type: 'diagnosis_prevalence',
+    searchTerm: 'diabète',
+  },
+  {
+    id: 'barometre_antibiotiques',
+    name: 'Baromètre Antibiotiques (INAMI)',
+    description: 'Prescriptions d\'antibiotiques : volume, type, pertinence — critère prime INAMI',
+    category: 'Baromètres INAMI',
+    icon: 'pill',
+    color: 'bg-amber-700',
+    type: 'medication_usage',
+    searchTerm: 'antibio',
+  },
+  {
+    id: 'barometre_renal',
+    name: 'Baromètre Insuffisance Rénale (INAMI)',
+    description: 'Patients avec insuffisance rénale chronique : suivi eGFR, traitement — critère prime INAMI',
+    category: 'Baromètres INAMI',
+    icon: 'heart',
+    color: 'bg-purple-700',
+    type: 'diagnosis_prevalence',
+    searchTerm: 'rénal',
+  },
+  {
+    id: 'sumehr_coverage',
+    name: 'Couverture SUMEHR (INAMI)',
+    description: 'Ratio patients avec SUMEHR publié vs DMG actifs — seuil 60% requis',
+    category: 'Baromètres INAMI',
+    icon: 'filecheck',
+    color: 'bg-teal-700',
+    type: 'dmg_status',
+  },
+  {
+    id: 'efact_usage',
+    name: 'Taux eFact/eAttest (INAMI)',
+    description: 'Pourcentage de factures via eFact ou eAttest — seuil 50% requis',
+    category: 'Baromètres INAMI',
+    icon: 'shield',
+    color: 'bg-blue-800',
     type: 'insurance_status',
   },
 ];
