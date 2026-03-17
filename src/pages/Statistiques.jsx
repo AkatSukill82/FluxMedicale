@@ -363,9 +363,9 @@ export default function Statistiques() {
             <BarChart3 className="w-4 h-4" />
             Clinique
           </TabsTrigger>
-          <TabsTrigger value="analyses" className="gap-2">
+          <TabsTrigger value="analyses" className="gap-2" onClick={() => window.location.href = '/Analyses'}>
             <TrendingUp className="w-4 h-4" />
-            Analyses
+            Analyses →
           </TabsTrigger>
         </TabsList>
 

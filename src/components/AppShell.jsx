@@ -158,6 +158,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.medications'), path: 'Medicaments', icon: Pill },
         { title: t('nav.chapter4'), path: 'ChapitreIV', icon: Shield },
         { title: t('nav.statistics'), path: 'Statistiques', icon: BarChart3 },
+        { title: 'Analyses', path: 'Analyses', icon: Activity },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
         { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];

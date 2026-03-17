@@ -94,11 +94,13 @@ import Templates from './pages/Templates';
 import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
+import Analyses from './pages/Analyses';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AITasks": AITasks,
+    "Analyses": Analyses,
     "Agenda": Agenda,
     "Audit": Audit,
     "AuditSecurity": AuditSecurity,
