@@ -22,6 +22,7 @@ const COMPETITORS = [
       mediatt: 'auto',   // Mult-eMediatt
       tracking: 'auto',  // Suivi automatique des critères
       dashboard: 'auto', // Dashboard prime
+      population: 'auto', // Analyse de population
     }
   },
   {
@@ -39,6 +40,7 @@ const COMPETITORS = [
       mediatt: 'auto',
       tracking: 'none',
       dashboard: 'none',
+      population: 'partial',
     }
   },
   {
@@ -56,6 +58,7 @@ const COMPETITORS = [
       mediatt: 'auto',
       tracking: 'none',
       dashboard: 'none',
+      population: 'partial',
     }
   },
   {
@@ -73,6 +76,7 @@ const COMPETITORS = [
       mediatt: 'auto',
       tracking: 'none',
       dashboard: 'none',
+      population: 'auto',
     }
   },
   {
@@ -90,6 +94,7 @@ const COMPETITORS = [
       mediatt: 'auto',
       tracking: 'none',
       dashboard: 'none',
+      population: 'partial',
     }
   },
   {
@@ -107,6 +112,7 @@ const COMPETITORS = [
       mediatt: 'auto',
       tracking: 'none',
       dashboard: 'none',
+      population: 'none',
     }
   },
 ];
@@ -122,6 +128,7 @@ const CRITERIA_LABELS = [
   { key: 'mediatt', label: 'Mult-eMediatt', number: '8' },
   { key: 'tracking', label: 'Suivi progression prime', number: '★' },
   { key: 'dashboard', label: 'Dashboard prime intégré', number: '★' },
+  { key: 'population', label: 'Analyse de population', number: '★' },
 ];
 
 function StatusIcon({ status }) {
@@ -207,7 +214,7 @@ export default function INAMIComparison() {
               <ul className="text-xs text-green-700 space-y-1">
                 <li>• <strong>Dashboard intégré</strong> de suivi de la prime — aucun concurrent ne l'offre</li>
                 <li>• <strong>Progression en temps réel</strong> des 8 critères avec estimation du montant</li>
-                <li>• <strong>Analyses personnalisées</strong> combinables avec les baromètres INAMI</li>
+                <li>• <strong>Analyse de population avancée</strong> avec filtres combinés, export CSV et cohortes sauvegardées</li>
               </ul>
             </div>
             <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
