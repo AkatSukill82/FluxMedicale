@@ -356,66 +356,64 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
 
       {/* DMG */}
       {isVisible('dmg') && (
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileCheck className="w-5 h-5 text-green-600" />
-              Statut DMG
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {dmgChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie data={dmgChartData} cx="50%" cy="50%" outerRadius={90} dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
-                    {dmgChartData.map((entry, i) => (
-                      <Cell key={i} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-muted-foreground">
-                Aucun DMG enregistré — {totalPatients} patients sans DMG
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <FileCheck className="w-5 h-5 text-green-600" />
+            Statut DMG
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {dmgChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie data={dmgChartData} cx="50%" cy="50%" outerRadius={90} dataKey="value"
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}>
+                  {dmgChartData.map((entry, i) => (
+                    <Cell key={i} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-muted-foreground">
+              Aucun DMG enregistré — {totalPatients} patients sans DMG
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      )}
 
-        {/* Vaccinations par type - inside dmg grid */}
-        {isVisible('vaccinations') && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Syringe className="w-5 h-5 text-blue-600" />
-              Vaccinations par type
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {vaccChartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={vaccChartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" fontSize={11} angle={-30} textAnchor="end" height={60} />
-                  <YAxis fontSize={12} />
-                  <Tooltip />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                    {vaccChartData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-muted-foreground">Aucune vaccination enregistrée</div>
-            )}
-          </CardContent>
-        </Card>
-        )}
-      </div>
+      {/* Vaccinations par type */}
+      {isVisible('vaccinations') && (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Syringe className="w-5 h-5 text-blue-600" />
+            Vaccinations par type
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {vaccChartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={vaccChartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" fontSize={11} angle={-30} textAnchor="end" height={60} />
+                <YAxis fontSize={12} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {vaccChartData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-muted-foreground">Aucune vaccination enregistrée</div>
+          )}
+        </CardContent>
+      </Card>
       )}
 
       {/* Vaccination coverage barometers */}
