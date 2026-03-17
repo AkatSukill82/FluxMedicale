@@ -73,6 +73,13 @@ const QUICK_BILLING_TEMPLATES = [
   const handleInsuranceVerified = (result) => {
     setInsuranceVerified(true);
     setInsuranceResult(result);
+    // Si patient en ordre, recommander eFact (tiers payant) par défaut
+    const isInsured = result?.status === 'EN_ORDRE' || result?.status === 'ACTIF';
+    if (isInsured) {
+      setInvoiceType('EFACT');
+    } else {
+      setInvoiceType('EATTEST');
+    }
   };
 
   // Vérifier si le patient peut être facturé normalement
