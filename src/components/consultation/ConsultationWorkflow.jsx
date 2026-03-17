@@ -33,6 +33,7 @@ import InvoiceReceipt from '../facturation/InvoiceReceipt';
 import ETarification from '../facturation/ETarification';
 import PayconiqQR from '../facturation/PayconiqQR';
 import MemoCodeSelector from '../facturation/MemoCodeSelector';
+import BillingTypeSelector from '../facturation/BillingTypeSelector';
 import VitalSignsInput from './VitalSignsInput';
 import DiagnosisCodeSearch from './DiagnosisCodeSearch';
 import VoiceDictation from './VoiceDictation';
@@ -110,6 +111,7 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [printInvoice, setPrintInvoice] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState('CARD');
   const [showPayconiq, setShowPayconiq] = useState(false);
+  const [invoiceType, setInvoiceType] = useState('EFACT');
   const receiptRef = useRef(null);
 
   // Auto-save draft
@@ -292,7 +294,16 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           return sum + amount;
         }, 0);
         const totalReimbursed = selectedCodes.reduce((sum, code) => sum + (code.reimbursed || 0), 0);
-        const totalPatientShare = totalHonorarium - totalReimbursed;
+        
+        // Calcul part patient selon le type de facturation
+        let totalPatientShare, totalInsuranceShare;
+        if (invoiceType === 'EFACT') {
+          totalInsuranceShare = totalReimbursed;
+          totalPatientShare = totalHonorarium - totalReimbursed;
+        } else {
+          totalInsuranceShare = 0;
+          totalPatientShare = totalHonorarium;
+        }
 
         const patientName = patient?.name?.[0] 
           ? `${(patient.name[0].given || []).join(' ')} ${patient.name[0].family}`
@@ -326,14 +337,14 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
           patient_id: patient.id,
           patient_name: patientName,
           provider_id: currentUser.email,
-          type: 'EATTEST',
+          type: invoiceType,
           payment_method: paymentMethod,
-          status: 'PENDING',
+          status: invoiceType === 'PAPER' ? 'NOT_SENT' : invoiceType === 'EFACT' ? 'PENDING' : 'NOT_SENT',
           oa_code: patient?.numero_mutuelle || '',
           oa_name: patient?.mutuelle || '',
           total_amount: totalHonorarium,
           patient_contribution: totalPatientShare,
-          insurance_contribution: totalReimbursed,
+          insurance_contribution: totalInsuranceShare,
           invoice_date: now.toISOString().split('T')[0],
           invoice_lines: invoiceLines,
           created_by: currentUser.email
