@@ -302,19 +302,29 @@ const QUICK_BILLING_TEMPLATES = [
 
             {selectedTemplate && (
           <div className="space-y-6 pt-6 border-t">
-            <div>
-              <p className="text-sm font-semibold mb-3">{t('billing.billingType')}</p>
-              <div className="grid grid-cols-3 gap-3">
-                <Button variant={invoiceType === 'EATTEST' ? 'default' : 'outline'} onClick={() => setInvoiceType('EATTEST')} className="h-16 flex flex-col gap-1">
-                  <FileText className="w-5 h-5" /><span className="text-xs">eAttest</span>
-                </Button>
-                <Button variant={invoiceType === 'EFACT' ? 'default' : 'outline'} onClick={() => setInvoiceType('EFACT')} className="h-16 flex flex-col gap-1">
-                  <FileText className="w-5 h-5" /><span className="text-xs">eFact</span>
-                </Button>
-                <Button variant={invoiceType === 'PAPER' ? 'default' : 'outline'} onClick={() => setInvoiceType('PAPER')} className="h-16 flex flex-col gap-1">
-                  <Printer className="w-5 h-5" /><span className="text-xs">{t('billing.paper')}</span>
-                </Button>
+            <BillingTypeSelector
+              invoiceType={invoiceType}
+              onTypeChange={setInvoiceType}
+              isTiersPayant={canBillNormally}
+            />
+
+            {/* Résumé du paiement selon le type */}
+            <div className={`p-4 rounded-lg border ${invoiceType === 'EFACT' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">{t('billing.patientPaysLabel')}</span>
+                <span className={`text-xl font-bold ${invoiceType === 'EFACT' ? 'text-green-700' : 'text-blue-700'}`}>
+                  {invoiceType === 'EFACT' 
+                    ? `${(selectedTemplate.amount * 0.25).toFixed(2)}€`
+                    : `${selectedTemplate.amount.toFixed(2)}€`
+                  }
+                </span>
               </div>
+              <p className="text-xs text-slate-500">
+                {invoiceType === 'EFACT' 
+                  ? `${t('billing.ticketModerateur')} — ${t('billing.mutuelleReceives')}: ${(selectedTemplate.amount * 0.75).toFixed(2)}€`
+                  : `${t('billing.totalConsultation')} — ${selectedTemplate.amount.toFixed(2)}€`
+                }
+              </p>
             </div>
 
             <div>
@@ -392,20 +402,34 @@ const QUICK_BILLING_TEMPLATES = [
 
             {selectedCodes.length > 0 && (
               <div className="space-y-4 pt-4 border-t">
-                <div>
-                  <p className="text-sm font-semibold mb-3">{t('billing.billingType')}</p>
-                  <div className="grid grid-cols-3 gap-3">
-                    <Button variant={invoiceType === 'EATTEST' ? 'default' : 'outline'} onClick={() => setInvoiceType('EATTEST')} className="h-16 flex flex-col gap-1">
-                      <FileText className="w-5 h-5" /><span className="text-xs">eAttest</span>
-                    </Button>
-                    <Button variant={invoiceType === 'EFACT' ? 'default' : 'outline'} onClick={() => setInvoiceType('EFACT')} className="h-16 flex flex-col gap-1">
-                      <FileText className="w-5 h-5" /><span className="text-xs">eFact</span>
-                    </Button>
-                    <Button variant={invoiceType === 'PAPER' ? 'default' : 'outline'} onClick={() => setInvoiceType('PAPER')} className="h-16 flex flex-col gap-1">
-                      <Printer className="w-5 h-5" /><span className="text-xs">{t('billing.paper')}</span>
-                    </Button>
-                  </div>
-                </div>
+                <BillingTypeSelector
+                  invoiceType={invoiceType}
+                  onTypeChange={setInvoiceType}
+                  isTiersPayant={canBillNormally}
+                />
+
+                {/* Résumé paiement codes INAMI */}
+                {(() => {
+                  const totalHonorarium = selectedCodes.reduce((sum, c) => sum + (c.honorarium || 0), 0);
+                  const totalReimbursed = selectedCodes.reduce((sum, c) => sum + (c.reimbursed || 0), 0);
+                  const patientPays = invoiceType === 'EFACT' ? totalHonorarium - totalReimbursed : totalHonorarium;
+                  return (
+                    <div className={`p-4 rounded-lg border ${invoiceType === 'EFACT' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">{t('billing.patientPaysLabel')}</span>
+                        <span className={`text-xl font-bold ${invoiceType === 'EFACT' ? 'text-green-700' : 'text-blue-700'}`}>
+                          {(patientPays / 100).toFixed(2)}€
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        {invoiceType === 'EFACT'
+                          ? `${t('billing.ticketModerateur')} — ${t('billing.mutuelleReceives')}: ${(totalReimbursed / 100).toFixed(2)}€`
+                          : `${t('billing.totalConsultation')} — ${(totalHonorarium / 100).toFixed(2)}€`
+                        }
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 <div>
                   <p className="text-sm font-semibold mb-3">{t('billing.paymentMode')}</p>
