@@ -14,9 +14,10 @@ import { Settings2, Plus, Eye, EyeOff, GripVertical, Trash2, Save } from 'lucide
 export const PREDEFINED_ANALYSES = [
   { id: 'barometres', label: 'Baromètres principaux', description: 'DMG, vaccinations, allergies, maladies chroniques', category: 'Vue d\'ensemble', default: true },
   { id: 'kpis', label: 'KPIs rapides', description: 'Compteurs patients, vaccinations, allergies, antécédents', category: 'Vue d\'ensemble', default: true },
-  { id: 'demographie', label: 'Démographie', description: 'Répartition par âge et genre', category: 'Population', default: true },
-  { id: 'dmg', label: 'Analyse DMG', description: 'Statut des Dossiers Médicaux Globaux', category: 'Administration', default: true },
-  { id: 'vaccinations', label: 'Vaccinations par type', description: 'Répartition des vaccinations administrées', category: 'Prévention', default: true },
+  { id: 'demographie', label: 'Démographie', description: 'Pyramide des âges par genre, âge moyen, répartition H/F', category: 'Population', default: true },
+  { id: 'assurance', label: 'Assurance & mutuelles', description: 'Régimes d\'assurance, statut d\'assurabilité, top mutuelles', category: 'Administration', default: true },
+  { id: 'dmg', label: 'Analyse DMG', description: 'Statut des Dossiers Médicaux Globaux avec détails', category: 'Administration', default: true },
+  { id: 'vaccinations', label: 'Vaccinations', description: 'Répartition par type et tendance sur 12 mois', category: 'Prévention', default: true },
   { id: 'couverture_vaccinale', label: 'Couverture vaccinale', description: 'Taux de vaccination par maladie', category: 'Prévention', default: true },
   { id: 'allergies', label: 'Analyse des allergies', description: 'Type, sévérité et top allergènes', category: 'Clinique', default: true },
   { id: 'maladies_chroniques', label: 'Maladies chroniques', description: 'Antécédents et pathologies chroniques', category: 'Clinique', default: true },
