@@ -5,30 +5,33 @@ import { Send, CheckCircle, XCircle, Clock, Package, Loader2, AlertTriangle } fr
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
+import { useI18n } from '../i18n/i18nContext';
 
 const formatAmount = (cents) => {
   if (!cents) return '0,00 €';
   return `${(cents / 100).toFixed(2).replace('.', ',')} €`;
 };
 
+export default function SentBatchesPanel() {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
+
 const BATCH_STATUS = {
-  PENDING: { icon: Clock, label: 'En attente', color: 'bg-slate-100 text-slate-700' },
-  SENDING: { icon: Loader2, label: 'Envoi...', color: 'bg-blue-100 text-blue-700' },
-  SENT: { icon: Send, label: 'Envoyé', color: 'bg-blue-100 text-blue-700' },
-  ACCEPTED: { icon: CheckCircle, label: 'Accepté', color: 'bg-green-100 text-green-700' },
-  PARTIAL: { icon: AlertTriangle, label: 'Partiel', color: 'bg-orange-100 text-orange-700' },
-  REJECTED: { icon: XCircle, label: 'Refusé', color: 'bg-red-100 text-red-700' },
-  ERROR: { icon: XCircle, label: 'Erreur', color: 'bg-red-100 text-red-700' },
+  PENDING: { icon: Clock, label: t('billing.pending'), color: 'bg-slate-100 text-slate-700' },
+  SENDING: { icon: Loader2, label: t('billing.sending'), color: 'bg-blue-100 text-blue-700' },
+  SENT: { icon: Send, label: t('billing.sent'), color: 'bg-blue-100 text-blue-700' },
+  ACCEPTED: { icon: CheckCircle, label: t('billing.accepted'), color: 'bg-green-100 text-green-700' },
+  PARTIAL: { icon: AlertTriangle, label: t('billing.partial'), color: 'bg-orange-100 text-orange-700' },
+  REJECTED: { icon: XCircle, label: t('billing.rejected'), color: 'bg-red-100 text-red-700' },
+  ERROR: { icon: XCircle, label: t('billing.error'), color: 'bg-red-100 text-red-700' },
 };
 
 const TRIGGER_LABELS = {
-  manual: 'Manuel',
-  auto_logout: 'Auto (déconnexion)',
-  scheduled: 'Planifié',
+  manual: t('billing.manual'),
+  auto_logout: t('billing.autoLogout'),
+  scheduled: t('billing.scheduled'),
 };
-
-export default function SentBatchesPanel() {
   const { data: batches = [], isLoading } = useQuery({
     queryKey: ['invoice_batches'],
     queryFn: () => base44.entities.InvoiceBatch.list('-created_date', 100),
@@ -43,8 +46,8 @@ export default function SentBatchesPanel() {
       <Card className="border-dashed">
         <CardContent className="p-12 text-center">
           <Package className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-          <h3 className="text-lg font-semibold text-slate-700">Aucun lot envoyé</h3>
-          <p className="text-sm text-slate-500 mt-1">Les lots envoyés aux mutuelles apparaîtront ici.</p>
+          <h3 className="text-lg font-semibold text-slate-700">{t('billing.noBatchesSent')}</h3>
+          <p className="text-sm text-slate-500 mt-1">{t('billing.batchesWillAppear')}</p>
         </CardContent>
       </Card>
     );
@@ -74,11 +77,11 @@ export default function SentBatchesPanel() {
                     </div>
                     <p className="text-sm font-semibold text-slate-900">{batch.oa_name}</p>
                     <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
-                      <span>{batch.invoice_count} facture(s)</span>
+                      <span>{t('billing.invoicesCount', { count: batch.invoice_count })}</span>
                       <span>•</span>
                       <span>Total: <strong>{formatAmount(batch.total_amount)}</strong></span>
                       <span>•</span>
-                      <span>Mutuelle: <strong className="text-green-700">{formatAmount(batch.insurance_total)}</strong></span>
+                      <span>{t('billing.insurance')}: <strong className="text-green-700">{formatAmount(batch.insurance_total)}</strong></span>
                       {batch.trigger && (
                         <>
                           <span>•</span>
@@ -90,7 +93,7 @@ export default function SentBatchesPanel() {
                 </div>
                 <div className="text-right text-xs text-slate-500">
                   {batch.sent_at && (
-                    <p>{format(new Date(batch.sent_at), "dd/MM/yyyy HH:mm", { locale: fr })}</p>
+                    <p>{format(new Date(batch.sent_at), "dd/MM/yyyy HH:mm", { locale: dateLocale })}</p>
                   )}
                   {batch.oa_code && (
                     <p className="font-mono mt-1">OA: {batch.oa_code}</p>

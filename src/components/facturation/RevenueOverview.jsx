@@ -41,11 +41,14 @@ import {
   Legend
 } from 'recharts';
 import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isSameMonth } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
+import { useI18n } from '../i18n/i18nContext';
 
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export default function RevenueOverview() {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const [period, setPeriod] = useState('6');
 
   const { data, isLoading } = useQuery({
@@ -88,8 +91,8 @@ export default function RevenueOverview() {
         const monthPayments = periodPayments.filter(p => isSameMonth(new Date(p.payment_date), month));
         
         return {
-          month: format(month, 'MMM yy', { locale: fr }),
-          fullMonth: format(month, 'MMMM yyyy', { locale: fr }),
+          month: format(month, 'MMM yy', { locale: dateLocale }),
+          fullMonth: format(month, 'MMMM yyyy', { locale: dateLocale }),
           billed: monthInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) / 100,
           collected: monthPayments.reduce((sum, p) => sum + (p.amount || 0), 0) / 100,
           invoiceCount: monthInvoices.length
@@ -98,10 +101,10 @@ export default function RevenueOverview() {
 
       // Répartition par statut
       const statusData = [
-        { name: 'Payées', value: periodInvoices.filter(inv => inv.status === 'PAID').length, color: '#22c55e' },
-        { name: 'Partielles', value: periodInvoices.filter(inv => inv.status === 'PARTIAL').length, color: '#f59e0b' },
-        { name: 'En attente', value: periodInvoices.filter(inv => ['SENT', 'ACCEPTED'].includes(inv.status)).length, color: '#3b82f6' },
-        { name: 'En retard', value: overdueInvoices.length, color: '#ef4444' },
+        { name: t('billing.paidLabel'), value: periodInvoices.filter(inv => inv.status === 'PAID').length, color: '#22c55e' },
+        { name: t('billing.partialLabel'), value: periodInvoices.filter(inv => inv.status === 'PARTIAL').length, color: '#f59e0b' },
+        { name: t('billing.pending'), value: periodInvoices.filter(inv => ['SENT', 'ACCEPTED'].includes(inv.status)).length, color: '#3b82f6' },
+        { name: t('billing.overdueLabel'), value: overdueInvoices.length, color: '#ef4444' },
       ].filter(s => s.value > 0);
 
       // Répartition par type
@@ -109,7 +112,7 @@ export default function RevenueOverview() {
         { name: 'eFact', value: periodInvoices.filter(inv => inv.type === 'EFACT').reduce((s, i) => s + (i.total_amount || 0), 0) / 100 },
         { name: 'eAttest', value: periodInvoices.filter(inv => inv.type === 'EATTEST').reduce((s, i) => s + (i.total_amount || 0), 0) / 100 },
         { name: 'Standard', value: periodInvoices.filter(inv => inv.type === 'STANDARD').reduce((s, i) => s + (i.total_amount || 0), 0) / 100 },
-        { name: 'Papier', value: periodInvoices.filter(inv => inv.type === 'PAPER').reduce((s, i) => s + (i.total_amount || 0), 0) / 100 },
+        { name: t('billing.paperType'), value: periodInvoices.filter(inv => inv.type === 'PAPER').reduce((s, i) => s + (i.total_amount || 0), 0) / 100 },
       ].filter(t => t.value > 0);
 
       // Comparaison avec période précédente
@@ -152,15 +155,15 @@ export default function RevenueOverview() {
     <div className="space-y-6">
       {/* Sélecteur de période */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Vue d'ensemble des revenus</h2>
+        <h2 className="text-xl font-semibold">{t('billing.revenueOverview')}</h2>
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="3">3 derniers mois</SelectItem>
-            <SelectItem value="6">6 derniers mois</SelectItem>
-            <SelectItem value="12">12 derniers mois</SelectItem>
+            <SelectItem value="3">{t('billing.last3months')}</SelectItem>
+            <SelectItem value="6">{t('billing.last6months')}</SelectItem>
+            <SelectItem value="12">{t('billing.last12months')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -171,7 +174,7 @@ export default function RevenueOverview() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Facturé</p>
+                <p className="text-sm text-muted-foreground">{t('billing.billed')}</p>
                 <p className="text-3xl font-bold mt-1">{data.totalBilled.toFixed(2)}€</p>
                 <div className="flex items-center gap-1 mt-2">
                   {data.growth >= 0 ? (
@@ -182,7 +185,7 @@ export default function RevenueOverview() {
                   <span className={`text-sm ${data.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {Math.abs(data.growth).toFixed(1)}%
                   </span>
-                  <span className="text-xs text-muted-foreground">vs période précédente</span>
+                  <span className="text-xs text-muted-foreground">{t('billing.vsPrevPeriod')}</span>
                 </div>
               </div>
               <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
@@ -196,10 +199,10 @@ export default function RevenueOverview() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Encaissé</p>
+                <p className="text-sm text-muted-foreground">{t('billing.collected')}</p>
                 <p className="text-3xl font-bold mt-1 text-green-600">{data.totalCollected.toFixed(2)}€</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Taux: <span className="font-semibold">{data.collectionRate.toFixed(1)}%</span>
+                  {t('billing.rate')}: <span className="font-semibold">{data.collectionRate.toFixed(1)}%</span>
                 </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
@@ -213,10 +216,10 @@ export default function RevenueOverview() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">En attente</p>
+                <p className="text-sm text-muted-foreground">{t('billing.pending')}</p>
                 <p className="text-3xl font-bold mt-1 text-amber-600">{data.totalPending.toFixed(2)}€</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {data.invoiceCount - data.overdueCount} factures
+                  {data.invoiceCount - data.overdueCount} {t('billing.invoicesWord')}
                 </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -230,10 +233,10 @@ export default function RevenueOverview() {
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Impayés</p>
+                <p className="text-sm text-muted-foreground">{t('billing.unpaidAmount')}</p>
                 <p className="text-3xl font-bold mt-1 text-red-600">{data.totalOverdue.toFixed(2)}€</p>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {data.overdueCount} facture(s) en retard
+                  {t('billing.invoicesOverdue', { count: data.overdueCount })}
                 </p>
               </div>
               <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center">
@@ -251,7 +254,7 @@ export default function RevenueOverview() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5" />
-              Évolution mensuelle
+              {t('billing.monthlyEvolution')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -268,7 +271,7 @@ export default function RevenueOverview() {
                 <Area 
                   type="monotone" 
                   dataKey="billed" 
-                  name="Facturé"
+                  name={t('billing.billed')}
                   stroke="#3b82f6" 
                   fill="#3b82f6" 
                   fillOpacity={0.2}
@@ -276,7 +279,7 @@ export default function RevenueOverview() {
                 <Area 
                   type="monotone" 
                   dataKey="collected" 
-                  name="Encaissé"
+                  name={t('billing.collected')}
                   stroke="#22c55e" 
                   fill="#22c55e" 
                   fillOpacity={0.2}
@@ -291,7 +294,7 @@ export default function RevenueOverview() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <PieChart className="w-5 h-5" />
-              Répartition des factures
+              {t('billing.invoiceDistribution')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -333,7 +336,7 @@ export default function RevenueOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Répartition par type de facturation</CardTitle>
+            <CardTitle>{t('billing.billingTypeDistribution')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={200}>
@@ -350,24 +353,24 @@ export default function RevenueOverview() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Statistiques clés</CardTitle>
+            <CardTitle>{t('billing.keyStats')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                <span className="text-muted-foreground">Nombre de factures</span>
+                <span className="text-muted-foreground">{t('billing.invoiceCountLabel')}</span>
                 <span className="font-bold text-lg">{data.invoiceCount}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                <span className="text-muted-foreground">Montant moyen</span>
+                <span className="text-muted-foreground">{t('billing.avgAmount')}</span>
                 <span className="font-bold text-lg">{data.avgInvoiceAmount.toFixed(2)}€</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                <span className="text-muted-foreground">Taux de recouvrement</span>
+                <span className="text-muted-foreground">{t('billing.recoveryRate')}</span>
                 <span className="font-bold text-lg text-green-600">{data.collectionRate.toFixed(1)}%</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                <span className="text-muted-foreground">Créances totales</span>
+                <span className="text-muted-foreground">{t('billing.totalReceivables')}</span>
                 <span className="font-bold text-lg text-amber-600">{(data.totalPending + data.totalOverdue).toFixed(2)}€</span>
               </div>
             </div>

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Loader2, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useI18n } from '../i18n/i18nContext';
 
 const formatAmount = (cents) => {
   if (!cents) return '0,00 €';
@@ -11,6 +12,7 @@ const formatAmount = (cents) => {
 };
 
 export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm, isSending }) {
+  const { t } = useI18n();
   const [batchNumbers, setBatchNumbers] = useState({});
 
   useEffect(() => {
@@ -39,10 +41,10 @@ export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl">
             <Send className="w-5 h-5 text-blue-600" />
-            Récapitulatif d'envoi
+            {t('billing.sendSummary')}
           </DialogTitle>
           <p className="text-sm text-slate-500 mt-1">
-            {totalInvoices} attestation(s) à envoyer
+            {t('billing.attestationsToSend', { count: totalInvoices })}
           </p>
         </DialogHeader>
 
@@ -52,9 +54,9 @@ export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm,
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b">
-                  <th className="text-left px-4 py-2.5 font-semibold text-slate-600">N° d'envoi</th>
-                  <th className="text-left px-4 py-2.5 font-semibold text-slate-600">Mutuelle</th>
-                  <th className="text-center px-4 py-2.5 font-semibold text-slate-600">Factures</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-slate-600">{t('billing.sendNumber')}</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-slate-600">{t('billing.mutuelle')}</th>
+                  <th className="text-center px-4 py-2.5 font-semibold text-slate-600">{t('billing.invoicesWord')}</th>
                   <th className="text-right px-4 py-2.5 font-semibold text-slate-600">Total</th>
                 </tr>
               </thead>
@@ -85,7 +87,7 @@ export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm,
             <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border-t-2 border-blue-200">
               <span className="font-bold text-blue-900 text-base">TOTAL</span>
               <div className="flex items-center gap-6">
-                <span className="text-sm text-blue-700">{totalInvoices} attestation(s)</span>
+                <span className="text-sm text-blue-700">{t('billing.attestationsToSend', { count: totalInvoices })}</span>
                 <span className="text-xl font-bold text-blue-900">{formatAmount(grandTotal)}</span>
               </div>
             </div>
@@ -95,7 +97,7 @@ export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm,
             <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
               <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
               <p className="text-xs text-amber-800">
-                Certaines factures n'ont pas de code mutuelle. Vérifiez les dossiers patients.
+                {t('billing.noInsuranceCode')}
               </p>
             </div>
           )}
@@ -103,7 +105,7 @@ export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm,
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSending}>
-            Annuler
+            {t('actions.cancel')}
           </Button>
           <Button
             onClick={handleConfirm}
@@ -111,9 +113,9 @@ export default function BatchSendDialog({ groups, open, onOpenChange, onConfirm,
             className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 px-6"
           >
             {isSending ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Envoi en cours...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {t('billing.sendingProgress')}</>
             ) : (
-              <><Send className="w-4 h-4" /> Envoyer</>
+              <><Send className="w-4 h-4" /> {t('billing.send')}</>
             )}
           </Button>
         </DialogFooter>

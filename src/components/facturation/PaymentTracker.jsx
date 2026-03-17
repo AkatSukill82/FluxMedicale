@@ -15,9 +15,12 @@ import {
   XCircle
 } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function PaymentTracker() {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
   const { data: paymentData, isLoading } = useQuery({
     queryKey: ['paymentTracking'],
     queryFn: async () => {
@@ -73,7 +76,7 @@ export default function PaymentTracker() {
   if (isLoading || !paymentData) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">Chargement des données de paiement...</p>
+        <p className="text-muted-foreground">{t('billing.loadingPayments')}</p>
       </div>
     );
   }
@@ -86,12 +89,12 @@ export default function PaymentTracker() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Payé</p>
+                <p className="text-sm text-slate-600 mb-1">{t('billing.paid')}</p>
                 <p className="text-2xl font-bold text-green-600">
                   {paymentData.totalPaid.toFixed(2)}€
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {paymentData.paidCount} factures
+                  {paymentData.paidCount} {t('billing.invoicesWord')}
                 </p>
               </div>
               <CheckCircle className="w-10 h-10 text-green-600 opacity-20" />
@@ -103,12 +106,12 @@ export default function PaymentTracker() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">En attente</p>
+                <p className="text-sm text-slate-600 mb-1">{t('billing.pending')}</p>
                 <p className="text-2xl font-bold text-orange-600">
                   {paymentData.totalPending.toFixed(2)}€
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {paymentData.pendingCount} factures
+                  {paymentData.pendingCount} {t('billing.invoicesWord')}
                 </p>
               </div>
               <Clock className="w-10 h-10 text-orange-600 opacity-20" />
@@ -120,12 +123,12 @@ export default function PaymentTracker() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">En retard</p>
+                <p className="text-sm text-slate-600 mb-1">{t('billing.overdueLabel')}</p>
                 <p className="text-2xl font-bold text-red-600">
                   {paymentData.totalOverdue.toFixed(2)}€
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  {paymentData.overdueCount} factures
+                  {paymentData.overdueCount} {t('billing.invoicesWord')}
                 </p>
               </div>
               <AlertTriangle className="w-10 h-10 text-red-600 opacity-20" />
@@ -137,12 +140,12 @@ export default function PaymentTracker() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-600 mb-1">Taux de paiement</p>
+                <p className="text-sm text-slate-600 mb-1">{t('billing.paymentRate')}</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {paymentData.paymentRate}%
                 </p>
                 <p className="text-xs text-slate-500 mt-1">
-                  Délai moy: {paymentData.averagePaymentDelay}j
+                  {t('billing.avgDelay')}: {paymentData.averagePaymentDelay}{t('chapter4.days')}
                 </p>
               </div>
               <TrendingUp className="w-10 h-10 text-blue-600 opacity-20" />
@@ -156,13 +159,13 @@ export default function PaymentTracker() {
         <CardContent className="p-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">Progression des paiements</span>
+              <span className="text-slate-600">{t('billing.paymentProgress')}</span>
               <span className="font-semibold">{paymentData.paymentRate}%</span>
             </div>
             <Progress value={parseFloat(paymentData.paymentRate)} className="h-3" />
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>{paymentData.totalPaid.toFixed(2)}€ collectés</span>
-              <span>{paymentData.totalRevenue.toFixed(2)}€ total</span>
+              <span>{t('billing.collectedAmount', { amount: paymentData.totalPaid.toFixed(2) })}</span>
+              <span>{t('billing.totalAmount', { amount: paymentData.totalRevenue.toFixed(2) })}</span>
             </div>
           </div>
         </CardContent>
@@ -174,7 +177,7 @@ export default function PaymentTracker() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-700">
               <AlertTriangle className="w-5 h-5" />
-              Factures urgentes en retard ({paymentData.urgentOverdue.length})
+              {t('billing.urgentOverdue', { count: paymentData.urgentOverdue.length })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -184,13 +187,13 @@ export default function PaymentTracker() {
                 return (
                   <div key={inv.id} className="flex items-center justify-between p-3 bg-white rounded-lg">
                     <div>
-                      <p className="font-semibold">Facture {inv.id}</p>
+                      <p className="font-semibold">{t('billing.invoice')} {inv.id}</p>
                       <p className="text-sm text-slate-600">
-                        {format(new Date(inv.invoice_date), 'dd MMM yyyy', { locale: fr })}
+                        {format(new Date(inv.invoice_date), 'dd MMM yyyy', { locale: dateLocale })}
                       </p>
                     </div>
                     <div className="text-right">
-                      <Badge variant="destructive">{daysOverdue} jours</Badge>
+                      <Badge variant="destructive">{daysOverdue} {t('billing.daysLabel')}</Badge>
                       <p className="text-sm font-semibold mt-1">
                         {((inv.total_amount || 0) / 100).toFixed(2)}€
                       </p>
@@ -206,7 +209,7 @@ export default function PaymentTracker() {
       {/* Recent Payments */}
       <Card>
         <CardHeader>
-          <CardTitle>Paiements récents</CardTitle>
+          <CardTitle>{t('billing.recentPayments')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -215,9 +218,9 @@ export default function PaymentTracker() {
                 <div className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="font-semibold">Facture {inv.id}</p>
+                    <p className="font-semibold">{t('billing.invoice')} {inv.id}</p>
                     <p className="text-sm text-slate-600">
-                      {inv.paid_at && format(new Date(inv.paid_at), 'dd MMM yyyy', { locale: fr })}
+                      {inv.paid_at && format(new Date(inv.paid_at), 'dd MMM yyyy', { locale: dateLocale })}
                     </p>
                   </div>
                 </div>

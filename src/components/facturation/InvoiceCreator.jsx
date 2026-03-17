@@ -34,8 +34,10 @@ import {
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { toast } from 'sonner';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function InvoiceCreator({ isOpen, onClose, patient, consultation, onCreated }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [selectedPatient, setSelectedPatient] = useState(patient || null);
   const [patientSearch, setPatientSearch] = useState('');
@@ -86,12 +88,12 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      toast.success('Facture créée avec succès');
+      toast.success(t('billing.createdSuccess'));
       if (onCreated) onCreated(result);
       onClose();
     },
     onError: (error) => {
-      toast.error('Erreur lors de la création', { description: error.message });
+      toast.error(t('billing.createError'), { description: error.message });
     }
   });
 
@@ -139,11 +141,11 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
 
   const handleSubmit = () => {
     if (!selectedPatient) {
-      toast.error('Veuillez sélectionner un patient');
+      toast.error(t('billing.selectPatient'));
       return;
     }
     if (lines.every(l => !l.description)) {
-      toast.error('Veuillez ajouter au moins une ligne');
+      toast.error(t('billing.addAtLeastOneLine'));
       return;
     }
 
@@ -167,7 +169,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-blue-600" />
-            Nouvelle facture
+            {t('billing.newInvoice')}
           </DialogTitle>
         </DialogHeader>
 
@@ -175,7 +177,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
           {/* Sélection patient */}
           {!patient && (
             <div className="space-y-2">
-              <Label>Patient</Label>
+              <Label>{t('billing.patient')}</Label>
               {selectedPatient ? (
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-3">
@@ -186,7 +188,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                     </div>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedPatient(null)}>
-                    Changer
+                    {t('billing.change')}
                   </Button>
                 </div>
               ) : (
@@ -194,7 +196,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher un patient..."
+                      placeholder={t('billing.searchPatient')}
                       value={patientSearch}
                       onChange={(e) => setPatientSearch(e.target.value)}
                       className="pl-9"
@@ -219,7 +221,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
           {/* Informations facture */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t('billing.type')}</Label>
               <Select
                 value={invoiceData.type}
                 onValueChange={(v) => setInvoiceData({ ...invoiceData, type: v })}
@@ -231,13 +233,13 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                   <SelectItem value="STANDARD">Standard</SelectItem>
                   <SelectItem value="EFACT">eFact</SelectItem>
                   <SelectItem value="EATTEST">eAttest</SelectItem>
-                  <SelectItem value="PAPER">Papier</SelectItem>
+                  <SelectItem value="PAPER">{t('billing.paperType')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Mode de paiement</Label>
+              <Label>{t('billing.paymentMode')}</Label>
               <Select
                 value={invoiceData.payment_method}
                 onValueChange={(v) => setInvoiceData({ ...invoiceData, payment_method: v })}
@@ -246,16 +248,16 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="BANK">Virement</SelectItem>
-                  <SelectItem value="CARD">Carte</SelectItem>
-                  <SelectItem value="CASH">Espèces</SelectItem>
-                  <SelectItem value="DOMICILIATION">Domiciliation</SelectItem>
+                  <SelectItem value="BANK">{t('billing.transfer')}</SelectItem>
+                  <SelectItem value="CARD">{t('billing.card')}</SelectItem>
+                  <SelectItem value="CASH">{t('billing.cash')}</SelectItem>
+                  <SelectItem value="DOMICILIATION">{t('billing.domiciliation')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Date facture</Label>
+              <Label>{t('billing.invoiceDate')}</Label>
               <Input
                 type="date"
                 value={invoiceData.invoice_date}
@@ -264,7 +266,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
             </div>
 
             <div className="space-y-2">
-              <Label>Échéance</Label>
+              <Label>{t('billing.dueDate')}</Label>
               <Input
                 type="date"
                 value={invoiceData.due_date}
@@ -276,10 +278,10 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
           {/* Lignes de facturation */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-base">Lignes de facturation</Label>
+              <Label className="text-base">{t('billing.invoiceLines')}</Label>
               <Button variant="outline" size="sm" onClick={addLine}>
                 <Plus className="w-4 h-4 mr-1" />
-                Ajouter
+                {t('billing.add')}
               </Button>
             </div>
 
@@ -287,7 +289,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
               {lines.map((line, index) => (
                 <div key={line.id} className="grid grid-cols-12 gap-2 items-end p-3 bg-slate-50 rounded-lg">
                   <div className="col-span-5 space-y-1">
-                    <Label className="text-xs">Description</Label>
+                    <Label className="text-xs">{t('billing.description')}</Label>
                     <div className="flex gap-1">
                       <Select onValueChange={(v) => applyTarif(line.id, v)}>
                         <SelectTrigger className="w-24">
@@ -310,7 +312,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                     </div>
                   </div>
                   <div className="col-span-2 space-y-1">
-                    <Label className="text-xs">Qté</Label>
+                    <Label className="text-xs">{t('billing.qty')}</Label>
                     <Input
                       type="number"
                       min="1"
@@ -319,7 +321,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                     />
                   </div>
                   <div className="col-span-2 space-y-1">
-                    <Label className="text-xs">Prix unit. (ct)</Label>
+                    <Label className="text-xs">{t('billing.unitPrice')}</Label>
                     <Input
                       type="number"
                       value={line.unit_price}
@@ -354,12 +356,12 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
               <div className="flex justify-end">
                 <div className="w-64 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Sous-total</span>
+                    <span className="text-muted-foreground">{t('billing.subtotal')}</span>
                     <span>{(subtotal / 100).toFixed(2)}€</span>
                   </div>
                   {vatAmount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">TVA</span>
+                      <span className="text-muted-foreground">{t('billing.vat')}</span>
                       <span>{(vatAmount / 100).toFixed(2)}€</span>
                     </div>
                   )}
@@ -374,11 +376,11 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes (optionnel)</Label>
+            <Label>{t('billing.notesOptional')}</Label>
             <Textarea
               value={invoiceData.notes}
               onChange={(e) => setInvoiceData({ ...invoiceData, notes: e.target.value })}
-              placeholder="Notes internes ou informations supplémentaires..."
+              placeholder={t('billing.notesPlaceholder')}
               rows={2}
             />
           </div>
@@ -386,12 +388,12 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={createMutation.isPending}>
             {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             <Save className="w-4 h-4 mr-2" />
-            Créer la facture
+            {t('billing.createInvoice')}
           </Button>
         </DialogFooter>
       </DialogContent>

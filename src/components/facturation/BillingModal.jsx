@@ -89,7 +89,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
     const validation = validateActsCompatibility(acts, newAct);
     
     if (!validation.canProceed) {
-      toast.error(validation.errors[0]?.message || 'Acte incompatible avec la sélection actuelle');
+      toast.error(validation.errors[0]?.message || t('billing.incompatibleAct'));
       return;
     }
 
@@ -163,16 +163,15 @@ export default function BillingModal({ patient, isOpen, onClose }) {
       ));
 
       if (generateAttestation) {
-        toast.success('Facture créée - Génération de l\'attestation...');
-        // L'attestation sera générée séparément
+        toast.success(t('billing.invoiceCreatedAttest'));
       } else {
-        toast.success('Facture envoyée avec succès');
+        toast.success(t('billing.invoiceSentSuccess'));
       }
       
       onClose();
     } catch (error) {
       console.error('Billing error:', error);
-      toast.error('Erreur lors de l\'envoi de la facture');
+      toast.error(t('billing.invoiceSendError'));
     } finally {
       setIsSending(false);
     }
@@ -187,7 +186,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
               <Receipt className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Nouvelle facturation</h2>
+              <h2 className="text-2xl font-bold">{t('billing.newBilling')}</h2>
               <p className="text-sm font-normal text-muted-foreground">
                 {patient.name?.[0]?.given?.join(' ')} {patient.name?.[0]?.family}
               </p>
@@ -201,7 +200,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Search className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-semibold text-lg">Rechercher un acte</h3>
+                <h3 className="font-semibold text-lg">{t('billing.searchAct')}</h3>
               </div>
               <NomenSearch 
                 onSelect={handleSelectCode}
@@ -219,7 +218,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
           {acts.length > 0 && (
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold text-lg mb-4">Actes sélectionnés</h3>
+                <h3 className="font-semibold text-lg mb-4">{t('billing.selectedActs')}</h3>
                 <div className="space-y-3">
                   {acts.map(act => (
                     <div key={act.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
@@ -229,16 +228,16 @@ export default function BillingModal({ patient, isOpen, onClose }) {
                           <p className="font-medium">{act.label}</p>
                         </div>
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>Honoraire: {act.unitPrice.toFixed(2)}€</span>
+                          <span>{t('billing.honorarium')}: {act.unitPrice.toFixed(2)}€</span>
                           <span>•</span>
-                          <span>Remboursé: {act.reimbursed.toFixed(2)}€</span>
+                          <span>{t('billing.reimbursed')}: {act.reimbursed.toFixed(2)}€</span>
                           <span>•</span>
-                          <span>Part patient: {act.patient_share.toFixed(2)}€</span>
+                          <span>{t('billing.patientShare')}: {act.patient_share.toFixed(2)}€</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <Label className="text-sm">Qté:</Label>
+                          <Label className="text-sm">{t('billing.qty')}:</Label>
                           <Input
                             type="number"
                             value={act.quantity}
@@ -269,7 +268,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
                 <div className="bg-blue-50 rounded-lg p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Total à facturer</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t('billing.totalToBill')}</p>
                       <p className="text-4xl font-bold text-blue-600">{total.toFixed(2)}€</p>
                     </div>
                     <CheckCircle2 className="w-12 h-12 text-blue-600" />
@@ -284,7 +283,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <CreditCard className="w-5 h-5 text-muted-foreground" />
-                <h3 className="font-semibold text-lg">Mode de paiement</h3>
+                <h3 className="font-semibold text-lg">{t('billing.paymentMode')}</h3>
               </div>
               
               <div className="grid grid-cols-3 gap-4 mb-6">
@@ -295,28 +294,28 @@ export default function BillingModal({ patient, isOpen, onClose }) {
                 >
                   <CreditCard className="w-6 h-6" />
                   <span>Bancontact</span>
-                </Button>
-                <Button
+                  </Button>
+                  <Button
                   variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
                   onClick={() => setPaymentMethod('CASH')}
                   className="h-20 flex flex-col gap-2"
-                >
+                  >
                   <Euro className="w-6 h-6" />
-                  <span>Comptant</span>
-                </Button>
-                <Button
+                  <span>{t('billing.cash')}</span>
+                  </Button>
+                  <Button
                   variant={paymentMethod === 'BANK' ? 'default' : 'outline'}
                   onClick={() => setPaymentMethod('BANK')}
                   className="h-20 flex flex-col gap-2"
-                >
+                  >
                   <Receipt className="w-6 h-6" />
-                  <span>Virement</span>
+                  <span>{t('billing.transfer')}</span>
                 </Button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Montant payé par le patient</Label>
+                  <Label>{t('billing.patientAmountPaid')}</Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -327,13 +326,13 @@ export default function BillingModal({ patient, isOpen, onClose }) {
                   />
                 </div>
                 <div>
-                  <Label>Reste à charge mutuelle</Label>
+                  <Label>{t('billing.insuranceRemainder')}</Label>
                   <div className="h-12 px-4 rounded-md border bg-muted flex items-center justify-between">
                     <span className="text-lg font-semibold">{remaining.toFixed(2)}€</span>
                     {remaining < 0 && (
                       <Badge variant="destructive">
                         <AlertCircle className="w-3 h-3 mr-1" />
-                        Trop perçu
+                        {t('billing.overpaid')}
                       </Badge>
                     )}
                   </div>
@@ -345,7 +344,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
           {/* Assurabilité */}
           <Card>
             <CardContent className="p-6">
-              <h3 className="font-semibold text-lg mb-4">Informations mutuelle</h3>
+              <h3 className="font-semibold text-lg mb-4">{t('billing.insuranceInfo')}</h3>
               
               {/* Patient insurance status with BIM/MàF detection */}
               <div className="mb-4 p-4 bg-slate-50 rounded-lg">
@@ -354,11 +353,11 @@ export default function BillingModal({ patient, isOpen, onClose }) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Organisme assureur</Label>
-                  <Input value={assurabilite?.oa_name || patient.mutuelle || 'Non renseigné'} disabled />
+                  <Label>{t('billing.insuranceBody')}</Label>
+                  <Input value={assurabilite?.oa_name || patient.mutuelle || t('billing.notSpecified')} disabled />
                 </div>
                 <div>
-                  <Label>Type de transaction</Label>
+                  <Label>{t('billing.transactionType')}</Label>
                   <Select defaultValue="EATTEST">
                     <SelectTrigger>
                       <SelectValue />
@@ -377,10 +376,10 @@ export default function BillingModal({ patient, isOpen, onClose }) {
                     <CheckCircle2 className="w-5 h-5 text-purple-600 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-purple-900">
-                        Patient BIM/OMNIO détecté
+                        {t('billing.bimDetected')}
                       </p>
                       <p className="text-xs text-purple-700 mt-1">
-                        Les tarifs ont été automatiquement ajustés avec ticket modérateur réduit.
+                        {t('billing.bimAdjusted')}
                       </p>
                     </div>
                   </div>
@@ -393,13 +392,13 @@ export default function BillingModal({ patient, isOpen, onClose }) {
         {/* Actions footer */}
         <div className="border-t pt-6 flex items-center justify-between bg-white">
           <Button variant="ghost" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </Button>
           
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => toast.info('Brouillon sauvegardé')}>
+            <Button variant="outline" onClick={() => toast.info(t('billing.draft'))}>
               <Save className="w-4 h-4 mr-2" />
-              Sauvegarder
+              {t('actions.save')}
             </Button>
             <Button 
               onClick={() => handleSend(true)} 
@@ -413,7 +412,7 @@ export default function BillingModal({ patient, isOpen, onClose }) {
               ) : (
                 <FileText className="w-4 h-4 mr-2" />
               )}
-              Avec attestation
+              {t('billing.withAttestation')}
             </Button>
             <Button 
               onClick={() => handleSend(false)} 
@@ -424,12 +423,12 @@ export default function BillingModal({ patient, isOpen, onClose }) {
               {isSending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Envoi en cours...
+                  {t('billing.sending')}
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Envoyer la facture
+                  {t('billing.sendInvoice')}
                 </>
               )}
             </Button>

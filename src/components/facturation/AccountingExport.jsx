@@ -16,25 +16,28 @@ import {
   FileText
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { logDataExport } from '../security/AuditTrailService';
+import { useI18n } from '../i18n/i18nContext';
+
+export default function AccountingExport({ isOpen, onClose }) {
+  const { t, locale } = useI18n();
+  const dateLocale = locale === 'nl' ? nl : locale === 'en' ? enUS : fr;
 
 const EXPORT_FORMATS = [
   { id: 'csv', label: 'CSV (Excel)', icon: FileSpreadsheet, description: 'Compatible Excel, Numbers, Google Sheets' },
   { id: 'bob50', label: 'BOB 50', icon: FileText, description: 'Format BOB Software' },
-  { id: 'winbooks', label: 'Winbooks', icon: FileText, description: 'Format Winbooks comptabilité' },
-  { id: 'xml', label: 'XML CODA', icon: FileText, description: 'Format bancaire belge CODA' }
+  { id: 'winbooks', label: 'Winbooks', icon: FileText, description: 'Format Winbooks' },
+  { id: 'xml', label: 'XML CODA', icon: FileText, description: 'Format CODA' }
 ];
 
 const PERIOD_PRESETS = [
-  { id: 'current_month', label: 'Mois en cours' },
-  { id: 'last_month', label: 'Mois précédent' },
-  { id: 'last_quarter', label: 'Dernier trimestre' },
-  { id: 'custom', label: 'Période personnalisée' }
+  { id: 'current_month', label: t('billing.currentMonth') },
+  { id: 'last_month', label: t('billing.lastMonth') },
+  { id: 'last_quarter', label: t('billing.lastQuarter') },
+  { id: 'custom', label: t('billing.customPeriod') }
 ];
-
-export default function AccountingExport({ isOpen, onClose }) {
   const [exportFormat, setExportFormat] = useState('csv');
   const [periodPreset, setPeriodPreset] = useState('last_month');
   const [startDate, setStartDate] = useState(startOfMonth(subMonths(new Date(), 1)));
@@ -201,10 +204,10 @@ export default function AccountingExport({ isOpen, onClose }) {
         total: invoices.reduce((sum, i) => sum + (i.total_amount || 0), 0) / 100
       });
 
-      toast.success(`Export réussi: ${invoices.length} factures`);
+      toast.success(t('billing.exportSuccessCount', { count: invoices.length }));
     } catch (error) {
       console.error('Export error:', error);
-      toast.error("Erreur lors de l'export");
+      toast.error(t('billing.exportError'));
       setExportResult({ success: false, error: error.message });
     } finally {
       setIsExporting(false);
@@ -217,14 +220,14 @@ export default function AccountingExport({ isOpen, onClose }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-green-600" />
-            Export comptable
+            {t('billing.accountingExport')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Format d'export */}
           <div className="space-y-2">
-            <Label>Format d'export</Label>
+            <Label>{t('billing.exportFormat')}</Label>
             <div className="grid grid-cols-2 gap-3">
               {EXPORT_FORMATS.map(fmt => (
                 <button
@@ -248,7 +251,7 @@ export default function AccountingExport({ isOpen, onClose }) {
 
           {/* Période */}
           <div className="space-y-2">
-            <Label>Période</Label>
+            <Label>{t('billing.period')}</Label>
             <Select value={periodPreset} onValueChange={handlePeriodChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -263,7 +266,7 @@ export default function AccountingExport({ isOpen, onClose }) {
             {periodPreset === 'custom' && (
               <div className="flex gap-4 mt-3">
                 <div className="flex-1">
-                  <Label className="text-xs">Du</Label>
+                  <Label className="text-xs">{t('billing.from')}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start">
@@ -277,7 +280,7 @@ export default function AccountingExport({ isOpen, onClose }) {
                   </Popover>
                 </div>
                 <div className="flex-1">
-                  <Label className="text-xs">Au</Label>
+                  <Label className="text-xs">{t('billing.to')}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start">
@@ -294,7 +297,7 @@ export default function AccountingExport({ isOpen, onClose }) {
             )}
 
             <p className="text-sm text-muted-foreground">
-              Période: du {format(startDate, 'd MMMM yyyy', { locale: fr })} au {format(endDate, 'd MMMM yyyy', { locale: fr })}
+              {t('billing.periodFromTo', { from: format(startDate, 'd MMMM yyyy', { locale: dateLocale }), to: format(endDate, 'd MMMM yyyy', { locale: dateLocale }) })}
             </p>
           </div>
 
@@ -306,7 +309,7 @@ export default function AccountingExport({ isOpen, onClose }) {
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="w-8 h-8 text-green-600" />
                     <div>
-                      <p className="font-semibold text-green-800">Export réussi</p>
+                      <p className="font-semibold text-green-800">{t('billing.exportSuccess')}</p>
                       <p className="text-sm text-green-700">
                         {exportResult.invoiceCount} factures • Total: {exportResult.total.toFixed(2)} €
                       </p>
@@ -321,17 +324,17 @@ export default function AccountingExport({ isOpen, onClose }) {
 
           {/* Actions */}
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose}>Fermer</Button>
+            <Button variant="outline" onClick={onClose}>{t('actions.close')}</Button>
             <Button onClick={handleExport} disabled={isExporting} className="bg-green-600 hover:bg-green-700">
               {isExporting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Export en cours...
+                  {t('billing.exporting')}
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 mr-2" />
-                  Exporter
+                  {t('billing.exportBtn')}
                 </>
               )}
             </Button>

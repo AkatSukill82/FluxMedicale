@@ -34,17 +34,19 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
-
-const PAYMENT_METHODS = [
-  { value: 'BANK_TRANSFER', label: 'Virement bancaire', icon: Building },
-  { value: 'CARD', label: 'Carte bancaire', icon: CreditCard },
-  { value: 'CASH', label: 'Espèces', icon: Banknote },
-  { value: 'INSURANCE', label: 'Assurance/Mutuelle', icon: Building },
-  { value: 'DOMICILIATION', label: 'Domiciliation', icon: Building },
-  { value: 'CHECK', label: 'Chèque', icon: Banknote },
-];
+import { useI18n } from '../i18n/i18nContext';
 
 export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRecorded }) {
+  const { t } = useI18n();
+
+const PAYMENT_METHODS = [
+  { value: 'BANK_TRANSFER', label: t('billing.bankTransfer'), icon: Building },
+  { value: 'CARD', label: t('billing.bankCard'), icon: CreditCard },
+  { value: 'CASH', label: t('billing.cashMoney'), icon: Banknote },
+  { value: 'INSURANCE', label: t('billing.insuranceMutuelle'), icon: Building },
+  { value: 'DOMICILIATION', label: t('billing.domiciliation'), icon: Building },
+  { value: 'CHECK', label: t('billing.check'), icon: Banknote },
+];
   const queryClient = useQueryClient();
   const [selectedInvoice, setSelectedInvoice] = useState(invoice);
   const [invoiceSearch, setInvoiceSearch] = useState('');
@@ -122,15 +124,15 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
       queryClient.invalidateQueries({ queryKey: ['unpaidInvoices'] });
       
       toast.success(
-        newStatus === 'PAID' ? 'Facture soldée' : 'Paiement partiel enregistré',
-        { description: `Paiement de ${(paymentData.amount / 100).toFixed(2)}€` }
+        newStatus === 'PAID' ? t('billing.invoicePaidFull') : t('billing.partialPaymentRecorded'),
+        { description: t('billing.paymentOf', { amount: (paymentData.amount / 100).toFixed(2) }) }
       );
       
       if (onRecorded) onRecorded();
       onClose();
     },
     onError: (error) => {
-      toast.error('Erreur lors de l\'enregistrement', { description: error.message });
+      toast.error(t('billing.recordError'), { description: error.message });
     }
   });
 
@@ -153,11 +155,11 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
 
   const handleSubmit = () => {
     if (!selectedInvoice) {
-      toast.error('Veuillez sélectionner une facture');
+      toast.error(t('billing.selectInvoice'));
       return;
     }
     if (paymentData.amount <= 0) {
-      toast.error('Le montant doit être supérieur à 0');
+      toast.error(t('billing.amountMustBePositive'));
       return;
     }
     recordMutation.mutate(paymentData);
@@ -169,7 +171,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Euro className="w-5 h-5 text-green-600" />
-            Enregistrer un paiement
+            {t('billing.recordPayment')}
           </DialogTitle>
         </DialogHeader>
 
@@ -177,24 +179,24 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
           {/* Sélection de la facture */}
           {!invoice && (
             <div className="space-y-2">
-              <Label>Facture</Label>
+              <Label>{t('billing.invoice')}</Label>
               {selectedInvoice ? (
                 <Card className="bg-blue-50 border-blue-200">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{selectedInvoice.invoice_number || `Facture ${selectedInvoice.id.slice(0, 8)}`}</p>
+                        <p className="font-medium">{selectedInvoice.invoice_number || `${t('billing.invoice')} ${selectedInvoice.id.slice(0, 8)}`}</p>
                         <p className="text-sm text-muted-foreground">{getPatientName(selectedInvoice.patient_id)}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-lg">{((selectedInvoice.amount_due || selectedInvoice.total_amount) / 100).toFixed(2)}€</p>
                         <Badge variant={selectedInvoice.status === 'PARTIAL' ? 'secondary' : 'outline'}>
-                          {selectedInvoice.status === 'PARTIAL' ? 'Partiel' : 'À payer'}
+                          {selectedInvoice.status === 'PARTIAL' ? t('billing.partial') : t('billing.toPay')}
                         </Badge>
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSelectedInvoice(null)}>
-                      Changer de facture
+                      {t('billing.changeInvoice')}
                     </Button>
                   </CardContent>
                 </Card>
@@ -203,7 +205,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher par patient ou n° facture..."
+                      placeholder={t('billing.searchPatientOrInvoice')}
                       value={invoiceSearch}
                       onChange={(e) => setInvoiceSearch(e.target.value)}
                       className="pl-9"
@@ -211,7 +213,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
                   </div>
                   <div className="max-h-48 overflow-y-auto border rounded-lg">
                     {filteredInvoices.length === 0 ? (
-                      <p className="p-4 text-center text-muted-foreground">Aucune facture en attente</p>
+                      <p className="p-4 text-center text-muted-foreground">{t('billing.noPendingInvoice')}</p>
                     ) : (
                       filteredInvoices.map(inv => (
                         <button
@@ -241,7 +243,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
 
           {/* Montant */}
           <div className="space-y-2">
-            <Label>Montant (centimes)</Label>
+            <Label>{t('billing.amountCents')}</Label>
             <div className="relative">
               <Input
                 type="number"
@@ -256,14 +258,14 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
             {selectedInvoice && paymentData.amount < (selectedInvoice.amount_due || selectedInvoice.total_amount) && (
               <div className="flex items-center gap-2 text-amber-600 text-sm">
                 <AlertCircle className="w-4 h-4" />
-                Paiement partiel - Reste: {(((selectedInvoice.amount_due || selectedInvoice.total_amount) - paymentData.amount) / 100).toFixed(2)}€
+                {t('billing.partialPayment')} - {t('billing.remainder')}: {(((selectedInvoice.amount_due || selectedInvoice.total_amount) - paymentData.amount) / 100).toFixed(2)}€
               </div>
             )}
           </div>
 
           {/* Mode de paiement */}
           <div className="space-y-2">
-            <Label>Mode de paiement</Label>
+            <Label>{t('billing.paymentMode')}</Label>
             <Select
               value={paymentData.payment_method}
               onValueChange={(v) => setPaymentData({ ...paymentData, payment_method: v })}
@@ -286,7 +288,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
 
           {/* Date de paiement */}
           <div className="space-y-2">
-            <Label>Date du paiement</Label>
+            <Label>{t('billing.paymentDate')}</Label>
             <Input
               type="date"
               value={paymentData.payment_date}
@@ -296,21 +298,21 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
 
           {/* Référence */}
           <div className="space-y-2">
-            <Label>Référence (optionnel)</Label>
+            <Label>{t('billing.referenceOptional')}</Label>
             <Input
               value={paymentData.reference}
               onChange={(e) => setPaymentData({ ...paymentData, reference: e.target.value })}
-              placeholder="N° de virement, transaction..."
+              placeholder={t('billing.referencePlaceholder')}
             />
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes (optionnel)</Label>
+            <Label>{t('billing.notesOptional')}</Label>
             <Textarea
               value={paymentData.notes}
               onChange={(e) => setPaymentData({ ...paymentData, notes: e.target.value })}
-              placeholder="Commentaires..."
+              placeholder={t('billing.commentsPlaceholder')}
               rows={2}
             />
           </div>
@@ -318,7 +320,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Annuler
+            {t('actions.cancel')}
           </Button>
           <Button 
             onClick={handleSubmit} 
@@ -330,7 +332,7 @@ export default function PaymentRecorder({ isOpen, onClose, invoice = null, onRec
             ) : (
               <CheckCircle className="w-4 h-4 mr-2" />
             )}
-            Enregistrer
+            {t('billing.record')}
           </Button>
         </DialogFooter>
       </DialogContent>

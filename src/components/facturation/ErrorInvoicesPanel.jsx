@@ -9,10 +9,11 @@ import {
   ChevronDown, ChevronUp, Loader2, Undo2, Info
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { fr, enUS, nl } from 'date-fns/locale';
 import { toast } from 'sonner';
 import InvoiceDetailsModal from './InvoiceDetailsModal';
 import ErrorExplanationCard from './ErrorExplanationCard';
+import { useI18n } from '../i18n/i18nContext';
 
 const formatAmount = (cents) => {
   if (!cents) return '0,00 €';
@@ -20,6 +21,7 @@ const formatAmount = (cents) => {
 };
 
 export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
@@ -42,7 +44,7 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['facturation_data'] });
-      toast.success('Facture remise en attente d\'envoi');
+      toast.success(t('billing.requeuedSuccess'));
     }
   });
 
@@ -51,9 +53,9 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
     : null;
 
   const statusConfig = {
-    ERROR: { label: 'Erreur', color: 'bg-red-100 text-red-700', icon: XCircle },
-    REJECTED: { label: 'Refusée', color: 'bg-red-100 text-red-700', icon: XCircle },
-    PARTIAL: { label: 'Partielle', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
+    ERROR: { label: t('billing.error'), color: 'bg-red-100 text-red-700', icon: XCircle },
+    REJECTED: { label: t('billing.rejected'), color: 'bg-red-100 text-red-700', icon: XCircle },
+    PARTIAL: { label: t('billing.partial'), color: 'bg-yellow-100 text-yellow-700', icon: Clock },
   };
 
   if (isLoading) {
@@ -67,8 +69,8 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <RefreshCw className="w-8 h-8 text-green-500" />
           </div>
-          <h3 className="font-semibold text-lg mb-1">Aucune facture en erreur</h3>
-          <p className="text-slate-500">Toutes vos factures ont été traitées correctement.</p>
+          <h3 className="font-semibold text-lg mb-1">{t('billing.noErrorInvoices')}</h3>
+          <p className="text-slate-500">{t('billing.allProcessedOk')}</p>
         </CardContent>
       </Card>
     );
@@ -86,25 +88,25 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
         <Card className="bg-red-50 border-red-200">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-red-700">{errorInvoices.length}</p>
-            <p className="text-xs text-red-600">Total erreurs</p>
+            <p className="text-xs text-red-600">{t('billing.totalErrors')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-red-600">{rejectedCount}</p>
-            <p className="text-xs text-slate-500">Refusées</p>
+            <p className="text-xs text-slate-500">{t('billing.rejected')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-orange-600">{errorCount}</p>
-            <p className="text-xs text-slate-500">Erreurs techniques</p>
+            <p className="text-xs text-slate-500">{t('billing.technicalErrors')}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-slate-700">{formatAmount(totalAmount)}</p>
-            <p className="text-xs text-slate-500">Part mutuelle bloquée</p>
+            <p className="text-xs text-slate-500">{t('billing.blockedInsurance')}</p>
           </CardContent>
         </Card>
       </div>
@@ -147,7 +149,7 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
                   <div className="text-right mr-2">
                     <p className="font-bold text-sm">{formatAmount(inv.total_amount)}</p>
                     <p className="text-[10px] text-slate-400">
-                      Mut: {formatAmount(inv.insurance_contribution)}
+                      {t('billing.mut')}: {formatAmount(inv.insurance_contribution)}
                     </p>
                   </div>
 
@@ -159,7 +161,7 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
                       onClick={() => setExpandedId(isExpanded ? null : inv.id)}
                     >
                       <Info className="w-3.5 h-3.5 mr-1" />
-                      Détails
+                      {t('billing.details')}
                       {isExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
                     </Button>
                     <Button
@@ -169,7 +171,7 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
                       onClick={() => setSelectedInvoice(inv)}
                     >
                       <Edit2 className="w-3.5 h-3.5 mr-1" />
-                      Modifier
+                      {t('billing.modify')}
                     </Button>
                     <Button
                       size="sm"
@@ -182,7 +184,7 @@ export default function ErrorInvoicesPanel({ invoices, patients, isLoading }) {
                       ) : (
                         <>
                           <Undo2 className="w-3.5 h-3.5 mr-1" />
-                          Remettre en attente
+                          {t('billing.requeueInvoice')}
                         </>
                       )}
                     </Button>
