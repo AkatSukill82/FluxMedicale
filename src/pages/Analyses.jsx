@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Search, Plus, Play, LayoutGrid, List, Loader2, RefreshCw, Trash2, X
+  Search, Plus, Play, LayoutGrid, List, Loader2, RefreshCw, Trash2, X, Award
 } from 'lucide-react';
 
 import AnalysisCatalog, { ANALYSIS_CATALOG } from '../components/analyses/AnalysisCatalog';
 import AnalysisResultCard from '../components/analyses/AnalysisResultCard';
 import CreateAnalysisDialog from '../components/analyses/CreateAnalysisDialog';
+import INAMIPrimeTracker from '../components/analyses/INAMIPrimeTracker';
 
 const STORAGE_KEY = 'fluxmed_analyses_v2';
 
@@ -28,7 +29,7 @@ export default function Analyses() {
     return [];
   });
 
-  const [view, setView] = useState('catalog'); // 'catalog' | 'results'
+  const [view, setView] = useState('prime'); // 'prime' | 'catalog' | 'results'
   const [searchFilter, setSearchFilter] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -41,15 +42,19 @@ export default function Analyses() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analysesData'],
     queryFn: async () => {
-      const [patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs] = await Promise.all([
+      const [patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates] = await Promise.all([
         base44.entities.Patient.list('-created_date', 2000).catch(() => []),
         base44.entities.Vaccination.list('-vaccination_date', 5000).catch(() => []),
         base44.entities.Allergy.list('-created_date', 5000).catch(() => []),
         base44.entities.MedicalHistory.list('-created_date', 5000).catch(() => []),
         base44.entities.Prescription.list('-date_prescription', 2000).catch(() => []),
         base44.entities.DMG.list('-created_date', 5000).catch(() => []),
+        base44.entities.Invoice.list('-invoice_date', 5000).catch(() => []),
+        base44.entities.Sumehr.list('-created_date', 5000).catch(() => []),
+        base44.entities.ChapterIVRequest.list('-created_date', 5000).catch(() => []),
+        base44.entities.MedexCertificate.list('-created_date', 5000).catch(() => []),
       ]);
-      return { patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs };
+      return { patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates };
     }
   });
 
@@ -105,6 +110,13 @@ export default function Analyses() {
       {/* View toggle + search */}
       <div className="flex items-center gap-3">
         <div className="flex rounded-lg border overflow-hidden">
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${view === 'prime' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}
+            onClick={() => setView('prime')}
+          >
+            <Award className="w-4 h-4 inline mr-1.5" />
+            Prime INAMI
+          </button>
           <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${view === 'catalog' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}
             onClick={() => setView('catalog')}
@@ -163,6 +175,18 @@ export default function Analyses() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Prime INAMI view */}
+      {view === 'prime' && (
+        isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Vérification des critères INAMI...</span>
+          </div>
+        ) : (
+          <INAMIPrimeTracker data={data || {}} />
+        )
       )}
 
       {/* Catalog view */}
