@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Search, Plus, Play, LayoutGrid, List, Loader2, RefreshCw, Trash2, X, Award
+  Search, Plus, Play, LayoutGrid, List, Loader2, RefreshCw, Trash2, X, Award, Users
 } from 'lucide-react';
 
 import AnalysisCatalog, { ANALYSIS_CATALOG } from '../components/analyses/AnalysisCatalog';
 import AnalysisResultCard from '../components/analyses/AnalysisResultCard';
 import CreateAnalysisDialog from '../components/analyses/CreateAnalysisDialog';
 import INAMIPrimeTracker from '../components/analyses/INAMIPrimeTracker';
+import PopulationHealthManager from '../components/analyses/population/PopulationHealthManager';
 
 const STORAGE_KEY = 'fluxmed_analyses_v2';
 
@@ -29,7 +30,7 @@ export default function Analyses() {
     return [];
   });
 
-  const [view, setView] = useState('prime'); // 'prime' | 'catalog' | 'results'
+  const [view, setView] = useState('population'); // 'population' | 'prime' | 'catalog' | 'results'
   const [searchFilter, setSearchFilter] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -42,7 +43,7 @@ export default function Analyses() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analysesData'],
     queryFn: async () => {
-      const [patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates] = await Promise.all([
+      const [patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates, labResults, consultations] = await Promise.all([
         base44.entities.Patient.list('-created_date', 2000).catch(() => []),
         base44.entities.Vaccination.list('-vaccination_date', 5000).catch(() => []),
         base44.entities.Allergy.list('-created_date', 5000).catch(() => []),
@@ -53,8 +54,10 @@ export default function Analyses() {
         base44.entities.Sumehr.list('-created_date', 5000).catch(() => []),
         base44.entities.ChapterIVRequest.list('-created_date', 5000).catch(() => []),
         base44.entities.MedexCertificate.list('-created_date', 5000).catch(() => []),
+        base44.entities.LabResult.list('-result_date', 5000).catch(() => []),
+        base44.entities.Consultation.list('-date_consultation', 5000).catch(() => []),
       ]);
-      return { patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates };
+      return { patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates, labResults, consultations };
     }
   });
 
@@ -110,6 +113,13 @@ export default function Analyses() {
       {/* View toggle + search */}
       <div className="flex items-center gap-3">
         <div className="flex rounded-lg border overflow-hidden">
+          <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${view === 'population' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}
+            onClick={() => setView('population')}
+          >
+            <Users className="w-4 h-4 inline mr-1.5" />
+            Population
+          </button>
           <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${view === 'prime' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}
             onClick={() => setView('prime')}
@@ -175,6 +185,11 @@ export default function Analyses() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Population Health Management view */}
+      {view === 'population' && (
+        <PopulationHealthManager data={data || {}} isLoading={isLoading} />
       )}
 
       {/* Prime INAMI view */}
