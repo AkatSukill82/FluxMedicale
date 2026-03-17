@@ -846,12 +846,14 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                 )}
               </Card>
 
-              {/* Sélecteur eAttest / eFact */}
-              <BillingTypeSelector
-                invoiceType={invoiceType}
-                onTypeChange={setInvoiceType}
-                isTiersPayant={!!patient?.mutuelle}
-              />
+              {/* Sélecteur type de facturation eAttest / eFact */}
+              <div className="border-2 border-dashed border-indigo-300 rounded-xl p-1">
+                <BillingTypeSelector
+                  invoiceType={invoiceType}
+                  onTypeChange={setInvoiceType}
+                  isTiersPayant={!!patient?.mutuelle}
+                />
+              </div>
 
               <div>
                 <Label className="text-lg font-semibold mb-3 block">Codes INAMI</Label>
