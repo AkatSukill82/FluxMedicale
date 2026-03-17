@@ -245,6 +245,9 @@ export default function INAMIPrimeTracker({ data }) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Comparison with competitors */}
+      <INAMIComparison />
     </div>
   );
 }
