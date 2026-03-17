@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { billingTranslations } from './billingTranslations';
 
 const I18nContext = createContext();
 
@@ -1796,6 +1797,13 @@ const translations = {
     'billing.overdue': 'Achterstallig',
   }
 };
+
+// Merge billing translations into main translations
+Object.keys(billingTranslations).forEach(locale => {
+  if (translations[locale]) {
+    Object.assign(translations[locale], billingTranslations[locale]);
+  }
+});
 
 export function I18nProvider({ children }) {
   const [locale, setLocale] = useState(() => {
