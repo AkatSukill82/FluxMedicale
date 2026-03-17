@@ -43,7 +43,7 @@ export default function Analyses() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analysesData'],
     queryFn: async () => {
-      const [patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates, labResults, consultations] = await Promise.all([
+      const [patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates, labResults, consultations, vitalSigns] = await Promise.all([
         base44.entities.Patient.list('-created_date', 2000).catch(() => []),
         base44.entities.Vaccination.list('-vaccination_date', 5000).catch(() => []),
         base44.entities.Allergy.list('-created_date', 5000).catch(() => []),
@@ -56,8 +56,9 @@ export default function Analyses() {
         base44.entities.MedexCertificate.list('-created_date', 5000).catch(() => []),
         base44.entities.LabResult.list('-result_date', 5000).catch(() => []),
         base44.entities.Consultation.list('-date_consultation', 5000).catch(() => []),
+        base44.entities.VitalSigns.list('-created_date', 5000).catch(() => []),
       ]);
-      return { patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates, labResults, consultations };
+      return { patients, vaccinations, allergies, medicalHistories, prescriptions, dmgs, invoices, sumehrs, chapterIVRequests, medexCertificates, labResults, consultations, vitalSigns };
     }
   });
 
