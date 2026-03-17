@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -10,8 +10,12 @@ import {
   Shield, Syringe, AlertTriangle, Heart, Users, Activity,
   TrendingUp, FileCheck
 } from 'lucide-react';
+import AnalysisSelector, { PREDEFINED_ANALYSES } from './analyses/AnalysisSelector';
+import CustomAnalysisCard from './analyses/CustomAnalysisCard';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'];
+
+const STORAGE_KEY = 'analyses_medicales_config';
 
 function GaugeCard({ title, value, total, icon: Icon, color, description }) {
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
@@ -59,8 +63,34 @@ function StatCard({ title, value, subtitle, icon: Icon, color }) {
   );
 }
 
-export default function AnalysesMedicales({ patients, vaccinations, allergies, medicalHistories, dmgs }) {
+export default function AnalysesMedicales({ patients, vaccinations, allergies, medicalHistories, dmgs, prescriptions }) {
   const totalPatients = patients?.length || 0;
+
+  // Persisted selection state
+  const [selectedAnalyses, setSelectedAnalyses] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.selected || PREDEFINED_ANALYSES.filter(a => a.default).map(a => a.id);
+    }
+    return PREDEFINED_ANALYSES.filter(a => a.default).map(a => a.id);
+  });
+
+  const [customAnalyses, setCustomAnalyses] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.custom || [];
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ selected: selectedAnalyses, custom: customAnalyses }));
+  }, [selectedAnalyses, customAnalyses]);
+
+  const isVisible = (id) => selectedAnalyses.includes(id);
+  const visibleCustom = customAnalyses.filter(a => selectedAnalyses.includes(a.id));
 
   // --- DMG Analysis ---
   const dmgStats = useMemo(() => {
@@ -194,7 +224,39 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
 
   return (
     <div className="space-y-6">
+      {/* Sélecteur d'analyses */}
+      <AnalysisSelector
+        selectedAnalyses={selectedAnalyses}
+        onSelectionChange={setSelectedAnalyses}
+        customAnalyses={customAnalyses}
+        onCustomAnalysesChange={setCustomAnalyses}
+      />
+
+      {/* Analyses personnalisées */}
+      {visibleCustom.length > 0 && (
+        <div>
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            Analyses personnalisées
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {visibleCustom.map(analysis => (
+              <CustomAnalysisCard
+                key={analysis.id}
+                analysis={analysis}
+                patients={patients}
+                vaccinations={vaccinations}
+                allergies={allergies}
+                medicalHistories={medicalHistories}
+                prescriptions={prescriptions}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Baromètres principaux */}
+      {isVisible('barometres') && (
       <div>
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
           <Activity className="w-5 h-5" />
@@ -235,16 +297,20 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
           />
         </div>
       </div>
+      )}
 
       {/* KPIs rapides */}
+      {isVisible('kpis') && (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard title="Total patients" value={totalPatients} icon={Users} color="bg-slate-700" />
         <StatCard title="Vaccinations" value={vaccStats.total} subtitle="doses administrées" icon={Syringe} color="bg-blue-500" />
         <StatCard title="Allergies actives" value={(allergies || []).filter(a => a.status === 'ACTIVE').length} icon={AlertTriangle} color="bg-amber-500" />
         <StatCard title="Antécédents" value={(medicalHistories || []).length} subtitle="enregistrements" icon={Heart} color="bg-red-500" />
       </div>
+      )}
 
       {/* Démographie */}
+      {isVisible('demographie') && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -286,8 +352,10 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* DMG */}
+      {isVisible('dmg') && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -317,7 +385,8 @@ export default function AnalysesMedicales({ patients, vaccinations, allergies, m
           </CardContent>
         </Card>
 
-        {/* Vaccinations par type */}
+        {/* Vaccinations par type - inside dmg grid */}
+        {isVisible('vaccinations') && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
