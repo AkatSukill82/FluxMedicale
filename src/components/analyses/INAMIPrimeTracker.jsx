@@ -7,6 +7,7 @@ import {
   CheckCircle2, XCircle, AlertTriangle, Award, Euro,
   FileCheck, Monitor, Send, FileText, Pill, BookOpen, Accessibility, Stethoscope
 } from 'lucide-react';
+import INAMIComparison from './INAMIComparison';
 
 const YEAR = new Date().getFullYear();
 
