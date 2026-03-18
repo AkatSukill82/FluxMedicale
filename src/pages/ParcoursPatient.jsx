@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Plus, Search, Route, Users, BookOpen, Loader2, AlertTriangle, CheckCircle2
+  Search, Route, Users, BookOpen, Loader2, AlertTriangle, CheckCircle2
 } from 'lucide-react';
 
 import PathwayCard from '../components/pathways/PathwayCard';
@@ -67,12 +67,6 @@ export default function ParcoursPatient() {
     return acc + (e.step_statuses || []).filter(s => s.status === 'pending' && s.due_date && s.due_date < today).length;
   }, 0);
 
-  const handleView = (pathway) => setSelectedPathway(pathway);
-  const handleEnroll = (pathway) => {
-    setEnrollPathway(pathway);
-    setShowEnrollDialog(true);
-  };
-
   if (selectedPathway) {
     return (
       <div className="space-y-6">
@@ -104,27 +98,9 @@ export default function ParcoursPatient() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Route className="w-5 h-5 mx-auto text-blue-600 mb-1" />
-            <p className="text-2xl font-bold">{pathways.length}</p>
-            <p className="text-xs text-muted-foreground">Parcours</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Users className="w-5 h-5 mx-auto text-green-600 mb-1" />
-            <p className="text-2xl font-bold">{activeEnrollments.length}</p>
-            <p className="text-xs text-muted-foreground">Patients inscrits</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <CheckCircle2 className="w-5 h-5 mx-auto text-emerald-600 mb-1" />
-            <p className="text-2xl font-bold">{enrollments.filter(e => e.status === 'completed').length}</p>
-            <p className="text-xs text-muted-foreground">Terminés</p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="p-4 text-center"><Route className="w-5 h-5 mx-auto text-blue-600 mb-1" /><p className="text-2xl font-bold">{pathways.length}</p><p className="text-xs text-muted-foreground">Parcours</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><Users className="w-5 h-5 mx-auto text-green-600 mb-1" /><p className="text-2xl font-bold">{activeEnrollments.length}</p><p className="text-xs text-muted-foreground">Patients inscrits</p></CardContent></Card>
+        <Card><CardContent className="p-4 text-center"><CheckCircle2 className="w-5 h-5 mx-auto text-emerald-600 mb-1" /><p className="text-2xl font-bold">{enrollments.filter(e => e.status === 'completed').length}</p><p className="text-xs text-muted-foreground">Terminés</p></CardContent></Card>
         <Card className={overdueCount > 0 ? 'border-red-200 bg-red-50/30' : ''}>
           <CardContent className="p-4 text-center">
             <AlertTriangle className={`w-5 h-5 mx-auto mb-1 ${overdueCount > 0 ? 'text-red-600' : 'text-muted-foreground'}`} />
@@ -137,13 +113,9 @@ export default function ParcoursPatient() {
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex items-center justify-between gap-3">
           <TabsList>
-            <TabsTrigger value="pathways" className="gap-1.5">
-              <Route className="w-3.5 h-3.5" />
-              Parcours ({pathways.length})
-            </TabsTrigger>
+            <TabsTrigger value="pathways" className="gap-1.5"><Route className="w-3.5 h-3.5" />Parcours ({pathways.length})</TabsTrigger>
             <TabsTrigger value="enrollments" className="gap-1.5">
-              <Users className="w-3.5 h-3.5" />
-              Inscriptions ({activeEnrollments.length})
+              <Users className="w-3.5 h-3.5" />Inscriptions ({activeEnrollments.length})
               {overdueCount > 0 && <Badge className="bg-red-500 text-white text-[9px] ml-1">{overdueCount}</Badge>}
             </TabsTrigger>
           </TabsList>
@@ -157,23 +129,15 @@ export default function ParcoursPatient() {
           {loadingPathways ? (
             <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin" /></div>
           ) : filteredPathways.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                <Route className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p className="font-medium">Aucun parcours configuré</p>
-                <p className="text-sm mt-1">Cliquez "Charger les modèles" pour démarrer avec les parcours prédéfinis belges</p>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="py-12 text-center text-muted-foreground">
+              <Route className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="font-medium">Aucun parcours configuré</p>
+              <p className="text-sm mt-1">Cliquez "Charger les modèles" pour démarrer</p>
+            </CardContent></Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredPathways.map(p => (
-                <PathwayCard
-                  key={p.id}
-                  pathway={p}
-                  enrollmentCount={enrollmentCounts[p.id] || 0}
-                  onView={handleView}
-                  onActivate={handleEnroll}
-                />
+                <PathwayCard key={p.id} pathway={p} enrollmentCount={enrollmentCounts[p.id] || 0} onView={() => setSelectedPathway(p)} onActivate={() => { setEnrollPathway(p); setShowEnrollDialog(true); }} />
               ))}
             </div>
           )}
@@ -188,11 +152,7 @@ export default function ParcoursPatient() {
         </TabsContent>
       </Tabs>
 
-      <EnrollPatientDialog
-        isOpen={showEnrollDialog}
-        onClose={() => { setShowEnrollDialog(false); setEnrollPathway(null); }}
-        pathway={enrollPathway}
-      />
+      <EnrollPatientDialog isOpen={showEnrollDialog} onClose={() => { setShowEnrollDialog(false); setEnrollPathway(null); }} pathway={enrollPathway} />
     </div>
   );
 }
