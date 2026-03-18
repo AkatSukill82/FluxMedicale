@@ -95,6 +95,7 @@ import Tests from './pages/Tests';
 import TiersPayant from './pages/TiersPayant';
 import Utilisateurs from './pages/Utilisateurs';
 import Analyses from './pages/Analyses';
+import ParcoursPatient from './pages/ParcoursPatient';
 import __Layout from './Layout.jsx';
 
 
@@ -147,6 +148,7 @@ export const PAGES = {
     "Tests": Tests,
     "TiersPayant": TiersPayant,
     "Utilisateurs": Utilisateurs,
+    "ParcoursPatient": ParcoursPatient,
 }
 
 export const pagesConfig = {
