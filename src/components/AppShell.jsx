@@ -39,6 +39,7 @@ import {
   BookOpen,
   Pill,
   Bell,
+  Route,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -159,6 +160,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.chapter4'), path: 'ChapitreIV', icon: Shield },
         { title: t('nav.statistics'), path: 'Statistiques', icon: BarChart3 },
         { title: 'Analyses', path: 'Analyses', icon: Activity },
+        { title: 'Parcours', path: 'ParcoursPatient', icon: Route },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
         { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];
