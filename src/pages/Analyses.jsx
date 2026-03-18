@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
-  Search, Plus, Play, LayoutGrid, List, Loader2, RefreshCw, Trash2, X, Award, Users
+  Search, Plus, Play, LayoutGrid, List, Loader2, RefreshCw, Trash2, X, Award, Users, BarChart3
 } from 'lucide-react';
 
 import AnalysisCatalog, { ANALYSIS_CATALOG } from '../components/analyses/AnalysisCatalog';
@@ -14,6 +14,7 @@ import AnalysisResultCard from '../components/analyses/AnalysisResultCard';
 import CreateAnalysisDialog from '../components/analyses/CreateAnalysisDialog';
 import INAMIPrimeTracker from '../components/analyses/INAMIPrimeTracker';
 import PopulationHealthManager from '../components/analyses/population/PopulationHealthManager';
+import BenchmarkDashboard from '../components/benchmarking/BenchmarkDashboard';
 
 const STORAGE_KEY = 'fluxmed_analyses_v2';
 
@@ -30,7 +31,7 @@ export default function Analyses() {
     return [];
   });
 
-  const [view, setView] = useState('population'); // 'population' | 'prime' | 'catalog' | 'results'
+  const [view, setView] = useState('population'); // 'population' | 'benchmark' | 'prime' | 'catalog' | 'results'
   const [searchFilter, setSearchFilter] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
@@ -122,6 +123,13 @@ export default function Analyses() {
             Population
           </button>
           <button
+            className={`px-4 py-2 text-sm font-medium transition-colors ${view === 'benchmark' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}
+            onClick={() => setView('benchmark')}
+          >
+            <BarChart3 className="w-4 h-4 inline mr-1.5" />
+            Benchmarking
+          </button>
+          <button
             className={`px-4 py-2 text-sm font-medium transition-colors ${view === 'prime' ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-muted'}`}
             onClick={() => setView('prime')}
           >
@@ -191,6 +199,11 @@ export default function Analyses() {
       {/* Population Health Management view */}
       {view === 'population' && (
         <PopulationHealthManager data={data || {}} isLoading={isLoading} />
+      )}
+
+      {/* Benchmarking view */}
+      {view === 'benchmark' && (
+        <BenchmarkDashboard data={data || {}} isLoading={isLoading} />
       )}
 
       {/* Prime INAMI view */}
