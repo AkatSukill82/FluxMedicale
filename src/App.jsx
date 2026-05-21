@@ -13,6 +13,10 @@ import ParcoursPatient from '@/pages/ParcoursPatient';
 import PortailPatient from '@/pages/PortailPatient';
 import SignatureElectronique from '@/pages/SignatureElectronique';
 import ExportComptable from '@/pages/ExportComptable';
+import Epidemiologie from '@/pages/Epidemiologie';
+import FormationContinue from '@/pages/FormationContinue';
+import IntegrationDoctolib from '@/pages/IntegrationDoctolib';
+import ChatInterne from '@/pages/ChatInterne';
 
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -83,6 +87,26 @@ const AuthenticatedApp = () => {
       <Route path="/ExportComptable" element={
         <LayoutWrapper currentPageName="ExportComptable">
           <ExportComptable />
+        </LayoutWrapper>
+      } />
+      <Route path="/Epidemiologie" element={
+        <LayoutWrapper currentPageName="Epidemiologie">
+          <Epidemiologie />
+        </LayoutWrapper>
+      } />
+      <Route path="/FormationContinue" element={
+        <LayoutWrapper currentPageName="FormationContinue">
+          <FormationContinue />
+        </LayoutWrapper>
+      } />
+      <Route path="/IntegrationDoctolib" element={
+        <LayoutWrapper currentPageName="IntegrationDoctolib">
+          <IntegrationDoctolib />
+        </LayoutWrapper>
+      } />
+      <Route path="/ChatInterne" element={
+        <LayoutWrapper currentPageName="ChatInterne">
+          <ChatInterne />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />

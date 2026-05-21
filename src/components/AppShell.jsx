@@ -43,6 +43,10 @@ import {
   PenTool,
   Calculator,
   Globe,
+  GraduationCap,
+  ArrowLeftRight,
+  MessageCircle,
+  Microscope,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -167,6 +171,10 @@ export default function AppShell({ children, currentPageName }) {
         { title: 'Portail Patient', path: 'PortailPatient', icon: Globe },
         { title: 'Signature', path: 'SignatureElectronique', icon: PenTool },
         { title: 'Export Comptable', path: 'ExportComptable', icon: Calculator },
+        { title: 'Épidémiologie', path: 'Epidemiologie', icon: Microscope },
+        { title: 'Formation', path: 'FormationContinue', icon: GraduationCap },
+        { title: 'Doctolib/Doctena', path: 'IntegrationDoctolib', icon: ArrowLeftRight },
+        { title: 'Chat Interne', path: 'ChatInterne', icon: MessageCircle },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
         { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];

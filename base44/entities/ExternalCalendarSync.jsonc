@@ -1,0 +1,107 @@
+{
+  "name": "ExternalCalendarSync",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": [
+        "doctolib",
+        "doctena",
+        "google_calendar"
+      ],
+      "description": "Fournisseur externe"
+    },
+    "external_id": {
+      "type": "string",
+      "description": "ID du rendez-vous chez le fournisseur"
+    },
+    "internal_rdv_id": {
+      "type": "string",
+      "description": "ID du RendezVous local"
+    },
+    "sync_direction": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound",
+        "bidirectional"
+      ],
+      "default": "bidirectional"
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sync_status": {
+      "type": "string",
+      "enum": [
+        "synced",
+        "pending",
+        "error",
+        "conflict"
+      ],
+      "default": "pending"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "api_key": {
+          "type": "string"
+        },
+        "calendar_id": {
+          "type": "string"
+        },
+        "auto_sync": {
+          "type": "boolean",
+          "default": true
+        },
+        "sync_interval_minutes": {
+          "type": "number",
+          "default": 15
+        }
+      }
+    }
+  },
+  "required": [
+    "provider",
+    "medecin_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

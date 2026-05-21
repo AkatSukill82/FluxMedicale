@@ -1,0 +1,55 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "description": "ID du canal (general, urgences, etc. ou conversation priv\u00e9e)"
+    },
+    "sender_email": {
+      "type": "string"
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu du message"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "file",
+        "system"
+      ],
+      "default": "text"
+    },
+    "file_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "is_read_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des utilisateurs ayant lu le message"
+    },
+    "reply_to_id": {
+      "type": "string",
+      "description": "ID du message en r\u00e9ponse"
+    },
+    "is_urgent": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "channel",
+    "sender_email",
+    "sender_name",
+    "content"
+  ]
+}

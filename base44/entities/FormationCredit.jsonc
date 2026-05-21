@@ -1,0 +1,113 @@
+{
+  "name": "FormationCredit",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titre de la formation"
+    },
+    "organizer": {
+      "type": "string",
+      "description": "Organisateur de la formation"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "ethique",
+        "peer_review",
+        "congres",
+        "elearning",
+        "seminaire",
+        "glem",
+        "autre"
+      ],
+      "description": "Cat\u00e9gorie de formation"
+    },
+    "credits_cp": {
+      "type": "number",
+      "default": 0,
+      "description": "Cr\u00e9dits CP (Cr\u00e9dit Points) obtenus"
+    },
+    "credits_ea": {
+      "type": "number",
+      "default": 0,
+      "description": "Cr\u00e9dits EA (Ethique/Accr\u00e9ditation)"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la formation"
+    },
+    "duration_hours": {
+      "type": "number",
+      "description": "Dur\u00e9e en heures"
+    },
+    "certificate_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL du certificat de participation"
+    },
+    "accreditation_number": {
+      "type": "string",
+      "description": "Num\u00e9ro d'accr\u00e9ditation INAMI"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planifiee",
+        "completee",
+        "annulee",
+        "en_attente_validation"
+      ],
+      "default": "planifiee"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "period_year": {
+      "type": "number",
+      "description": "Ann\u00e9e de la p\u00e9riode d'accr\u00e9ditation"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "date",
+    "medecin_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
