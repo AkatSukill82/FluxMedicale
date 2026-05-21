@@ -394,9 +394,7 @@ export default function PaymentReminderSystem() {
                 rows={10}
               />
               <p className="text-xs text-slate-500 mt-1">
-                Variables disponibles: {'{'}{'{'}}patient_name{'}'}{'}'}, {'{'}{'{'}}invoice_number{'}'}{'}'}, 
-                {'{'}{'{'}}amount_due{'}'}{'}'}, {'{'}{'{'}}due_date{'}'}{'}'}, {'{'}{'{'}}days_overdue{'}'}{'}'}, 
-                {'{'}{'{'}}payment_link{'}'}{'}'}
+                {"Variables disponibles: {{patient_name}}, {{invoice_number}}, {{amount_due}}, {{due_date}}, {{days_overdue}}, {{payment_link}}"}
               </p>
             </div>
 

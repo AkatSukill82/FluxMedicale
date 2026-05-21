@@ -40,6 +40,9 @@ import {
   Pill,
   Bell,
   Route,
+  PenTool,
+  Calculator,
+  Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -161,6 +164,9 @@ export default function AppShell({ children, currentPageName }) {
         { title: t('nav.statistics'), path: 'Statistiques', icon: BarChart3 },
         { title: 'Analyses', path: 'Analyses', icon: Activity },
         { title: 'Parcours', path: 'ParcoursPatient', icon: Route },
+        { title: 'Portail Patient', path: 'PortailPatient', icon: Globe },
+        { title: 'Signature', path: 'SignatureElectronique', icon: PenTool },
+        { title: 'Export Comptable', path: 'ExportComptable', icon: Calculator },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
         { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];

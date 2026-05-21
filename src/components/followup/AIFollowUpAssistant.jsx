@@ -19,7 +19,8 @@ import {
   Activity,
   CheckCircle2,
   XCircle,
-  ArrowRight
+  ArrowRight,
+  Plus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, differenceInDays, subDays } from 'date-fns';

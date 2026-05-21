@@ -10,6 +10,9 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ParcoursPatient from '@/pages/ParcoursPatient';
+import PortailPatient from '@/pages/PortailPatient';
+import SignatureElectronique from '@/pages/SignatureElectronique';
+import ExportComptable from '@/pages/ExportComptable';
 
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -65,6 +68,21 @@ const AuthenticatedApp = () => {
       <Route path="/ParcoursPatient" element={
         <LayoutWrapper currentPageName="ParcoursPatient">
           <ParcoursPatient />
+        </LayoutWrapper>
+      } />
+      <Route path="/PortailPatient" element={
+        <LayoutWrapper currentPageName="PortailPatient">
+          <PortailPatient />
+        </LayoutWrapper>
+      } />
+      <Route path="/SignatureElectronique" element={
+        <LayoutWrapper currentPageName="SignatureElectronique">
+          <SignatureElectronique />
+        </LayoutWrapper>
+      } />
+      <Route path="/ExportComptable" element={
+        <LayoutWrapper currentPageName="ExportComptable">
+          <ExportComptable />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />

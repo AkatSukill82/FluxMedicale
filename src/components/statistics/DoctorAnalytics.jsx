@@ -649,7 +649,7 @@ export default function DoctorAnalytics() {
                     <span className="font-medium">Polymédication</span>
                   </div>
                   <p className="text-xs text-slate-600">
-                    Attention particulière chez les patients âgés (>5 médicaments)
+                    {"Attention particulière chez les patients âgés (>5 médicaments)"}
                   </p>
                 </div>
 
