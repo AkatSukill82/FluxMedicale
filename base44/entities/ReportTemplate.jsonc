@@ -1,0 +1,116 @@
+{
+  "name": "ReportTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom du mod\u00e8le"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "consultation_summary",
+        "prescription_report",
+        "treatment_progress",
+        "patient_overview",
+        "custom"
+      ],
+      "default": "consultation_summary"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "weekly",
+        "monthly",
+        "quarterly"
+      ],
+      "default": "manual"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "consultations",
+              "prescriptions",
+              "vitals",
+              "chart",
+              "objectives",
+              "custom"
+            ]
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "order": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "header_text": {
+      "type": "string"
+    },
+    "footer_text": {
+      "type": "string"
+    },
+    "include_logo": {
+      "type": "boolean",
+      "default": true
+    },
+    "include_signature": {
+      "type": "boolean",
+      "default": true
+    },
+    "auto_send": {
+      "type": "boolean",
+      "default": false
+    },
+    "recipients": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "patient",
+              "doctor",
+              "specialist",
+              "custom"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

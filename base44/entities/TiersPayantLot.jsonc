@@ -1,0 +1,75 @@
+{
+  "name": "TiersPayantLot",
+  "type": "object",
+  "properties": {
+    "numero_lot": {
+      "type": "string",
+      "description": "Num\u00e9ro unique du lot"
+    },
+    "mutuelle_code": {
+      "type": "string"
+    },
+    "mutuelle_nom": {
+      "type": "string"
+    },
+    "date_creation": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_envoi": {
+      "type": "string",
+      "format": "date"
+    },
+    "periode_debut": {
+      "type": "string",
+      "format": "date"
+    },
+    "periode_fin": {
+      "type": "string",
+      "format": "date"
+    },
+    "nombre_factures": {
+      "type": "number"
+    },
+    "montant_total": {
+      "type": "number"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "en_preparation",
+        "pret",
+        "envoye",
+        "accuse_reception",
+        "traite",
+        "paye"
+      ],
+      "default": "en_preparation"
+    },
+    "mode_envoi": {
+      "type": "string",
+      "enum": [
+        "mycarenet",
+        "email",
+        "courrier"
+      ],
+      "default": "mycarenet"
+    },
+    "reference_mycarenet": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "fichier_xml_url": {
+      "type": "string"
+    },
+    "fichier_pdf_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mutuelle_code",
+    "date_creation"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "name": "AccountingExportLog",
+  "type": "object",
+  "properties": {
+    "export_type": {
+      "type": "string",
+      "enum": [
+        "BOB",
+        "HORUS",
+        "OCTOPUS",
+        "WINBOOKS",
+        "CSV_GENERIC"
+      ],
+      "description": "Logiciel comptable cible"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "invoice_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Montant total en centimes"
+    },
+    "file_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "generating",
+        "completed",
+        "error"
+      ],
+      "default": "generating"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "exported_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "export_type",
+    "period_start",
+    "period_end"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

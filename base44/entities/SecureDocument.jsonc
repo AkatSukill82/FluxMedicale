@@ -1,0 +1,108 @@
+{
+  "name": "SecureDocument",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Nom du fichier"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "URI du fichier priv\u00e9"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Taille du fichier en octets"
+    },
+    "mime_type": {
+      "type": "string",
+      "description": "Type MIME du fichier"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "MEDICAL_REPORT",
+        "LAB_RESULT",
+        "IMAGING",
+        "CONSENT_FORM",
+        "INSURANCE",
+        "PRESCRIPTION",
+        "IDENTITY",
+        "OTHER"
+      ],
+      "description": "Type de document"
+    },
+    "document_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du document"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes sur le document"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags pour classification"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "Email de l'utilisateur qui a upload\u00e9"
+    },
+    "is_sensitive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Document sensible (toujours chiffr\u00e9)"
+    },
+    "last_accessed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Derni\u00e8re consultation"
+    },
+    "access_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Nombre de consultations"
+    }
+  },
+  "required": [
+    "patient_id",
+    "file_name",
+    "file_uri",
+    "document_type",
+    "uploaded_by"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "uploaded_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "uploaded_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "name": "Assurabilite",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_niss": {
+      "type": "string"
+    },
+    "oa_code": {
+      "type": "string",
+      "description": "Code organisme assureur"
+    },
+    "oa_name": {
+      "type": "string",
+      "description": "Nom de la mutuelle"
+    },
+    "insurance_period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "insurance_period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "tiers_payant_allowed": {
+      "type": "boolean",
+      "default": false
+    },
+    "tiers_payant_obligatoire": {
+      "type": "boolean",
+      "default": false
+    },
+    "special_rights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Droits sp\u00e9ciaux (OMNIO, BIM, etc.)"
+    },
+    "carte_sis": {
+      "type": "string",
+      "description": "Num\u00e9ro carte SIS"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "checked_by": {
+      "type": "string"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID transaction MyCareNet"
+    },
+    "raw_response": {
+      "type": "object",
+      "description": "R\u00e9ponse brute MyCareNet"
+    }
+  },
+  "required": [
+    "patient_id",
+    "patient_niss",
+    "oa_code"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "user"
+      }
+    }
+  }
+}

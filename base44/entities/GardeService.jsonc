@@ -1,0 +1,136 @@
+{
+  "name": "GardeService",
+  "type": "object",
+  "properties": {
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin de garde"
+    },
+    "medecin_nom": {
+      "type": "string"
+    },
+    "medecin_nihii": {
+      "type": "string"
+    },
+    "medecin_telephone": {
+      "type": "string"
+    },
+    "date_debut": {
+      "type": "string",
+      "format": "date-time",
+      "description": "D\u00e9but de la garde"
+    },
+    "date_fin": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fin de la garde"
+    },
+    "type_garde": {
+      "type": "string",
+      "enum": [
+        "semaine_nuit",
+        "weekend_jour",
+        "weekend_nuit",
+        "jour_ferie",
+        "1733"
+      ],
+      "description": "Type de garde"
+    },
+    "zone_garde": {
+      "type": "string",
+      "description": "Zone g\u00e9ographique de garde"
+    },
+    "cercle_code": {
+      "type": "string",
+      "description": "Code du cercle de m\u00e9decins"
+    },
+    "cercle_nom": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planifiee",
+        "en_cours",
+        "terminee",
+        "annulee",
+        "remplacee"
+      ],
+      "default": "planifiee"
+    },
+    "remplacant_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin rempla\u00e7ant si \u00e9change"
+    },
+    "remplacant_nom": {
+      "type": "string"
+    },
+    "appels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "heure": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "patient_nom": {
+            "type": "string"
+          },
+          "motif": {
+            "type": "string"
+          },
+          "urgence_level": {
+            "type": "string",
+            "enum": [
+              "faible",
+              "moyenne",
+              "haute",
+              "vitale"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "conseil_tel",
+              "consultation",
+              "visite",
+              "urgences",
+              "samu"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Journal des appels re\u00e7us"
+    },
+    "nb_appels": {
+      "type": "number",
+      "default": 0
+    },
+    "nb_visites": {
+      "type": "number",
+      "default": 0
+    },
+    "nb_consultations": {
+      "type": "number",
+      "default": 0
+    },
+    "transmission_1733": {
+      "type": "boolean",
+      "default": false,
+      "description": "Transmis au 1733"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "medecin_email",
+    "date_debut",
+    "date_fin",
+    "type_garde"
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "name": "NomenCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Code INAMI/RIZIV"
+    },
+    "title_fr": {
+      "type": "string",
+      "description": "Titre en fran\u00e7ais"
+    },
+    "title_nl": {
+      "type": "string",
+      "description": "Titre en n\u00e9erlandais"
+    },
+    "description_fr": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e en fran\u00e7ais"
+    },
+    "description_nl": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e en n\u00e9erlandais"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "CONSULTATION",
+        "TECHNIQUE",
+        "VISITE",
+        "IMAGERIE",
+        "LABORATOIRE",
+        "CHIRURGIE",
+        "AUTRE"
+      ],
+      "description": "Cat\u00e9gorie de prestation"
+    },
+    "honorarium": {
+      "type": "number",
+      "description": "Honoraire total en centimes"
+    },
+    "reimbursed": {
+      "type": "number",
+      "description": "Part rembours\u00e9e par la mutuelle en centimes"
+    },
+    "patient_share": {
+      "type": "number",
+      "description": "Ticket mod\u00e9rateur (part patient) en centimes"
+    },
+    "specialty": {
+      "type": "string",
+      "description": "Sp\u00e9cialit\u00e9 m\u00e9dicale concern\u00e9e"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but de validit\u00e9"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin de validit\u00e9"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": true,
+      "description": "Code actuellement valide"
+    },
+    "conditions": {
+      "type": "string",
+      "description": "Conditions d'application"
+    },
+    "tiers_payant_allowed": {
+      "type": "boolean",
+      "default": true,
+      "description": "Tiers payant autoris\u00e9"
+    },
+    "frequency_limit": {
+      "type": "string",
+      "description": "Limite de fr\u00e9quence (ex: 1 fois par an)"
+    }
+  },
+  "required": [
+    "code",
+    "title_fr",
+    "category",
+    "honorarium",
+    "reimbursed",
+    "patient_share"
+  ]
+}

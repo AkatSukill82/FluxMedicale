@@ -1,0 +1,74 @@
+{
+  "name": "MutuelleConvention",
+  "type": "object",
+  "properties": {
+    "code_mutuelle": {
+      "type": "string",
+      "description": "Code OA de la mutuelle (ex: 100, 200, 300...)"
+    },
+    "nom_mutuelle": {
+      "type": "string",
+      "description": "Nom de la mutuelle"
+    },
+    "type_convention": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "preferentiel",
+        "bim",
+        "omnio"
+      ],
+      "default": "standard",
+      "description": "Type de convention"
+    },
+    "taux_remboursement_base": {
+      "type": "number",
+      "description": "Taux de remboursement de base (%)",
+      "default": 75
+    },
+    "taux_remboursement_bim": {
+      "type": "number",
+      "description": "Taux pour b\u00e9n\u00e9ficiaires BIM (%)",
+      "default": 90
+    },
+    "taux_remboursement_omnio": {
+      "type": "number",
+      "description": "Taux pour statut OMNIO (%)",
+      "default": 85
+    },
+    "plafond_ticket_moderateur": {
+      "type": "number",
+      "description": "Plafond ticket mod\u00e9rateur (\u20ac)"
+    },
+    "delai_paiement_jours": {
+      "type": "number",
+      "description": "D\u00e9lai de paiement habituel (jours)",
+      "default": 30
+    },
+    "contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "contact_telephone": {
+      "type": "string"
+    },
+    "adresse_facturation": {
+      "type": "string"
+    },
+    "numero_compte_bancaire": {
+      "type": "string",
+      "description": "IBAN pour virements"
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "code_mutuelle",
+    "nom_mutuelle"
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "name": "MedicalHistory",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "maladie_passee",
+        "maladie_chronique",
+        "allergie",
+        "chirurgie",
+        "antecedent_familial"
+      ],
+      "description": "Type d'ant\u00e9c\u00e9dent m\u00e9dical"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre/Nom de l'ant\u00e9c\u00e9dent"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e"
+    },
+    "date_onset": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but/diagnostic"
+    },
+    "date_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin (si applicable)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Condition toujours active"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "legere",
+        "moderee",
+        "severe",
+        "critique"
+      ],
+      "description": "S\u00e9v\u00e9rit\u00e9 (pour allergies)"
+    },
+    "allergen_type": {
+      "type": "string",
+      "enum": [
+        "medicament",
+        "alimentaire",
+        "environnemental",
+        "contact",
+        "autre"
+      ],
+      "description": "Type d'allerg\u00e8ne"
+    },
+    "reaction": {
+      "type": "string",
+      "description": "Type de r\u00e9action allergique"
+    },
+    "family_member": {
+      "type": "string",
+      "enum": [
+        "pere",
+        "mere",
+        "frere",
+        "soeur",
+        "grand_parent_paternel",
+        "grand_parent_maternel",
+        "oncle_tante",
+        "autre"
+      ],
+      "description": "Membre de la famille concern\u00e9 (ant\u00e9c\u00e9dents familiaux)"
+    },
+    "surgery_type": {
+      "type": "string",
+      "description": "Type de chirurgie"
+    },
+    "hospital": {
+      "type": "string",
+      "description": "H\u00f4pital/Clinique"
+    },
+    "surgeon": {
+      "type": "string",
+      "description": "Chirurgien"
+    },
+    "icd10_code": {
+      "type": "string",
+      "description": "Code ICD-10"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes additionnelles"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      },
+      "description": "Documents associ\u00e9s"
+    }
+  },
+  "required": [
+    "patient_id",
+    "type",
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

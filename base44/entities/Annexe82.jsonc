@@ -1,0 +1,120 @@
+{
+  "name": "Annexe82",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "medecin_prescripteur": {
+      "type": "string",
+      "description": "Email du m\u00e9decin prescripteur"
+    },
+    "type_examen": {
+      "type": "string",
+      "enum": [
+        "IRM",
+        "CT",
+        "RX",
+        "ECHO",
+        "MAMMOGRAPHIE",
+        "DENSITOMETRIE"
+      ],
+      "description": "Type d'examen demand\u00e9"
+    },
+    "region_anatomique": {
+      "type": "string",
+      "description": "R\u00e9gion anatomique \u00e0 examiner"
+    },
+    "indication_clinique": {
+      "type": "string",
+      "description": "Indication clinique obligatoire"
+    },
+    "renseignements_cliniques": {
+      "type": "string",
+      "description": "Renseignements cliniques d\u00e9taill\u00e9s"
+    },
+    "question_clinique": {
+      "type": "string",
+      "description": "Question clinique pr\u00e9cise"
+    },
+    "urgence": {
+      "type": "boolean",
+      "default": false
+    },
+    "avec_produit_contraste": {
+      "type": "boolean",
+      "default": false
+    },
+    "grossesse_possible": {
+      "type": "boolean",
+      "default": false
+    },
+    "allergie_produit_contraste": {
+      "type": "boolean",
+      "default": false
+    },
+    "creatinine": {
+      "type": "number",
+      "description": "Taux de cr\u00e9atinine si produit de contraste"
+    },
+    "date_creatinine": {
+      "type": "string",
+      "format": "date"
+    },
+    "examens_anterieurs": {
+      "type": "string",
+      "description": "Examens ant\u00e9rieurs pertinents"
+    },
+    "traitement_en_cours": {
+      "type": "string",
+      "description": "Traitements en cours"
+    },
+    "radiologue_prefere": {
+      "type": "string",
+      "description": "Radiologue ou service pr\u00e9f\u00e9r\u00e9"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "BROUILLON",
+        "COMPLETE",
+        "ENVOYEE",
+        "ACCEPTEE",
+        "REFUSEE"
+      ],
+      "default": "BROUILLON"
+    },
+    "pdf_generated_url": {
+      "type": "string",
+      "description": "URL du PDF g\u00e9n\u00e9r\u00e9"
+    },
+    "xml_eforms_url": {
+      "type": "string",
+      "description": "URL du XML eForms"
+    },
+    "numero_demande": {
+      "type": "string",
+      "description": "Num\u00e9ro unique de la demande"
+    },
+    "date_creation": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_envoi": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "destinataire_nihii": {
+      "type": "string",
+      "description": "NIHII du radiologue destinataire"
+    }
+  },
+  "required": [
+    "patient_id",
+    "medecin_prescripteur",
+    "type_examen",
+    "indication_clinique",
+    "question_clinique"
+  ]
+}

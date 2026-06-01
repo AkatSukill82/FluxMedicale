@@ -1,0 +1,61 @@
+{
+  "name": "PrescriptionTemplate",
+  "type": "object",
+  "properties": {
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin propri\u00e9taire"
+    },
+    "cabinet_name": {
+      "type": "string",
+      "description": "Nom du cabinet m\u00e9dical"
+    },
+    "logo_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL du logo"
+    },
+    "header_text": {
+      "type": "string",
+      "description": "Texte d'en-t\u00eate personnalis\u00e9"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresse compl\u00e8te"
+    },
+    "phone": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "inami_number": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI"
+    },
+    "footer_text": {
+      "type": "string",
+      "description": "Texte de pied de page"
+    },
+    "primary_color": {
+      "type": "string",
+      "default": "#1e40af",
+      "description": "Couleur principale (hex)"
+    },
+    "show_qr_code": {
+      "type": "boolean",
+      "default": true,
+      "description": "Afficher le QR code Recip-e"
+    },
+    "signature_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL de la signature num\u00e9ris\u00e9e"
+    }
+  },
+  "required": [
+    "medecin_email"
+  ]
+}

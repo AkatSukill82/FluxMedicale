@@ -1,0 +1,104 @@
+{
+  "name": "CreditNote",
+  "type": "object",
+  "properties": {
+    "credit_note_number": {
+      "type": "string",
+      "description": "Num\u00e9ro de l'avoir"
+    },
+    "original_invoice_id": {
+      "type": "string",
+      "description": "Facture d'origine"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Montant de l'avoir en centimes"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "ERROR",
+        "CANCELLATION",
+        "RETURN",
+        "ADJUSTMENT",
+        "OTHER"
+      ],
+      "description": "Raison de l'avoir"
+    },
+    "reason_details": {
+      "type": "string",
+      "description": "D\u00e9tails de la raison"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "APPROVED",
+        "APPLIED",
+        "REFUNDED"
+      ],
+      "default": "PENDING"
+    },
+    "issue_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "applied_to_invoice_id": {
+      "type": "string",
+      "description": "Facture o\u00f9 l'avoir a \u00e9t\u00e9 appliqu\u00e9"
+    },
+    "refund_method": {
+      "type": "string",
+      "enum": [
+        "BANK_TRANSFER",
+        "CASH",
+        "CREDIT_BALANCE",
+        "NOT_REFUNDED"
+      ],
+      "description": "Mode de remboursement"
+    },
+    "refunded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "amount",
+    "reason",
+    "issue_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

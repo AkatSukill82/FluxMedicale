@@ -47,6 +47,7 @@ import {
   ArrowLeftRight,
   MessageCircle,
   Microscope,
+  ClipboardList,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -174,6 +175,7 @@ export default function AppShell({ children, currentPageName }) {
         { title: 'Épidémiologie', path: 'Epidemiologie', icon: Microscope },
         { title: 'Formation', path: 'FormationContinue', icon: GraduationCap },
         { title: 'Doctolib/Doctena', path: 'IntegrationDoctolib', icon: ArrowLeftRight },
+        { title: 'Modèles Consult.', path: 'ModelesConsultation', icon: ClipboardList },
         { title: 'Chat Interne', path: 'ChatInterne', icon: MessageCircle },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
         { title: t('nav.notifications'), path: 'Notifications', icon: Bell },

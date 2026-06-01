@@ -1,0 +1,97 @@
+{
+  "name": "FollowUpReport",
+  "type": "object",
+  "properties": {
+    "plan_id": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "quarterly",
+        "custom"
+      ],
+      "default": "monthly"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "objectives_status": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "objective_title": {
+            "type": "string"
+          },
+          "initial_value": {
+            "type": "string"
+          },
+          "current_value": {
+            "type": "string"
+          },
+          "target_value": {
+            "type": "string"
+          },
+          "progress_percent": {
+            "type": "number"
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "improving",
+              "stable",
+              "declining"
+            ]
+          }
+        }
+      }
+    },
+    "adherence_average": {
+      "type": "number"
+    },
+    "recommendations": {
+      "type": "string"
+    },
+    "next_steps": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "pdf_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "sent_to_patient": {
+      "type": "boolean",
+      "default": false
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "plan_id",
+    "patient_id",
+    "period_start",
+    "period_end"
+  ]
+}

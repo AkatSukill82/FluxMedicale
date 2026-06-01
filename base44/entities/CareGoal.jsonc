@@ -1,0 +1,125 @@
+{
+  "name": "CareGoal",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre de l'objectif"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "CLINICAL",
+        "LIFESTYLE",
+        "MEDICATION",
+        "MONITORING",
+        "PREVENTION"
+      ],
+      "description": "Cat\u00e9gorie d'objectif"
+    },
+    "target_value": {
+      "type": "string",
+      "description": "Valeur cible (ex: TA < 140/90)"
+    },
+    "current_value": {
+      "type": "string",
+      "description": "Valeur actuelle"
+    },
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date cible"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "NOT_STARTED",
+        "IN_PROGRESS",
+        "ACHIEVED",
+        "DELAYED",
+        "ABANDONED"
+      ],
+      "default": "NOT_STARTED"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "URGENT"
+      ],
+      "default": "MEDIUM"
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string"
+          },
+          "achieved": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "related_consultations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "achieved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "title",
+    "category"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

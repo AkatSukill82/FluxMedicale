@@ -1,0 +1,53 @@
+{
+  "name": "ReminderTemplate",
+  "type": "object",
+  "properties": {
+    "nom": {
+      "type": "string",
+      "description": "Nom du mod\u00e8le"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "rdv",
+        "prescription",
+        "resultat",
+        "suivi",
+        "vaccination",
+        "custom"
+      ]
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms",
+        "both"
+      ],
+      "default": "email"
+    },
+    "sujet_email": {
+      "type": "string"
+    },
+    "contenu_email": {
+      "type": "string",
+      "description": "Contenu HTML/texte de l'email. Variables: {{patient_name}}, {{date}}, {{heure}}, {{medecin}}, {{medicament}}"
+    },
+    "contenu_sms": {
+      "type": "string",
+      "description": "Contenu SMS (max 160 caract\u00e8res)"
+    },
+    "delai_defaut_jours": {
+      "type": "number",
+      "default": 1
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "nom",
+    "type"
+  ]
+}

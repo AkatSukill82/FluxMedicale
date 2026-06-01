@@ -1,0 +1,65 @@
+{
+  "name": "MyCareNetConfig",
+  "type": "object",
+  "properties": {
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin"
+    },
+    "nihii": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI du prestataire"
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "sandbox",
+        "acceptance",
+        "production"
+      ],
+      "default": "sandbox",
+      "description": "Environnement MyCareNet"
+    },
+    "services_enabled": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "memberdata",
+          "efact",
+          "eattest",
+          "eagreement",
+          "chapter4",
+          "dmg",
+          "tarification"
+        ]
+      },
+      "description": "Services MyCareNet activ\u00e9s"
+    },
+    "certificate_imported": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_connection_test": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "not_configured",
+        "configured",
+        "connected",
+        "error"
+      ],
+      "default": "not_configured"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "medecin_email",
+    "nihii"
+  ]
+}

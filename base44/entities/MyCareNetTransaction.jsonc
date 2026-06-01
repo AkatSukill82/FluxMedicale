@@ -1,0 +1,114 @@
+{
+  "name": "MyCareNetTransaction",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "EATTEST",
+        "EFACT"
+      ],
+      "description": "Type de transaction MyCareNet"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID unique MyCareNet (re\u00e7u en r\u00e9ponse)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "SENT",
+        "ACK_RECEIVED",
+        "ACCEPTED",
+        "REJECTED",
+        "ERROR"
+      ],
+      "default": "PENDING"
+    },
+    "consultation_id": {
+      "type": "string",
+      "description": "Consultation associ\u00e9e"
+    },
+    "prestations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code_nomenclature": {
+            "type": "string"
+          },
+          "libelle": {
+            "type": "string"
+          },
+          "quantite": {
+            "type": "number",
+            "default": 1
+          },
+          "montant": {
+            "type": "number"
+          },
+          "date_prestation": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "mutuelle_code": {
+      "type": "string",
+      "description": "Code de la mutuelle"
+    },
+    "assurability_result": {
+      "type": "object",
+      "properties": {
+        "is_insured": {
+          "type": "boolean"
+        },
+        "insurance_period_start": {
+          "type": "string",
+          "format": "date"
+        },
+        "insurance_period_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "special_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "response_xml": {
+      "type": "string",
+      "description": "R\u00e9ponse XML compl\u00e8te MyCareNet"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Message d'erreur si \u00e9chec"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "M\u00e9decin cr\u00e9ateur"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "acknowledged_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "patient_id",
+    "transaction_type",
+    "created_by"
+  ]
+}

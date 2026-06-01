@@ -1,0 +1,73 @@
+{
+  "name": "MyCareNetSyncLog",
+  "type": "object",
+  "properties": {
+    "medecin_email": {
+      "type": "string"
+    },
+    "sync_type": {
+      "type": "string",
+      "enum": [
+        "memberdata",
+        "efact",
+        "eattest",
+        "eagreement",
+        "chapter4",
+        "dmg",
+        "tarification",
+        "connection_test"
+      ],
+      "description": "Type de synchronisation"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "success",
+        "partial",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "records_processed": {
+      "type": "number",
+      "default": 0
+    },
+    "records_success": {
+      "type": "number",
+      "default": 0
+    },
+    "records_failed": {
+      "type": "number",
+      "default": 0
+    },
+    "error_code": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string",
+      "description": "JSON details of the sync"
+    },
+    "request_id": {
+      "type": "string",
+      "description": "MyCareNet request reference"
+    }
+  },
+  "required": [
+    "medecin_email",
+    "sync_type",
+    "status"
+  ]
+}

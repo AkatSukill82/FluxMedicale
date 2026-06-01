@@ -1,0 +1,155 @@
+{
+  "name": "ImportSession",
+  "type": "object",
+  "properties": {
+    "file_name": {
+      "type": "string",
+      "description": "Nom du fichier import\u00e9"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": [
+        "PMF",
+        "SMF",
+        "KMEHR"
+      ],
+      "description": "Type de fichier m\u00e9dical"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Taille du fichier en octets"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL s\u00e9curis\u00e9e du fichier original"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Uploaded",
+        "Parsing",
+        "Validated",
+        "Matching",
+        "Importing",
+        "Completed",
+        "Error"
+      ],
+      "default": "Uploaded"
+    },
+    "validation_report": {
+      "type": "object",
+      "properties": {
+        "is_valid": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "content_summary": {
+      "type": "object",
+      "properties": {
+        "patients_count": {
+          "type": "number"
+        },
+        "consultations_count": {
+          "type": "number"
+        },
+        "medications_count": {
+          "type": "number"
+        },
+        "documents_count": {
+          "type": "number"
+        }
+      }
+    },
+    "matching_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "external_patient_id": {
+            "type": "string"
+          },
+          "niss": {
+            "type": "string"
+          },
+          "match_type": {
+            "type": "string",
+            "enum": [
+              "NISS",
+              "NameDobGender",
+              "Manual",
+              "NoMatch"
+            ]
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "matched_patient_id": {
+            "type": "string"
+          },
+          "requires_review": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "import_statistics": {
+      "type": "object",
+      "properties": {
+        "imported_patients": {
+          "type": "number"
+        },
+        "imported_consultations": {
+          "type": "number"
+        },
+        "imported_prescriptions": {
+          "type": "number"
+        },
+        "skipped_duplicates": {
+          "type": "number"
+        },
+        "errors": {
+          "type": "number"
+        }
+      }
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Utilisateur ayant lanc\u00e9 l'import"
+    }
+  },
+  "required": [
+    "file_name",
+    "file_type",
+    "user_email"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    },
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "update": {
+      "created_by": "{{user.email}}"
+    },
+    "delete": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "name": "ClinicalRecommendation",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient concern\u00e9"
+    },
+    "consultation_id": {
+      "type": "string",
+      "description": "ID de la consultation associ\u00e9e"
+    },
+    "recommendation_type": {
+      "type": "string",
+      "enum": [
+        "DIFFERENTIAL_DIAGNOSIS",
+        "INVESTIGATION",
+        "TREATMENT",
+        "REFERRAL",
+        "PREVENTIVE",
+        "DRUG_INTERACTION",
+        "ALERT"
+      ],
+      "description": "Type de recommandation clinique"
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "symptoms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sympt\u00f4mes analys\u00e9s"
+        },
+        "vital_signs": {
+          "type": "object",
+          "description": "Signes vitaux consid\u00e9r\u00e9s"
+        },
+        "medical_history": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ant\u00e9c\u00e9dents pertinents"
+        },
+        "current_medications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "M\u00e9dicaments actuels"
+        }
+      },
+      "description": "Contexte clinique analys\u00e9"
+    },
+    "recommendation": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Titre de la recommandation"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description d\u00e9taill\u00e9e"
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Justification m\u00e9dicale"
+        },
+        "evidence_level": {
+          "type": "string",
+          "enum": [
+            "HIGH",
+            "MODERATE",
+            "LOW",
+            "EXPERT_OPINION"
+          ],
+          "description": "Niveau de preuve scientifique"
+        },
+        "urgency": {
+          "type": "string",
+          "enum": [
+            "ROUTINE",
+            "SOON",
+            "URGENT",
+            "IMMEDIATE"
+          ],
+          "description": "Niveau d'urgence"
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "option": {
+                "type": "string"
+              },
+              "pros": {
+                "type": "string"
+              },
+              "cons": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Options alternatives"
+        }
+      }
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Score de confiance de l'IA (0-1)"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Sources m\u00e9dicales r\u00e9f\u00e9renc\u00e9es"
+    },
+    "physician_decision": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "ACCEPTED",
+        "ACCEPTED_MODIFIED",
+        "REJECTED",
+        "DEFERRED"
+      ],
+      "default": "PENDING",
+      "description": "D\u00e9cision du m\u00e9decin"
+    },
+    "physician_notes": {
+      "type": "string",
+      "description": "Notes du m\u00e9decin sur la recommandation"
+    },
+    "modified_recommendation": {
+      "type": "string",
+      "description": "Recommandation modifi\u00e9e par le m\u00e9decin"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'application de la recommandation"
+    },
+    "outcome": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        },
+        "effectiveness": {
+          "type": "string",
+          "enum": [
+            "VERY_EFFECTIVE",
+            "EFFECTIVE",
+            "PARTIALLY_EFFECTIVE",
+            "NOT_EFFECTIVE",
+            "UNKNOWN"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "description": "R\u00e9sultat de l'application (suivi)"
+    },
+    "ai_model_version": {
+      "type": "string",
+      "description": "Version du mod\u00e8le d'IA utilis\u00e9"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de g\u00e9n\u00e9ration"
+    },
+    "generated_by": {
+      "type": "string",
+      "description": "M\u00e9decin ayant d\u00e9clench\u00e9 l'analyse"
+    }
+  },
+  "required": [
+    "patient_id",
+    "recommendation_type",
+    "recommendation",
+    "confidence_score",
+    "generated_by"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "generated_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "generated_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

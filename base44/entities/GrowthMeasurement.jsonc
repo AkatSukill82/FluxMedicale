@@ -1,0 +1,95 @@
+{
+  "name": "GrowthMeasurement",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "date_mesure": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la mesure"
+    },
+    "age_mois": {
+      "type": "number",
+      "description": "\u00c2ge en mois au moment de la mesure"
+    },
+    "poids_kg": {
+      "type": "number",
+      "description": "Poids en kilogrammes"
+    },
+    "taille_cm": {
+      "type": "number",
+      "description": "Taille en centim\u00e8tres"
+    },
+    "imc": {
+      "type": "number",
+      "description": "Indice de masse corporelle calcul\u00e9"
+    },
+    "perimetre_cranien_cm": {
+      "type": "number",
+      "description": "P\u00e9rim\u00e8tre cr\u00e2nien en cm (pour enfants < 3 ans)"
+    },
+    "tension_systolique": {
+      "type": "number",
+      "description": "Tension art\u00e9rielle systolique (mmHg)"
+    },
+    "tension_diastolique": {
+      "type": "number",
+      "description": "Tension art\u00e9rielle diastolique (mmHg)"
+    },
+    "frequence_cardiaque": {
+      "type": "number",
+      "description": "Fr\u00e9quence cardiaque (bpm)"
+    },
+    "temperature": {
+      "type": "number",
+      "description": "Temp\u00e9rature corporelle (\u00b0C)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes ou observations"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin ayant effectu\u00e9 la mesure"
+    }
+  },
+  "required": [
+    "patient_id",
+    "date_mesure"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

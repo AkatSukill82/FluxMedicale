@@ -1,0 +1,72 @@
+{
+  "name": "ClinicalCalculator",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "calculator_type": {
+      "type": "string",
+      "enum": [
+        "BMI",
+        "CREATININE_CLEARANCE",
+        "CHADSVASC",
+        "HASBLED",
+        "GRACE_SCORE",
+        "WELLS_DVT",
+        "WELLS_PE",
+        "CURB65",
+        "APACHE_II",
+        "GLASGOW",
+        "APGAR"
+      ],
+      "description": "Type de calculateur"
+    },
+    "input_data": {
+      "type": "object",
+      "description": "Donn\u00e9es d'entr\u00e9e du calcul"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "description": "Valeur calcul\u00e9e"
+        },
+        "interpretation": {
+          "type": "string",
+          "description": "Interpr\u00e9tation du r\u00e9sultat"
+        },
+        "risk_category": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MODERATE",
+            "HIGH",
+            "VERY_HIGH"
+          ],
+          "description": "Cat\u00e9gorie de risque"
+        }
+      }
+    },
+    "calculated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "calculated_by": {
+      "type": "string",
+      "description": "M\u00e9decin ayant effectu\u00e9 le calcul"
+    },
+    "linked_consultation_id": {
+      "type": "string",
+      "description": "Consultation associ\u00e9e"
+    }
+  },
+  "required": [
+    "patient_id",
+    "calculator_type",
+    "input_data",
+    "calculated_by"
+  ]
+}

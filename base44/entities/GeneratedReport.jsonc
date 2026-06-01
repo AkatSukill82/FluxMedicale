@@ -1,0 +1,81 @@
+{
+  "name": "GeneratedReport",
+  "type": "object",
+  "properties": {
+    "template_id": {
+      "type": "string"
+    },
+    "template_name": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "report_type": {
+      "type": "string"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "content_summary": {
+      "type": "string"
+    },
+    "data_snapshot": {
+      "type": "object",
+      "description": "Donn\u00e9es captur\u00e9es au moment de la g\u00e9n\u00e9ration"
+    },
+    "pdf_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "generated",
+        "sent",
+        "error"
+      ],
+      "default": "draft"
+    },
+    "sent_to": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "generated_automatically": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "patient_id",
+    "report_type",
+    "period_start",
+    "period_end"
+  ]
+}

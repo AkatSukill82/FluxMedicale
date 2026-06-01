@@ -1,0 +1,76 @@
+{
+  "name": "PatientMerge",
+  "type": "object",
+  "properties": {
+    "import_session_id": {
+      "type": "string",
+      "description": "Session d'import associ\u00e9e"
+    },
+    "existing_patient_id": {
+      "type": "string",
+      "description": "Patient existant dans le syst\u00e8me"
+    },
+    "imported_patient_data": {
+      "type": "object",
+      "description": "Donn\u00e9es du patient import\u00e9"
+    },
+    "merge_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field_name": {
+            "type": "string"
+          },
+          "existing_value": {
+            "type": "string"
+          },
+          "imported_value": {
+            "type": "string"
+          },
+          "selected_value": {
+            "type": "string"
+          },
+          "user_decision": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "InProgress",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Pending"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Utilisateur ayant effectu\u00e9 la fusion"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "import_session_id",
+    "existing_patient_id",
+    "imported_patient_data"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "user"
+      }
+    }
+  }
+}

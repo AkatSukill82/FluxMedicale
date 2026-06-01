@@ -1,0 +1,212 @@
+{
+  "name": "TeleconsultationSession",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin"
+    },
+    "rendez_vous_id": {
+      "type": "string",
+      "description": "Rendez-vous associ\u00e9"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "SCHEDULED",
+        "WAITING_ROOM",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "CANCELLED",
+        "NO_SHOW"
+      ],
+      "default": "SCHEDULED",
+      "description": "Statut de la t\u00e9l\u00e9consultation"
+    },
+    "scheduled_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Heure de d\u00e9but pr\u00e9vue"
+    },
+    "scheduled_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Heure de fin pr\u00e9vue"
+    },
+    "actual_start": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Heure de d\u00e9but r\u00e9elle"
+    },
+    "actual_end": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Heure de fin r\u00e9elle"
+    },
+    "video_room_id": {
+      "type": "string",
+      "description": "ID unique de la salle vid\u00e9o"
+    },
+    "patient_join_token": {
+      "type": "string",
+      "description": "Token d'acc\u00e8s patient (s\u00e9curis\u00e9, \u00e0 usage unique)"
+    },
+    "medecin_join_token": {
+      "type": "string",
+      "description": "Token d'acc\u00e8s m\u00e9decin"
+    },
+    "connection_info": {
+      "type": "object",
+      "properties": {
+        "patient_joined_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "medecin_joined_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "patient_left_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "medecin_left_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recording_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "recording_consent": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Informations de connexion"
+    },
+    "technical_quality": {
+      "type": "object",
+      "properties": {
+        "video_quality": {
+          "type": "string",
+          "enum": [
+            "EXCELLENT",
+            "GOOD",
+            "FAIR",
+            "POOR"
+          ]
+        },
+        "audio_quality": {
+          "type": "string",
+          "enum": [
+            "EXCELLENT",
+            "GOOD",
+            "FAIR",
+            "POOR"
+          ]
+        },
+        "connection_issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Qualit\u00e9 technique de la session"
+    },
+    "shared_documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "shared_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "shared_by": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Documents partag\u00e9s durant la session"
+    },
+    "consultation_notes": {
+      "type": "string",
+      "description": "Notes de consultation"
+    },
+    "prescription_generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "follow_up_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "patient_satisfaction": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Note de satisfaction patient (1-5)"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Raison d'annulation si applicable"
+    },
+    "hipaa_compliant": {
+      "type": "boolean",
+      "default": true,
+      "description": "Conformit\u00e9 HIPAA/RGPD"
+    },
+    "encryption_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Chiffrement end-to-end activ\u00e9"
+    }
+  },
+  "required": [
+    "patient_id",
+    "medecin_email",
+    "scheduled_start",
+    "video_room_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

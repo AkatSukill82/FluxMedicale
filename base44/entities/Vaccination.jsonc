@@ -1,0 +1,100 @@
+{
+  "name": "Vaccination",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "vaccine_name": {
+      "type": "string",
+      "description": "Nom du vaccin"
+    },
+    "vaccine_code": {
+      "type": "string",
+      "description": "Code du vaccin (ATC)"
+    },
+    "vaccine_type": {
+      "type": "string",
+      "enum": [
+        "COVID",
+        "GRIPPE",
+        "TETANOS",
+        "HEPATITE_B",
+        "PNEUMOCOQUE",
+        "HPV",
+        "AUTRE"
+      ],
+      "description": "Type de vaccin"
+    },
+    "vaccination_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de vaccination"
+    },
+    "lot_number": {
+      "type": "string",
+      "description": "Num\u00e9ro de lot"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'expiration"
+    },
+    "site": {
+      "type": "string",
+      "description": "Site d'injection"
+    },
+    "dose_number": {
+      "type": "number",
+      "description": "Num\u00e9ro de dose (1, 2, 3...)"
+    },
+    "next_dose_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date pr\u00e9vue prochaine dose"
+    },
+    "administered_by": {
+      "type": "string",
+      "description": "Email du m\u00e9decin"
+    },
+    "side_effects": {
+      "type": "string",
+      "description": "Effets secondaires observ\u00e9s"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "vaccine_name",
+    "vaccination_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

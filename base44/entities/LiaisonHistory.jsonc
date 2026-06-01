@@ -1,0 +1,45 @@
+{
+  "name": "LiaisonHistory",
+  "type": "object",
+  "properties": {
+    "liaison_id": {
+      "type": "string",
+      "description": "ID de la liaison concern\u00e9e"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "created",
+        "status_change",
+        "permissions_update",
+        "ehealth_toggle"
+      ],
+      "description": "Type d'action effectu\u00e9e"
+    },
+    "action_by_email": {
+      "type": "string",
+      "description": "Email de l'utilisateur ayant effectu\u00e9 l'action"
+    },
+    "action_by_name": {
+      "type": "string",
+      "description": "Nom de l'utilisateur"
+    },
+    "old_value": {
+      "type": "string",
+      "description": "Ancienne valeur (si applicable)"
+    },
+    "new_value": {
+      "type": "string",
+      "description": "Nouvelle valeur"
+    },
+    "details": {
+      "type": "string",
+      "description": "D\u00e9tails suppl\u00e9mentaires"
+    }
+  },
+  "required": [
+    "liaison_id",
+    "action_type",
+    "action_by_email"
+  ]
+}

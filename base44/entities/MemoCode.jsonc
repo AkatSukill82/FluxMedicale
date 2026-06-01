@@ -1,0 +1,47 @@
+{
+  "name": "MemoCode",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Code interne (ex: ADMIN-01, MAT-GANTS)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Libell\u00e9 du frais"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "FRAIS_ADMIN",
+        "MATERIEL",
+        "SUPPLEMENT",
+        "DIVERS"
+      ],
+      "default": "DIVERS",
+      "description": "Cat\u00e9gorie de frais"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Montant en centimes"
+    },
+    "vat_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Taux TVA en %"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "code",
+    "label",
+    "amount"
+  ]
+}

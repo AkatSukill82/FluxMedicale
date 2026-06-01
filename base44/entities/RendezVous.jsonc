@@ -1,0 +1,140 @@
+{
+  "name": "RendezVous",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient concern\u00e9"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du rendez-vous"
+    },
+    "heure_debut": {
+      "type": "string",
+      "description": "Heure de d\u00e9but (HH:MM)"
+    },
+    "heure_fin": {
+      "type": "string",
+      "description": "Heure de fin (HH:MM)"
+    },
+    "type_consultation": {
+      "type": "string",
+      "enum": [
+        "Consultation",
+        "Contr\u00f4le",
+        "Urgence",
+        "T\u00e9l\u00e9consultation",
+        "Vaccination",
+        "Bilan"
+      ],
+      "default": "Consultation"
+    },
+    "motif": {
+      "type": "string",
+      "description": "Motif de la consultation"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "Planifi\u00e9",
+        "Confirm\u00e9",
+        "En cours",
+        "Termin\u00e9",
+        "Annul\u00e9",
+        "Report"
+      ],
+      "default": "Planifi\u00e9"
+    },
+    "medecin_assigne": {
+      "type": "string",
+      "description": "Email du m\u00e9decin assign\u00e9"
+    },
+    "salle": {
+      "type": "string",
+      "description": "Salle ou cabinet de consultation"
+    },
+    "notes_rdv": {
+      "type": "string",
+      "description": "Notes sp\u00e9cifiques au rendez-vous"
+    },
+    "rappel_envoye": {
+      "type": "boolean",
+      "default": false,
+      "description": "Rappel envoy\u00e9 au patient"
+    },
+    "duree_estimee": {
+      "type": "number",
+      "description": "Dur\u00e9e estim\u00e9e en minutes",
+      "default": 30
+    },
+    "google_calendar_event_id": {
+      "type": "string",
+      "description": "ID de l'\u00e9v\u00e9nement Google Calendar synchronis\u00e9"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "interne",
+        "en_ligne",
+        "google_calendar"
+      ],
+      "default": "interne",
+      "description": "Source de la prise de RDV"
+    },
+    "patient_nom": {
+      "type": "string",
+      "description": "Nom du patient (pour RDV en ligne sans compte)"
+    },
+    "patient_prenom": {
+      "type": "string",
+      "description": "Pr\u00e9nom du patient (pour RDV en ligne)"
+    },
+    "patient_telephone": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone du patient (pour RDV en ligne)"
+    },
+    "patient_email": {
+      "type": "string",
+      "description": "Email du patient (pour RDV en ligne)"
+    }
+  },
+  "required": [
+    "date",
+    "heure_debut",
+    "type_consultation"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_assigne": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_assigne": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

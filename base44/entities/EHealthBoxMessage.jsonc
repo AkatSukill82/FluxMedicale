@@ -1,0 +1,142 @@
+{
+  "name": "EHealthBoxMessage",
+  "type": "object",
+  "properties": {
+    "message_id": {
+      "type": "string",
+      "description": "ID unique du message eHealthBox"
+    },
+    "sender": {
+      "type": "string",
+      "description": "Exp\u00e9diteur (NIHII ou organisation)"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Nom de l'exp\u00e9diteur"
+    },
+    "recipient": {
+      "type": "string",
+      "description": "Destinataire (NIHII m\u00e9decin)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Sujet du message"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "LAB_RESULT",
+        "RADIOLOGY",
+        "DISCHARGE_REPORT",
+        "REFERRAL",
+        "OTHER"
+      ],
+      "description": "Type de message m\u00e9dical"
+    },
+    "received_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu textuel du message"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string"
+          },
+          "content_type": {
+            "type": "string"
+          },
+          "file_url": {
+            "type": "string"
+          },
+          "is_dicom": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "patient_niss": {
+      "type": "string",
+      "description": "NISS du patient (si assign\u00e9)"
+    },
+    "assigned_to_patient_id": {
+      "type": "string",
+      "description": "ID patient dans notre syst\u00e8me"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "UNREAD",
+        "READ",
+        "ASSIGNED",
+        "ARCHIVED"
+      ],
+      "default": "UNREAD"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "NORMAL",
+        "HIGH",
+        "URGENT"
+      ],
+      "default": "NORMAL"
+    },
+    "opened_by": {
+      "type": "string",
+      "description": "Utilisateur ayant ouvert"
+    },
+    "opened_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assigned_by": {
+      "type": "string",
+      "description": "Utilisateur ayant assign\u00e9"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "message_id",
+    "sender",
+    "subject",
+    "received_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "name": "Stock",
+  "type": "object",
+  "properties": {
+    "product_name": {
+      "type": "string",
+      "description": "Nom du produit"
+    },
+    "product_type": {
+      "type": "string",
+      "enum": [
+        "medicament",
+        "fourniture",
+        "consommable",
+        "equipement"
+      ],
+      "default": "medicament"
+    },
+    "cnk": {
+      "type": "string",
+      "description": "Code CNK (m\u00e9dicaments)"
+    },
+    "reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence interne"
+    },
+    "category": {
+      "type": "string",
+      "description": "Cat\u00e9gorie (antibiotiques, antalgiques, pansements, etc.)"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantit\u00e9 en stock"
+    },
+    "unit": {
+      "type": "string",
+      "default": "unit\u00e9",
+      "description": "Unit\u00e9 (bo\u00eete, flacon, pi\u00e8ce, etc.)"
+    },
+    "min_quantity": {
+      "type": "number",
+      "default": 5,
+      "description": "Seuil d'alerte stock bas"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'expiration"
+    },
+    "lot_number": {
+      "type": "string",
+      "description": "Num\u00e9ro de lot"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Fournisseur"
+    },
+    "supplier_reference": {
+      "type": "string"
+    },
+    "purchase_price": {
+      "type": "number",
+      "description": "Prix d'achat HT"
+    },
+    "selling_price": {
+      "type": "number",
+      "description": "Prix de vente"
+    },
+    "location": {
+      "type": "string",
+      "description": "Emplacement de stockage"
+    },
+    "cabinet_id": {
+      "type": "string",
+      "description": "ID du cabinet"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "disponible",
+        "stock_bas",
+        "rupture",
+        "expire",
+        "bientot_expire"
+      ],
+      "default": "disponible"
+    },
+    "last_inventory_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_name",
+    "product_type",
+    "quantity"
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "PatientMessage",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string",
+      "description": "Plan de traitement li\u00e9 (optionnel)"
+    },
+    "sender_type": {
+      "type": "string",
+      "enum": [
+        "medecin",
+        "patient"
+      ],
+      "default": "medecin"
+    },
+    "sender_email": {
+      "type": "string"
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "suivi",
+        "question",
+        "resultat",
+        "rappel",
+        "urgence",
+        "general"
+      ],
+      "default": "general"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "normale",
+        "haute"
+      ],
+      "default": "normale"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false
+    },
+    "read_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "reply_to_id": {
+      "type": "string",
+      "description": "ID du message parent si r\u00e9ponse"
+    }
+  },
+  "required": [
+    "patient_id",
+    "sender_type",
+    "content"
+  ]
+}

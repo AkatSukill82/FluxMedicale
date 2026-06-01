@@ -1,0 +1,104 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "ID de la facture pay\u00e9e"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Montant pay\u00e9 en centimes"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "CARD",
+        "CASH",
+        "BANK_TRANSFER",
+        "INSURANCE",
+        "CREDIT_NOTE",
+        "DOMICILIATION",
+        "CHECK"
+      ],
+      "description": "Mode de paiement"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du paiement"
+    },
+    "reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence du paiement (n\u00b0 virement, etc.)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes sur le paiement"
+    },
+    "payment_type": {
+      "type": "string",
+      "enum": [
+        "FULL",
+        "PARTIAL",
+        "ADVANCE",
+        "REFUND"
+      ],
+      "default": "FULL",
+      "description": "Type de paiement"
+    },
+    "reconciled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Paiement rapproch\u00e9 avec facture"
+    },
+    "reconciled_by": {
+      "type": "string",
+      "description": "Email de qui a fait le rapprochement"
+    },
+    "reconciled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date du rapprochement"
+    },
+    "bank_statement_ref": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence du relev\u00e9 bancaire"
+    }
+  },
+  "required": [
+    "amount",
+    "payment_method",
+    "payment_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

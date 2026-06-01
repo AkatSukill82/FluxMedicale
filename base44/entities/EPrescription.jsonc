@@ -1,0 +1,156 @@
+{
+  "name": "EPrescription",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient"
+    },
+    "patient_niss": {
+      "type": "string",
+      "description": "NISS du patient"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin prescripteur"
+    },
+    "medecin_nom": {
+      "type": "string",
+      "description": "Nom du m\u00e9decin"
+    },
+    "medecin_inami": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI du m\u00e9decin"
+    },
+    "date_prescription": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de la prescription"
+    },
+    "date_validite_debut": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but de validit\u00e9"
+    },
+    "date_validite_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin de validit\u00e9"
+    },
+    "medicaments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nom": {
+            "type": "string"
+          },
+          "cnk": {
+            "type": "string"
+          },
+          "dci": {
+            "type": "string"
+          },
+          "dosage": {
+            "type": "string"
+          },
+          "forme": {
+            "type": "string"
+          },
+          "posologie": {
+            "type": "string"
+          },
+          "quantite": {
+            "type": "number"
+          },
+          "duree_jours": {
+            "type": "number"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "substitution_autorisee": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Liste des m\u00e9dicaments prescrits"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "brouillon",
+        "signe",
+        "envoye",
+        "delivre",
+        "annule",
+        "expire"
+      ],
+      "default": "brouillon",
+      "description": "Statut de la prescription"
+    },
+    "rid": {
+      "type": "string",
+      "description": "Recip-e ID unique"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Code-barres pour la pharmacie"
+    },
+    "signature_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de signature \u00e9lectronique"
+    },
+    "signature_hash": {
+      "type": "string",
+      "description": "Hash de signature"
+    },
+    "envoi_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'envoi"
+    },
+    "pharmacie_destinataire": {
+      "type": "string",
+      "description": "Pharmacie destinataire si sp\u00e9cifi\u00e9e"
+    },
+    "notes_pharmacien": {
+      "type": "string",
+      "description": "Instructions pour le pharmacien"
+    },
+    "type_prescription": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "chronique",
+        "urgence",
+        "hospitaliere"
+      ],
+      "default": "standard"
+    },
+    "renouvellement": {
+      "type": "object",
+      "properties": {
+        "autorise": {
+          "type": "boolean"
+        },
+        "nombre_max": {
+          "type": "number"
+        },
+        "intervalle_jours": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "patient_id",
+    "medecin_email",
+    "medicaments"
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "editor",
+        "user"
+      ],
+      "default": "user",
+      "description": "R\u00f4le: admin (acc\u00e8s complet), editor (acc\u00e8s clinique + \u00e9dition), user (lecture seule)"
+    },
+    "specialite": {
+      "type": "string",
+      "description": "Sp\u00e9cialit\u00e9 m\u00e9dicale"
+    },
+    "numero_inami": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI (Belgique)"
+    },
+    "telephone_cabinet": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone du cabinet"
+    },
+    "adresse_cabinet": {
+      "type": "string",
+      "description": "Adresse du cabinet m\u00e9dical"
+    },
+    "site_web": {
+      "type": "string",
+      "description": "Site web professionnel"
+    },
+    "iban": {
+      "type": "string",
+      "description": "IBAN pour facturation"
+    },
+    "bic": {
+      "type": "string",
+      "description": "BIC (optionnel)"
+    },
+    "mode_facturation_defaut": {
+      "type": "string",
+      "enum": [
+        "EATTEST",
+        "EFACT",
+        "PAPER"
+      ],
+      "default": "EATTEST",
+      "description": "Mode de facturation par d\u00e9faut"
+    },
+    "texte_facture": {
+      "type": "string",
+      "description": "Texte personnalis\u00e9 sur facture"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL du logo cabinet"
+    },
+    "notif_mycarenet": {
+      "type": "boolean",
+      "default": true,
+      "description": "Notifications MyCareNet"
+    },
+    "notif_oa_alerts": {
+      "type": "boolean",
+      "default": true,
+      "description": "Alertes retours OA"
+    },
+    "notif_appointments": {
+      "type": "boolean",
+      "default": true,
+      "description": "Rappels rendez-vous"
+    },
+    "mfa_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "2FA activ\u00e9e"
+    },
+    "horaires_consultation": {
+      "type": "string",
+      "description": "Horaires de consultation"
+    },
+    "langue_principale": {
+      "type": "string",
+      "enum": [
+        "Fran\u00e7ais",
+        "N\u00e9erlandais",
+        "Allemand"
+      ],
+      "default": "Fran\u00e7ais"
+    },
+    "notifications_email": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recevoir notifications par email"
+    },
+    "notifications_sms": {
+      "type": "boolean",
+      "default": false,
+      "description": "Recevoir notifications par SMS"
+    }
+  },
+  "required": [
+    "specialite",
+    "numero_inami",
+    "telephone_cabinet",
+    "adresse_cabinet"
+  ]
+}

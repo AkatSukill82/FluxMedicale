@@ -1,0 +1,140 @@
+{
+  "name": "Drug",
+  "type": "object",
+  "properties": {
+    "atc_code": {
+      "type": "string",
+      "description": "Code ATC (Anatomical Therapeutic Chemical)"
+    },
+    "sam_id": {
+      "type": "string",
+      "description": "Identifiant SAM (Samenstelling)"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Nom commercial du produit"
+    },
+    "substance_name": {
+      "type": "string",
+      "description": "Nom de la substance active (DCI)"
+    },
+    "form": {
+      "type": "string",
+      "description": "Forme gal\u00e9nique (comprim\u00e9, sirop, injection...)"
+    },
+    "strength": {
+      "type": "string",
+      "description": "Dosage (ex: 500)"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit\u00e9 de dosage (mg, g, UI...)"
+    },
+    "route": {
+      "type": "string",
+      "description": "Voie d'administration (orale, IV, IM...)"
+    },
+    "package_size": {
+      "type": "string",
+      "description": "Taille du conditionnement (ex: 30)"
+    },
+    "package_unit": {
+      "type": "string",
+      "description": "Unit\u00e9 conditionnement (comprim\u00e9s, ampoules...)"
+    },
+    "cnk": {
+      "type": "string",
+      "description": "Code CNK (Code National Kode)"
+    },
+    "lang": {
+      "type": "string",
+      "enum": [
+        "fr",
+        "nl",
+        "en"
+      ],
+      "default": "fr",
+      "description": "Langue des donn\u00e9es"
+    },
+    "interactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "drug_name": {
+            "type": "string",
+            "description": "Nom du m\u00e9dicament en interaction"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "MINOR",
+              "MODERATE",
+              "MAJOR",
+              "CONTRAINDICATED"
+            ],
+            "description": "S\u00e9v\u00e9rit\u00e9 de l'interaction"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description de l'interaction"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "Recommandation clinique"
+          }
+        }
+      },
+      "description": "Liste des interactions m\u00e9dicamenteuses"
+    },
+    "contraindications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Contre-indications principales"
+    },
+    "side_effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Effets secondaires fr\u00e9quents"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Mises en garde particuli\u00e8res"
+    },
+    "monography_json": {
+      "type": "object",
+      "description": "Monographie compl\u00e8te (indications, contre-indications, posologie...)"
+    },
+    "version": {
+      "type": "string",
+      "description": "Version du r\u00e9f\u00e9rentiel"
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": true,
+      "description": "Version active"
+    }
+  },
+  "required": [
+    "product_name"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

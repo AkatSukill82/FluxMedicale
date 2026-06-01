@@ -1,0 +1,137 @@
+{
+  "name": "RecurringInvoice",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "template_name": {
+      "type": "string",
+      "description": "Nom du mod\u00e8le de facturation r\u00e9currente"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "WEEKLY",
+        "MONTHLY",
+        "QUARTERLY",
+        "YEARLY"
+      ],
+      "description": "Fr\u00e9quence de facturation"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin (optionnelle)"
+    },
+    "next_invoice_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Prochaine date de facturation"
+    },
+    "invoice_lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nomenclature_code": {
+            "type": "string"
+          },
+          "nomenclature_label": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Lignes de facturation"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Montant total en centimes"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "CARD",
+        "BANK",
+        "DOMICILIATION"
+      ],
+      "description": "Mode de paiement par d\u00e9faut"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "PAUSED",
+        "CANCELLED",
+        "COMPLETED"
+      ],
+      "default": "ACTIVE",
+      "description": "Statut de la facturation r\u00e9currente"
+    },
+    "invoices_generated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des factures g\u00e9n\u00e9r\u00e9es"
+    },
+    "auto_send": {
+      "type": "boolean",
+      "default": true,
+      "description": "Envoi automatique des factures"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes internes"
+    }
+  },
+  "required": [
+    "patient_id",
+    "template_name",
+    "frequency",
+    "start_date",
+    "invoice_lines",
+    "total_amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

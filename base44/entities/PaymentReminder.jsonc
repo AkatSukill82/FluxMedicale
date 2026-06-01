@@ -1,0 +1,99 @@
+{
+  "name": "PaymentReminder",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "ID de la facture impay\u00e9e"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "reminder_type": {
+      "type": "string",
+      "enum": [
+        "FIRST_REMINDER",
+        "SECOND_REMINDER",
+        "FINAL_NOTICE"
+      ],
+      "description": "Type de relance"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date pr\u00e9vue d'envoi"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'envoi effective"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "SCHEDULED",
+        "SENT",
+        "CANCELLED"
+      ],
+      "default": "SCHEDULED",
+      "description": "Statut de la relance"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "ID du mod\u00e8le d'email utilis\u00e9"
+    },
+    "email_subject": {
+      "type": "string",
+      "description": "Objet de l'email"
+    },
+    "email_body": {
+      "type": "string",
+      "description": "Corps de l'email (HTML)"
+    },
+    "days_overdue": {
+      "type": "number",
+      "description": "Nombre de jours de retard"
+    },
+    "amount_due": {
+      "type": "number",
+      "description": "Montant d\u00fb en centimes"
+    },
+    "payment_link": {
+      "type": "string",
+      "description": "Lien de paiement en ligne"
+    }
+  },
+  "required": [
+    "invoice_id",
+    "patient_id",
+    "reminder_type",
+    "scheduled_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

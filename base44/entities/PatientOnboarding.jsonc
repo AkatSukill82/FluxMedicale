@@ -1,0 +1,344 @@
+{
+  "name": "PatientOnboarding",
+  "type": "object",
+  "properties": {
+    "patient_email": {
+      "type": "string",
+      "description": "Email du patient en cours d'onboarding"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "IN_PROGRESS",
+        "COMPLETED",
+        "ABANDONED",
+        "EXPIRED"
+      ],
+      "default": "IN_PROGRESS"
+    },
+    "current_step": {
+      "type": "number",
+      "default": 1,
+      "description": "\u00c9tape actuelle (1-5)"
+    },
+    "total_steps": {
+      "type": "number",
+      "default": 5
+    },
+    "steps_completed": {
+      "type": "object",
+      "properties": {
+        "demographic": {
+          "type": "boolean",
+          "default": false
+        },
+        "medical_history": {
+          "type": "boolean",
+          "default": false
+        },
+        "insurance": {
+          "type": "boolean",
+          "default": false
+        },
+        "consents": {
+          "type": "boolean",
+          "default": false
+        },
+        "verification": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "demographic_data": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "birth_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "niss": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "street": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "postal_code": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string",
+              "default": "BE"
+            }
+          }
+        },
+        "emergency_contact": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "relationship": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "medical_history_data": {
+      "type": "object",
+      "properties": {
+        "chronic_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allergies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "current_medications": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "previous_surgeries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "family_history": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lifestyle": {
+          "type": "object",
+          "properties": {
+            "smoking": {
+              "type": "boolean"
+            },
+            "alcohol": {
+              "type": "string"
+            },
+            "exercise": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "insurance_data": {
+      "type": "object",
+      "properties": {
+        "mutuelle_name": {
+          "type": "string"
+        },
+        "mutuelle_number": {
+          "type": "string"
+        },
+        "has_dmg": {
+          "type": "boolean"
+        },
+        "dmg_physician": {
+          "type": "string"
+        },
+        "special_rights": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "consents": {
+      "type": "object",
+      "properties": {
+        "gdpr_consent": {
+          "type": "object",
+          "properties": {
+            "accepted": {
+              "type": "boolean"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "ip_address": {
+              "type": "string"
+            }
+          }
+        },
+        "medical_data_sharing": {
+          "type": "object",
+          "properties": {
+            "accepted": {
+              "type": "boolean"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "teleconsultation_consent": {
+          "type": "object",
+          "properties": {
+            "accepted": {
+              "type": "boolean"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "hub_access_consent": {
+          "type": "object",
+          "properties": {
+            "accepted": {
+              "type": "boolean"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "eid_verified": {
+          "type": "boolean",
+          "default": false
+        },
+        "email_verified": {
+          "type": "boolean",
+          "default": false
+        },
+        "phone_verified": {
+          "type": "boolean",
+          "default": false
+        },
+        "insurance_verified": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "ai_assistance": {
+      "type": "object",
+      "properties": {
+        "prefilled_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "suggested_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "detected_inconsistencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "abandoned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "time_spent_seconds": {
+      "type": "number",
+      "description": "Temps total pass\u00e9 sur l'onboarding"
+    },
+    "created_patient_id": {
+      "type": "string",
+      "description": "ID du patient cr\u00e9\u00e9 apr\u00e8s validation"
+    },
+    "invitation_token": {
+      "type": "string",
+      "description": "Token unique d'invitation (\u00e0 usage unique)"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'expiration du processus d'onboarding"
+    }
+  },
+  "required": [
+    "patient_email",
+    "started_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "patient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "patient_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

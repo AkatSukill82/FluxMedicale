@@ -1,0 +1,44 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email de l'utilisateur ayant effectu\u00e9 l'action."
+    },
+    "action": {
+      "type": "string",
+      "description": "Description de l'action (ex: CREATION_RDV, MODIFICATION_PATIENT)."
+    },
+    "target_entity": {
+      "type": "string",
+      "description": "Nom de l'entit\u00e9 concern\u00e9e."
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID de l'enregistrement concern\u00e9."
+    },
+    "details": {
+      "type": "string",
+      "description": "D\u00e9tails suppl\u00e9mentaires sur l'action."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage de l'action."
+    }
+  },
+  "required": [
+    "user_email",
+    "action",
+    "timestamp"
+  ],
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

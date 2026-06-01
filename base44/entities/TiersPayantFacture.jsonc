@@ -1,0 +1,154 @@
+{
+  "name": "TiersPayantFacture",
+  "type": "object",
+  "properties": {
+    "numero_facture": {
+      "type": "string",
+      "description": "Num\u00e9ro unique de facture TP"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "patient_niss": {
+      "type": "string"
+    },
+    "invoice_id": {
+      "type": "string",
+      "description": "ID de la facture originale"
+    },
+    "mutuelle_code": {
+      "type": "string"
+    },
+    "mutuelle_nom": {
+      "type": "string"
+    },
+    "numero_affiliation": {
+      "type": "string"
+    },
+    "statut_assurabilite": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "bim",
+        "omnio",
+        "non_assure"
+      ],
+      "default": "standard"
+    },
+    "date_soins": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_facturation": {
+      "type": "string",
+      "format": "date"
+    },
+    "prestations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code_nomenclature": {
+            "type": "string"
+          },
+          "libelle": {
+            "type": "string"
+          },
+          "honoraire": {
+            "type": "number"
+          },
+          "remboursement_inami": {
+            "type": "number"
+          },
+          "ticket_moderateur": {
+            "type": "number"
+          },
+          "supplement": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "montant_total_honoraires": {
+      "type": "number"
+    },
+    "montant_remboursement_inami": {
+      "type": "number"
+    },
+    "montant_ticket_moderateur": {
+      "type": "number"
+    },
+    "montant_supplement": {
+      "type": "number"
+    },
+    "montant_a_recevoir_mutuelle": {
+      "type": "number"
+    },
+    "montant_patient": {
+      "type": "number"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "brouillon",
+        "envoyee",
+        "acceptee",
+        "payee",
+        "partielle",
+        "refusee",
+        "contestee"
+      ],
+      "default": "brouillon"
+    },
+    "date_envoi": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_reponse_mutuelle": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_paiement": {
+      "type": "string",
+      "format": "date"
+    },
+    "montant_paye": {
+      "type": "number"
+    },
+    "ecart_paiement": {
+      "type": "number",
+      "description": "Diff\u00e9rence entre attendu et re\u00e7u"
+    },
+    "motif_refus": {
+      "type": "string"
+    },
+    "code_erreur": {
+      "type": "string"
+    },
+    "reference_paiement": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "medecin_inami": {
+      "type": "string"
+    },
+    "lot_envoi_id": {
+      "type": "string",
+      "description": "ID du lot d'envoi group\u00e9"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "mutuelle_code",
+    "date_soins",
+    "montant_total_honoraires"
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "name": "MFADevice",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email de l'utilisateur"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "TOTP",
+        "ITSME",
+        "BACKUP_CODES"
+      ],
+      "description": "Type de dispositif MFA"
+    },
+    "device_name": {
+      "type": "string",
+      "description": "Nom du dispositif (ex: iPhone, Google Authenticator)"
+    },
+    "totp_secret_encrypted": {
+      "type": "string",
+      "description": "Secret TOTP chiffr\u00e9 (base32)"
+    },
+    "backup_codes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "used": {
+            "type": "boolean",
+            "default": false
+          },
+          "used_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Codes de secours \u00e0 usage unique"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "enrolled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_used_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trusted_devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "device_id": {
+            "type": "string"
+          },
+          "device_fingerprint": {
+            "type": "string"
+          },
+          "trusted_until": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Appareils de confiance (30 jours)"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "user_agent": {
+          "type": "string"
+        },
+        "ip_address": {
+          "type": "string"
+        },
+        "enrollment_method": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "user_email",
+    "device_type"
+  ]
+}

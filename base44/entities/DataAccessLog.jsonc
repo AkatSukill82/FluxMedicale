@@ -1,0 +1,80 @@
+{
+  "name": "DataAccessLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Utilisateur ayant acc\u00e9d\u00e9 aux donn\u00e9es"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient concern\u00e9"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "VIEW",
+        "CREATE",
+        "UPDATE",
+        "DELETE",
+        "EXPORT",
+        "PRINT"
+      ],
+      "description": "Type d'action effectu\u00e9e"
+    },
+    "resource_type": {
+      "type": "string",
+      "description": "Type de ressource (Consultation, Prescription, etc.)"
+    },
+    "resource_id": {
+      "type": "string",
+      "description": "ID de la ressource acc\u00e9d\u00e9e"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Adresse IP de l'utilisateur"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navigateur et syst\u00e8me"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage de l'acc\u00e8s"
+    },
+    "justification": {
+      "type": "string",
+      "description": "Justification de l'acc\u00e8s (si demand\u00e9e)"
+    },
+    "data_fields_accessed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Champs consult\u00e9s"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ID de session"
+    }
+  },
+  "required": [
+    "user_email",
+    "patient_id",
+    "action",
+    "timestamp"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "user"
+      }
+    }
+  }
+}

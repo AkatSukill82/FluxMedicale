@@ -1,0 +1,69 @@
+{
+  "name": "PrescriptionReminder",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "prescription_id": {
+      "type": "string",
+      "description": "ID de la prescription li\u00e9e (optionnel)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "renewal",
+        "medication_intake"
+      ],
+      "description": "Type: renouvellement ou prise de m\u00e9dicament"
+    },
+    "medication_name": {
+      "type": "string",
+      "description": "Nom du m\u00e9dicament"
+    },
+    "reminder_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du rappel"
+    },
+    "reminder_time": {
+      "type": "string",
+      "description": "Heure du rappel (HH:MM)"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "once",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "once",
+      "description": "Fr\u00e9quence du rappel"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes additionnelles"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "cancelled"
+      ],
+      "default": "active"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin"
+    }
+  },
+  "required": [
+    "patient_id",
+    "type",
+    "medication_name",
+    "reminder_date"
+  ]
+}

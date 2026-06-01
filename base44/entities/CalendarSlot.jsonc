@@ -1,0 +1,81 @@
+{
+  "name": "CalendarSlot",
+  "type": "object",
+  "properties": {
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin propri\u00e9taire du cr\u00e9neau."
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date et heure de d\u00e9but du cr\u00e9neau."
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date et heure de fin du cr\u00e9neau."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Consultation",
+        "Teleconsultation",
+        "Bloque"
+      ],
+      "default": "Consultation",
+      "description": "Type de cr\u00e9neau (disponible pour rdv ou bloqu\u00e9)."
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "Disponible",
+        "Reserve",
+        "Indisponible"
+      ],
+      "default": "Disponible",
+      "description": "Statut actuel du cr\u00e9neau."
+    },
+    "rendez_vous_id": {
+      "type": "string",
+      "description": "ID du rendez-vous si le cr\u00e9neau est r\u00e9serv\u00e9."
+    }
+  },
+  "required": [
+    "medecin_email",
+    "start_time",
+    "end_time"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "name": "TherapeuticGoal",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "hba1c",
+        "blood_pressure_systolic",
+        "blood_pressure_diastolic",
+        "ldl",
+        "hdl",
+        "weight",
+        "bmi",
+        "glycemia",
+        "custom"
+      ],
+      "description": "Type d'objectif"
+    },
+    "target_value": {
+      "type": "number",
+      "description": "Valeur cible"
+    },
+    "target_operator": {
+      "type": "string",
+      "enum": [
+        "<",
+        "<=",
+        ">",
+        ">=",
+        "=",
+        "between"
+      ],
+      "default": "<"
+    },
+    "target_value_max": {
+      "type": "number",
+      "description": "Valeur max (pour between)"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit\u00e9 de mesure"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre personnalis\u00e9"
+    },
+    "description": {
+      "type": "string"
+    },
+    "current_value": {
+      "type": "number",
+      "description": "Derni\u00e8re valeur mesur\u00e9e"
+    },
+    "last_measured_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "on_track",
+        "at_risk",
+        "off_track",
+        "achieved",
+        "pending"
+      ],
+      "default": "pending"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "medecin_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "goal_type",
+    "target_value"
+  ]
+}

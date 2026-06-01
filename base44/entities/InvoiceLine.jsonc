@@ -1,0 +1,48 @@
+{
+  "name": "InvoiceLine",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "ID de la facture"
+    },
+    "nomenclature_code": {
+      "type": "string",
+      "description": "Code RIZIV"
+    },
+    "nomenclature_label": {
+      "type": "string",
+      "description": "Libell\u00e9 de la prestation"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1
+    },
+    "unit_price": {
+      "type": "number",
+      "description": "Prix unitaire"
+    },
+    "modifiers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Modificateurs de nomenclature"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Montant total ligne"
+    },
+    "date_prestation": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "invoice_id",
+    "nomenclature_code",
+    "quantity",
+    "unit_price",
+    "amount"
+  ]
+}

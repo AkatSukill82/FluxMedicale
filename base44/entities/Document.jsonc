@@ -1,0 +1,189 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ATTESTATION",
+        "LETTER",
+        "LAB_ORDER",
+        "IMAGING_ORDER",
+        "EFORM",
+        "CERTIFICATE",
+        "PRESCRIPTION",
+        "REPORT"
+      ],
+      "description": "Type de document"
+    },
+    "subtype": {
+      "type": "string",
+      "description": "Sous-type sp\u00e9cifique (ex: IRM, CT, Incapacit\u00e9)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre du document"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "SIGNED",
+        "SENT",
+        "ACKNOWLEDGED",
+        "ARCHIVED"
+      ],
+      "default": "DRAFT"
+    },
+    "content_html": {
+      "type": "string",
+      "description": "Contenu HTML du document"
+    },
+    "file_ref_pdf": {
+      "type": "string",
+      "description": "URL du PDF g\u00e9n\u00e9r\u00e9"
+    },
+    "file_ref_xml": {
+      "type": "string",
+      "description": "URL du XML KMEHR/eForm si applicable"
+    },
+    "template_used": {
+      "type": "string",
+      "description": "Nom du template utilis\u00e9"
+    },
+    "signature": {
+      "type": "object",
+      "properties": {
+        "signed": {
+          "type": "boolean",
+          "default": false
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "ITSME",
+            "EID",
+            "MANUAL"
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "certificate_thumbprint": {
+          "type": "string"
+        },
+        "qes_compliant": {
+          "type": "boolean",
+          "description": "Signature \u00e9lectronique qualifi\u00e9e conforme eIDAS"
+        }
+      }
+    },
+    "recipient": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "nihii": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "ehealthbox_id": {
+          "type": "string"
+        }
+      }
+    },
+    "sent_via": {
+      "type": "string",
+      "enum": [
+        "EHEALTHBOX",
+        "MULTEMEDIATT",
+        "HUB",
+        "EMAIL",
+        "PRINT"
+      ],
+      "description": "Canal d'envoi"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "acknowledged_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "linked_consultation_id": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "variables_snapshot": {
+      "type": "object",
+      "description": "Snapshot des variables patient au moment de la cr\u00e9ation"
+    },
+    "ai_analysis": {
+      "type": "object",
+      "properties": {
+        "analyzed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "summary": {
+          "type": "string",
+          "description": "R\u00e9sum\u00e9 ex\u00e9cutif g\u00e9n\u00e9r\u00e9 par IA"
+        },
+        "extracted_data": {
+          "type": "object",
+          "description": "Donn\u00e9es structur\u00e9es extraites (diagnostics, m\u00e9dicaments, r\u00e9sultats)"
+        }
+      },
+      "description": "Analyse IA du document (pour documents externes)"
+    }
+  },
+  "required": [
+    "patient_id",
+    "type",
+    "title",
+    "created_by"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

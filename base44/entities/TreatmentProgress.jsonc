@@ -1,0 +1,80 @@
+{
+  "name": "TreatmentProgress",
+  "type": "object",
+  "properties": {
+    "plan_id": {
+      "type": "string",
+      "description": "ID du plan de traitement"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "measurement",
+        "milestone",
+        "note",
+        "symptom",
+        "side_effect",
+        "feedback"
+      ],
+      "default": "measurement"
+    },
+    "objective_id": {
+      "type": "string",
+      "description": "ID de l'objectif concern\u00e9 (optionnel)"
+    },
+    "step_id": {
+      "type": "string",
+      "description": "ID de l'\u00e9tape concern\u00e9e (optionnel)"
+    },
+    "value": {
+      "type": "string"
+    },
+    "numeric_value": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "mood": {
+      "type": "string",
+      "enum": [
+        "excellent",
+        "bien",
+        "moyen",
+        "difficile",
+        "tres_difficile"
+      ]
+    },
+    "adherence_score": {
+      "type": "number",
+      "description": "Score d'adh\u00e9rence 0-100"
+    },
+    "reported_by": {
+      "type": "string",
+      "enum": [
+        "patient",
+        "medecin"
+      ],
+      "default": "medecin"
+    },
+    "medecin_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_id",
+    "patient_id",
+    "date",
+    "type"
+  ]
+}

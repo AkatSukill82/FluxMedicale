@@ -1,0 +1,95 @@
+{
+  "name": "TeleconsultationMessage",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "ID de la session de t\u00e9l\u00e9consultation"
+    },
+    "sender_email": {
+      "type": "string",
+      "description": "Email de l'exp\u00e9diteur"
+    },
+    "sender_role": {
+      "type": "string",
+      "enum": [
+        "PATIENT",
+        "MEDECIN"
+      ],
+      "description": "R\u00f4le de l'exp\u00e9diteur"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "TEXT",
+        "FILE",
+        "SYSTEM",
+        "PRESCRIPTION",
+        "DOCUMENT"
+      ],
+      "default": "TEXT"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu du message"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL du fichier si applicable"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Nom du fichier"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage du message"
+    },
+    "read_by_patient": {
+      "type": "boolean",
+      "default": false
+    },
+    "read_by_medecin": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_encrypted": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "session_id",
+    "sender_email",
+    "sender_role",
+    "message_type",
+    "timestamp"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "sender_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "sender_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

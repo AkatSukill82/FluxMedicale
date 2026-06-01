@@ -1,0 +1,108 @@
+{
+  "name": "MedicalReport",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient concern\u00e9"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient pour affichage rapide"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "consultation",
+        "hospitalisation",
+        "chirurgie",
+        "specialiste",
+        "urgence",
+        "suivi",
+        "autre"
+      ],
+      "default": "consultation",
+      "description": "Type de rapport m\u00e9dical"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre du rapport"
+    },
+    "date_rapport": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du rapport"
+    },
+    "diagnostic": {
+      "type": "string",
+      "description": "Diagnostic m\u00e9dical"
+    },
+    "traitement": {
+      "type": "string",
+      "description": "Traitement prescrit ou recommand\u00e9"
+    },
+    "pronostic": {
+      "type": "string",
+      "description": "Pronostic m\u00e9dical"
+    },
+    "observations": {
+      "type": "string",
+      "description": "Observations cliniques"
+    },
+    "antecedents": {
+      "type": "string",
+      "description": "Ant\u00e9c\u00e9dents pertinents"
+    },
+    "examens_complementaires": {
+      "type": "string",
+      "description": "Examens compl\u00e9mentaires r\u00e9alis\u00e9s ou demand\u00e9s"
+    },
+    "conclusion": {
+      "type": "string",
+      "description": "Conclusion du rapport"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin r\u00e9dacteur"
+    },
+    "medecin_nom": {
+      "type": "string",
+      "description": "Nom du m\u00e9decin r\u00e9dacteur"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "brouillon",
+        "finalise",
+        "envoye"
+      ],
+      "default": "brouillon",
+      "description": "Statut du rapport"
+    },
+    "destinataire": {
+      "type": "string",
+      "description": "Destinataire du rapport (m\u00e9decin, sp\u00e9cialiste, etc.)"
+    },
+    "custom_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Champs personnalis\u00e9s additionnels"
+    }
+  },
+  "required": [
+    "patient_id",
+    "title",
+    "date_rapport",
+    "medecin_email"
+  ]
+}

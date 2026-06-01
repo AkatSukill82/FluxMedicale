@@ -1,0 +1,64 @@
+{
+  "name": "ExternalDoctor",
+  "type": "object",
+  "properties": {
+    "nihii": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI du m\u00e9decin"
+    },
+    "nom": {
+      "type": "string",
+      "description": "Nom de famille"
+    },
+    "prenom": {
+      "type": "string",
+      "description": "Pr\u00e9nom"
+    },
+    "specialite": {
+      "type": "string",
+      "description": "Sp\u00e9cialit\u00e9 m\u00e9dicale"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email professionnel"
+    },
+    "ehealthbox_id": {
+      "type": "string",
+      "description": "Identifiant eHealthBox"
+    },
+    "telephone": {
+      "type": "string"
+    },
+    "adresse": {
+      "type": "string"
+    },
+    "ville": {
+      "type": "string"
+    },
+    "code_postal": {
+      "type": "string"
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "nihii",
+    "nom",
+    "prenom"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "user"
+      }
+    }
+  }
+}

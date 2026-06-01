@@ -1,0 +1,139 @@
+{
+  "name": "SignatureRequest",
+  "type": "object",
+  "properties": {
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "prescription",
+        "certificat",
+        "sumehr",
+        "rapport",
+        "attestation",
+        "courrier"
+      ],
+      "description": "Type de document \u00e0 signer"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "ID du document source"
+    },
+    "document_title": {
+      "type": "string"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "signer_email": {
+      "type": "string",
+      "description": "Email du signataire"
+    },
+    "signer_nihii": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI du signataire"
+    },
+    "signature_method": {
+      "type": "string",
+      "enum": [
+        "eid",
+        "itsme",
+        "manual"
+      ],
+      "description": "M\u00e9thode de signature"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_progress",
+        "signed",
+        "rejected",
+        "expired"
+      ],
+      "default": "pending"
+    },
+    "signed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signature_hash": {
+      "type": "string",
+      "description": "Hash de la signature"
+    },
+    "signed_document_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "certificate_info": {
+      "type": "object",
+      "properties": {
+        "subject": {
+          "type": "string"
+        },
+        "issuer": {
+          "type": "string"
+        },
+        "serial_number": {
+          "type": "string"
+        },
+        "valid_from": {
+          "type": "string"
+        },
+        "valid_to": {
+          "type": "string"
+        }
+      }
+    },
+    "rejection_reason": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "document_type",
+    "document_title",
+    "signer_email",
+    "signature_method"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "signer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "signer_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

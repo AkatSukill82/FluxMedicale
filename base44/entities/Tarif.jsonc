@@ -1,0 +1,88 @@
+{
+  "name": "Tarif",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Code du tarif (nomenclature ou interne)"
+    },
+    "label": {
+      "type": "string",
+      "description": "Libell\u00e9 du tarif"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "CONSULTATION",
+        "ACTE_TECHNIQUE",
+        "FORFAIT",
+        "MATERIEL",
+        "AUTRE"
+      ],
+      "default": "CONSULTATION",
+      "description": "Cat\u00e9gorie de tarif"
+    },
+    "base_price": {
+      "type": "number",
+      "description": "Prix de base en centimes"
+    },
+    "insurance_price": {
+      "type": "number",
+      "description": "Prix convention assurance (centimes)"
+    },
+    "patient_share": {
+      "type": "number",
+      "description": "Part patient type (centimes)"
+    },
+    "vat_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Taux de TVA (%)"
+    },
+    "is_convention": {
+      "type": "boolean",
+      "default": true,
+      "description": "Tarif conventionn\u00e9"
+    },
+    "nomenclature_code": {
+      "type": "string",
+      "description": "Code nomenclature INAMI"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Dur\u00e9e estim\u00e9e en minutes"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "code",
+    "label",
+    "base_price"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

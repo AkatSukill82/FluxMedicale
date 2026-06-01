@@ -17,6 +17,7 @@ import Epidemiologie from '@/pages/Epidemiologie';
 import FormationContinue from '@/pages/FormationContinue';
 import IntegrationDoctolib from '@/pages/IntegrationDoctolib';
 import ChatInterne from '@/pages/ChatInterne';
+import ModelesConsultation from '@/pages/ModelesConsultation';
 
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -107,6 +108,11 @@ const AuthenticatedApp = () => {
       <Route path="/ChatInterne" element={
         <LayoutWrapper currentPageName="ChatInterne">
           <ChatInterne />
+        </LayoutWrapper>
+      } />
+      <Route path="/ModelesConsultation" element={
+        <LayoutWrapper currentPageName="ModelesConsultation">
+          <ModelesConsultation />
         </LayoutWrapper>
       } />
       <Route path="*" element={<PageNotFound />} />

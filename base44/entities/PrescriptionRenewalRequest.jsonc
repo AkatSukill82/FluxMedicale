@@ -1,0 +1,278 @@
+{
+  "name": "PrescriptionRenewalRequest",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "original_prescription_id": {
+      "type": "string",
+      "description": "ID de la prescription originale"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de la demande"
+    },
+    "requested_by": {
+      "type": "string",
+      "description": "Demand\u00e9 par (patient ou secr\u00e9taire)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "AI_REVIEWED",
+        "PHYSICIAN_REVIEW",
+        "APPROVED",
+        "DENIED",
+        "MODIFIED"
+      ],
+      "default": "PENDING"
+    },
+    "medications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nom_produit": {
+            "type": "string"
+          },
+          "posologie_actuelle": {
+            "type": "string"
+          },
+          "duree_demandee": {
+            "type": "string"
+          },
+          "stock_restant": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "M\u00e9dicaments \u00e0 renouveler"
+    },
+    "patient_history_check": {
+      "type": "object",
+      "properties": {
+        "last_prescription_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "adherence_score": {
+          "type": "number",
+          "description": "Score d'observance 0-100"
+        },
+        "previous_renewals_count": {
+          "type": "number"
+        },
+        "last_consultation_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "condition_stable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ai_analysis": {
+      "type": "object",
+      "properties": {
+        "eligibility_score": {
+          "type": "number",
+          "description": "Score d'\u00e9ligibilit\u00e9 au renouvellement automatique 0-100"
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        },
+        "drug_interactions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "interaction_type": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "MINOR",
+                  "MODERATE",
+                  "MAJOR",
+                  "CONTRAINDICATED"
+                ]
+              },
+              "drugs_involved": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "type": "string"
+              },
+              "recommendation": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "contraindications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "medication": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "alternatives_suggested": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "medication": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "benefits": {
+                "type": "string"
+              },
+              "considerations": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "requires_consultation": {
+          "type": "boolean",
+          "description": "Consultation physique requise?"
+        },
+        "red_flags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Alertes critiques"
+        },
+        "ai_recommendation": {
+          "type": "string",
+          "enum": [
+            "AUTO_APPROVE",
+            "PHYSICIAN_REVIEW",
+            "REQUIRE_CONSULTATION",
+            "DENY"
+          ],
+          "description": "Recommandation de l'IA"
+        },
+        "confidence_level": {
+          "type": "number",
+          "description": "Niveau de confiance IA 0-1"
+        }
+      }
+    },
+    "draft_prescription": {
+      "type": "object",
+      "description": "Brouillon d'ordonnance g\u00e9n\u00e9r\u00e9 automatiquement"
+    },
+    "physician_decision": {
+      "type": "object",
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": [
+            "APPROVED",
+            "APPROVED_MODIFIED",
+            "DENIED",
+            "REQUIRE_APPOINTMENT"
+          ]
+        },
+        "reviewed_by": {
+          "type": "string"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "modifications": {
+          "type": "string"
+        }
+      }
+    },
+    "final_prescription_id": {
+      "type": "string",
+      "description": "ID de la prescription finale si approuv\u00e9e"
+    },
+    "denial_reason": {
+      "type": "string",
+      "description": "Raison du refus"
+    },
+    "notification_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "NORMAL",
+        "HIGH",
+        "URGENT"
+      ],
+      "default": "NORMAL"
+    }
+  },
+  "required": [
+    "patient_id",
+    "requested_at",
+    "medications"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "requested_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "requested_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

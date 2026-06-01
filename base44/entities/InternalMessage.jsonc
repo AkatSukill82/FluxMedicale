@@ -1,0 +1,60 @@
+{
+  "name": "InternalMessage",
+  "type": "object",
+  "properties": {
+    "thread_id": {
+      "type": "string",
+      "description": "ID du fil de discussion"
+    },
+    "sender_email": {
+      "type": "string",
+      "description": "Email de l'exp\u00e9diteur"
+    },
+    "sender_name": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu du message"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "read_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des utilisateurs ayant lu le message"
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des utilisateurs mentionn\u00e9s"
+    }
+  },
+  "required": [
+    "thread_id",
+    "sender_email",
+    "content"
+  ]
+}

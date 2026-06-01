@@ -1,0 +1,189 @@
+{
+  "name": "TriageAssessment",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "teleconsultation_session_id": {
+      "type": "string",
+      "description": "Session de t\u00e9l\u00e9consultation associ\u00e9e"
+    },
+    "patient_inputs": {
+      "type": "object",
+      "properties": {
+        "chief_complaint": {
+          "type": "string",
+          "description": "Motif principal"
+        },
+        "symptoms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sympt\u00f4mes d\u00e9crits"
+        },
+        "duration": {
+          "type": "string",
+          "description": "Dur\u00e9e des sympt\u00f4mes"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "MILD",
+            "MODERATE",
+            "SEVERE"
+          ],
+          "description": "S\u00e9v\u00e9rit\u00e9 auto-\u00e9valu\u00e9e"
+        },
+        "additional_context": {
+          "type": "string"
+        }
+      }
+    },
+    "ai_triage": {
+      "type": "object",
+      "properties": {
+        "urgency_level": {
+          "type": "string",
+          "enum": [
+            "NON_URGENT",
+            "SEMI_URGENT",
+            "URGENT",
+            "EMERGENCY"
+          ],
+          "description": "Niveau d'urgence d\u00e9termin\u00e9 par IA"
+        },
+        "urgency_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Score d'urgence (0-100)"
+        },
+        "red_flags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "flag": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "WARNING",
+                  "CRITICAL"
+                ]
+              },
+              "recommendation": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Drapeaux rouges d\u00e9tect\u00e9s"
+        },
+        "differential_diagnoses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "probability": {
+                "type": "string"
+              },
+              "reasoning": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "Diagnostics diff\u00e9rentiels pr\u00e9liminaires"
+        },
+        "suggested_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Questions pertinentes \u00e0 poser"
+        },
+        "recommended_tests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Examens recommand\u00e9s"
+        },
+        "patient_preparation": {
+          "type": "string",
+          "description": "Instructions de pr\u00e9paration pour le patient"
+        }
+      }
+    },
+    "physician_override": {
+      "type": "object",
+      "properties": {
+        "urgency_adjusted": {
+          "type": "string",
+          "enum": [
+            "NON_URGENT",
+            "SEMI_URGENT",
+            "URGENT",
+            "EMERGENCY"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "adjusted_by": {
+          "type": "string"
+        },
+        "adjusted_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "assessed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date du triage"
+    },
+    "assessment_duration_seconds": {
+      "type": "number",
+      "description": "Temps pris pour le triage IA"
+    }
+  },
+  "required": [
+    "patient_id",
+    "patient_inputs",
+    "assessed_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

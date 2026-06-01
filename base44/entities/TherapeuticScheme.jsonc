@@ -1,0 +1,128 @@
+{
+  "name": "TherapeuticScheme",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom du sch\u00e9ma th\u00e9rapeutique"
+    },
+    "condition": {
+      "type": "string",
+      "description": "Pathologie ou condition m\u00e9dicale"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description du sch\u00e9ma"
+    },
+    "medications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "drug_id": {
+            "type": "string",
+            "description": "ID du m\u00e9dicament"
+          },
+          "drug_name": {
+            "type": "string",
+            "description": "Nom du m\u00e9dicament"
+          },
+          "dosage": {
+            "type": "string",
+            "description": "Dosage prescrit"
+          },
+          "frequency": {
+            "type": "string",
+            "description": "Fr\u00e9quence d'administration"
+          },
+          "duration": {
+            "type": "string",
+            "description": "Dur\u00e9e du traitement"
+          },
+          "instructions": {
+            "type": "string",
+            "description": "Instructions sp\u00e9cifiques"
+          },
+          "is_essential": {
+            "type": "boolean",
+            "default": true,
+            "description": "M\u00e9dicament essentiel au sch\u00e9ma"
+          }
+        }
+      },
+      "description": "Liste des m\u00e9dicaments du sch\u00e9ma"
+    },
+    "follow_up_schedule": {
+      "type": "string",
+      "description": "Calendrier de suivi recommand\u00e9"
+    },
+    "monitoring_parameters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Param\u00e8tres \u00e0 surveiller"
+    },
+    "is_template": {
+      "type": "boolean",
+      "default": true,
+      "description": "Sch\u00e9ma mod\u00e8le (non li\u00e9 \u00e0 un patient)"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "M\u00e9decin cr\u00e9ateur"
+    },
+    "is_shared": {
+      "type": "boolean",
+      "default": false,
+      "description": "Partag\u00e9 avec d'autres m\u00e9decins"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "CARDIOVASCULAR",
+        "DIABETES",
+        "HYPERTENSION",
+        "ASTHMA",
+        "COPD",
+        "DEPRESSION",
+        "PAIN",
+        "OTHER"
+      ],
+      "description": "Cat\u00e9gorie de la pathologie"
+    }
+  },
+  "required": [
+    "name",
+    "condition"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "is_shared": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

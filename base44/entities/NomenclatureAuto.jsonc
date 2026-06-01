@@ -1,0 +1,120 @@
+{
+  "name": "NomenclatureAuto",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Code nomenclature INAMI"
+    },
+    "description_fr": {
+      "type": "string"
+    },
+    "description_nl": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "consultation",
+        "visite",
+        "acte_technique",
+        "forfait",
+        "supplement",
+        "biologie",
+        "imagerie"
+      ],
+      "description": "Cat\u00e9gorie d'acte"
+    },
+    "specialty_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Codes sp\u00e9cialit\u00e9s autoris\u00e9es"
+    },
+    "base_fee": {
+      "type": "number",
+      "description": "Honoraire de base en centimes"
+    },
+    "patient_share": {
+      "type": "number",
+      "description": "Quote-part patient en centimes"
+    },
+    "patient_share_bim": {
+      "type": "number",
+      "description": "Quote-part patient BIM en centimes"
+    },
+    "insurance_fee": {
+      "type": "number",
+      "description": "Remboursement mutuelle en centimes"
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date"
+    },
+    "valid_to": {
+      "type": "string",
+      "format": "date"
+    },
+    "requires_dmg": {
+      "type": "boolean",
+      "default": false,
+      "description": "N\u00e9cessite DMG ouvert"
+    },
+    "requires_prescription": {
+      "type": "boolean",
+      "default": false
+    },
+    "max_per_day": {
+      "type": "number",
+      "description": "Maximum facturable par jour"
+    },
+    "max_per_year": {
+      "type": "number",
+      "description": "Maximum facturable par an"
+    },
+    "age_min": {
+      "type": "number",
+      "description": "\u00c2ge minimum patient"
+    },
+    "age_max": {
+      "type": "number",
+      "description": "\u00c2ge maximum patient"
+    },
+    "incompatible_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Codes non cumulables"
+    },
+    "requires_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Codes requis en combinaison"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Dur\u00e9e estim\u00e9e en minutes"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Mots-cl\u00e9s pour recherche"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "code",
+    "description_fr",
+    "category",
+    "base_fee"
+  ]
+}

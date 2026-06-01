@@ -1,0 +1,89 @@
+{
+  "name": "ClinicalNote",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "note_type": {
+      "type": "string",
+      "enum": [
+        "ANAMNESIS",
+        "EXAM",
+        "DIAGNOSIS",
+        "TREATMENT_PLAN",
+        "FOLLOW_UP",
+        "PHONE_CALL",
+        "OTHER"
+      ],
+      "description": "Type de note"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre de la note"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu de la note"
+    },
+    "consultation_id": {
+      "type": "string",
+      "description": "Consultation li\u00e9e"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags pour classification"
+    },
+    "is_confidential": {
+      "type": "boolean",
+      "default": false,
+      "description": "Note confidentielle"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs des fichiers attach\u00e9s"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "note_type",
+    "title",
+    "content"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

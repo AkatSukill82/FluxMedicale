@@ -1,0 +1,61 @@
+{
+  "name": "StockMovement",
+  "type": "object",
+  "properties": {
+    "stock_id": {
+      "type": "string",
+      "description": "ID du produit en stock"
+    },
+    "product_name": {
+      "type": "string"
+    },
+    "movement_type": {
+      "type": "string",
+      "enum": [
+        "entree",
+        "sortie",
+        "prescription",
+        "perte",
+        "ajustement",
+        "perime"
+      ],
+      "description": "Type de mouvement"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Quantit\u00e9 (positive ou n\u00e9gative)"
+    },
+    "quantity_before": {
+      "type": "number"
+    },
+    "quantity_after": {
+      "type": "number"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motif du mouvement"
+    },
+    "prescription_id": {
+      "type": "string",
+      "description": "ID prescription li\u00e9e (si applicable)"
+    },
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "order_id": {
+      "type": "string",
+      "description": "ID commande li\u00e9e (si entr\u00e9e)"
+    },
+    "user_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "stock_id",
+    "movement_type",
+    "quantity"
+  ]
+}

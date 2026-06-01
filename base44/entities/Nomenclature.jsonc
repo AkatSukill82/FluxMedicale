@@ -1,0 +1,76 @@
+{
+  "name": "Nomenclature",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "Code RIZIV/INAMI"
+    },
+    "label_fr": {
+      "type": "string",
+      "description": "Libell\u00e9 fran\u00e7ais"
+    },
+    "label_nl": {
+      "type": "string",
+      "description": "Libell\u00e9 n\u00e9erlandais"
+    },
+    "category": {
+      "type": "string",
+      "description": "Cat\u00e9gorie de prestation"
+    },
+    "base_price": {
+      "type": "number",
+      "description": "Tarif de base"
+    },
+    "allowed_profiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Profils INAMI autoris\u00e9s (m\u00e9decin g\u00e9n\u00e9raliste, cardiologue, etc.)"
+    },
+    "modifiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "price_impact": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "conditions": {
+      "type": "string",
+      "description": "Conditions d'application"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "code",
+    "label_fr",
+    "category",
+    "base_price"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

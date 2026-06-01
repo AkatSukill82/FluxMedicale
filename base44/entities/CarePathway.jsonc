@@ -1,0 +1,156 @@
+{
+  "name": "CarePathway",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nom du parcours (ex: Suivi Diab\u00e8te Type 2)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description du parcours"
+    },
+    "trigger_condition": {
+      "type": "string",
+      "enum": [
+        "diagnosis",
+        "medication",
+        "age_group",
+        "post_hospitalization",
+        "vaccination",
+        "lab_result",
+        "manual"
+      ],
+      "description": "Condition de d\u00e9clenchement"
+    },
+    "trigger_value": {
+      "type": "string",
+      "description": "Valeur du d\u00e9clencheur (ex: diab\u00e8te, metformine, >65)"
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "lab_order",
+              "consultation",
+              "vaccination",
+              "referral",
+              "reminder",
+              "document",
+              "education"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "delay_days": {
+            "type": "number",
+            "description": "Nombre de jours apr\u00e8s le d\u00e9clencheur ou l'\u00e9tape pr\u00e9c\u00e9dente"
+          },
+          "recurring": {
+            "type": "boolean",
+            "default": false
+          },
+          "recurring_interval_days": {
+            "type": "number",
+            "description": "Intervalle de r\u00e9currence en jours"
+          },
+          "auto_create_reminder": {
+            "type": "boolean",
+            "default": true
+          },
+          "nomenclature_code": {
+            "type": "string",
+            "description": "Code nomenclature associ\u00e9 si applicable"
+          },
+          "responsible": {
+            "type": "string",
+            "enum": [
+              "medecin",
+              "patient",
+              "secretaire",
+              "specialiste"
+            ],
+            "default": "medecin"
+          }
+        }
+      },
+      "description": "\u00c9tapes du parcours"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_template": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mod\u00e8le pr\u00e9d\u00e9fini par le syst\u00e8me"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "chronic",
+        "prevention",
+        "post_op",
+        "pediatric",
+        "geriatric",
+        "maternal",
+        "mental_health",
+        "custom"
+      ],
+      "default": "custom"
+    },
+    "target_population": {
+      "type": "string",
+      "description": "Description de la population cible"
+    },
+    "enrolled_patient_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "trigger_condition",
+    "steps"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "is_template": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

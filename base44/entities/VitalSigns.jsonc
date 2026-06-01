@@ -1,0 +1,68 @@
+{
+  "name": "VitalSigns",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "consultation_id": {
+      "type": "string",
+      "description": "Consultation associ\u00e9e"
+    },
+    "measured_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date et heure de la mesure"
+    },
+    "systolic_bp": {
+      "type": "number",
+      "description": "Pression art\u00e9rielle systolique (mmHg)"
+    },
+    "diastolic_bp": {
+      "type": "number",
+      "description": "Pression art\u00e9rielle diastolique (mmHg)"
+    },
+    "heart_rate": {
+      "type": "number",
+      "description": "Fr\u00e9quence cardiaque (bpm)"
+    },
+    "temperature": {
+      "type": "number",
+      "description": "Temp\u00e9rature corporelle (\u00b0C)"
+    },
+    "respiratory_rate": {
+      "type": "number",
+      "description": "Fr\u00e9quence respiratoire (/min)"
+    },
+    "oxygen_saturation": {
+      "type": "number",
+      "description": "Saturation en oxyg\u00e8ne (%)"
+    },
+    "weight": {
+      "type": "number",
+      "description": "Poids (kg)"
+    },
+    "height": {
+      "type": "number",
+      "description": "Taille (cm)"
+    },
+    "bmi": {
+      "type": "number",
+      "description": "IMC calcul\u00e9 automatiquement"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes sur les mesures"
+    },
+    "measured_by": {
+      "type": "string",
+      "description": "Professionnel ayant effectu\u00e9 les mesures"
+    }
+  },
+  "required": [
+    "patient_id",
+    "measured_at",
+    "measured_by"
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "recipient_email": {
+      "type": "string",
+      "description": "Email du destinataire"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "liaison_request",
+        "liaison_accepted",
+        "liaison_revoked",
+        "rdv_reminder",
+        "rdv_cancelled",
+        "rdv_confirmed",
+        "prescription_renewal",
+        "prescription_expiring",
+        "lab_result",
+        "lab_critical",
+        "vaccination_due",
+        "follow_up",
+        "message_received",
+        "document_ready",
+        "general"
+      ],
+      "description": "Type de notification"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high",
+        "urgent"
+      ],
+      "default": "normal",
+      "description": "Priorit\u00e9 de la notification"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre de la notification"
+    },
+    "message": {
+      "type": "string",
+      "description": "Contenu du message"
+    },
+    "link": {
+      "type": "string",
+      "description": "Lien vers la page concern\u00e9e"
+    },
+    "read": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notification lue ou non"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notification archiv\u00e9e"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "enum": [
+        "Patient",
+        "RendezVous",
+        "Prescription",
+        "LabResult",
+        "Vaccination",
+        "Consultation"
+      ],
+      "description": "Type d'entit\u00e9 li\u00e9e"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID de l'entit\u00e9 li\u00e9e"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient concern\u00e9"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient pour affichage rapide"
+    },
+    "email_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Email envoy\u00e9"
+    },
+    "email_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "action_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Action requise de l'utilisateur"
+    },
+    "action_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'expiration de la notification"
+    }
+  },
+  "required": [
+    "recipient_email",
+    "type",
+    "title",
+    "message"
+  ]
+}

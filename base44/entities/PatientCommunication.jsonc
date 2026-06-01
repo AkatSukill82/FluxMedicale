@@ -1,0 +1,88 @@
+{
+  "name": "PatientCommunication",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient pour affichage"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms"
+      ],
+      "description": "Type de communication"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "rappel_rdv",
+        "resultat",
+        "prescription",
+        "suivi",
+        "administratif",
+        "personnalise"
+      ],
+      "default": "personnalise",
+      "description": "Cat\u00e9gorie du message"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Sujet (pour email)"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenu du message"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email du destinataire"
+    },
+    "recipient_phone": {
+      "type": "string",
+      "description": "T\u00e9l\u00e9phone du destinataire"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "sent",
+        "delivered",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Statut d'envoi"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'envoi"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Message d'erreur si \u00e9chec"
+    },
+    "related_rdv_id": {
+      "type": "string",
+      "description": "ID du RDV associ\u00e9 (pour rappels)"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin exp\u00e9diteur"
+    },
+    "template_used": {
+      "type": "string",
+      "description": "Nom du template utilis\u00e9"
+    }
+  },
+  "required": [
+    "patient_id",
+    "type",
+    "content"
+  ]
+}

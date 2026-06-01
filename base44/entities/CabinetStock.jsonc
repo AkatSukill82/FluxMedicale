@@ -1,0 +1,71 @@
+{
+  "name": "CabinetStock",
+  "type": "object",
+  "properties": {
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "VACCINE",
+        "MEDICATION",
+        "MEDICAL_DEVICE",
+        "CONSUMABLE"
+      ],
+      "description": "Type d'article"
+    },
+    "name": {
+      "type": "string",
+      "description": "Nom de l'article"
+    },
+    "code": {
+      "type": "string",
+      "description": "Code produit (CNK pour m\u00e9dicaments)"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Quantit\u00e9 en stock"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit\u00e9 (doses, bo\u00eetes, unit\u00e9s, etc.)"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de p\u00e9remption"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Num\u00e9ro de lot"
+    },
+    "min_stock_level": {
+      "type": "number",
+      "description": "Niveau minimum de stock (alerte)"
+    },
+    "storage_location": {
+      "type": "string",
+      "description": "Emplacement de stockage"
+    },
+    "purchase_price": {
+      "type": "number",
+      "description": "Prix d'achat unitaire"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Fournisseur"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes additionnelles"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "item_type",
+    "name",
+    "quantity",
+    "unit"
+  ]
+}

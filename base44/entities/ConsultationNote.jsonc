@@ -1,0 +1,102 @@
+{
+  "name": "ConsultationNote",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "rendez_vous_id": {
+      "type": "string",
+      "description": "ID du rendez-vous associ\u00e9"
+    },
+    "date_consultation": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la consultation"
+    },
+    "medecin": {
+      "type": "string",
+      "description": "M\u00e9decin ayant effectu\u00e9 la consultation"
+    },
+    "motif_consultation": {
+      "type": "string",
+      "description": "Motif de la consultation"
+    },
+    "anamnese": {
+      "type": "string",
+      "description": "Anamn\u00e8se - histoire de la maladie"
+    },
+    "examen_clinique": {
+      "type": "string",
+      "description": "R\u00e9sultats de l'examen clinique"
+    },
+    "diagnostic": {
+      "type": "string",
+      "description": "Diagnostic pos\u00e9"
+    },
+    "traitement_prescrit": {
+      "type": "string",
+      "description": "Traitement prescrit"
+    },
+    "examens_demandes": {
+      "type": "string",
+      "description": "Examens compl\u00e9mentaires demand\u00e9s"
+    },
+    "notes_suivi": {
+      "type": "string",
+      "description": "Notes pour le suivi"
+    },
+    "prochain_rdv": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du prochain rendez-vous si pr\u00e9vu"
+    },
+    "confidentialite": {
+      "type": "string",
+      "enum": [
+        "Normal",
+        "Confidentiel",
+        "Tr\u00e8s confidentiel"
+      ],
+      "default": "Normal"
+    }
+  },
+  "required": [
+    "patient_id",
+    "date_consultation",
+    "medecin"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

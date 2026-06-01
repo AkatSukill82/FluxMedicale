@@ -1,0 +1,81 @@
+{
+  "name": "TimelineEvent",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "CONSULTATION",
+        "PRESCRIPTION",
+        "LAB_RESULT",
+        "IMAGING",
+        "DOCUMENT",
+        "HUB_ACCESS"
+      ],
+      "description": "Type d'\u00e9v\u00e9nement m\u00e9dical"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre de l'\u00e9v\u00e9nement"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description d\u00e9taill\u00e9e"
+    },
+    "source": {
+      "type": "string",
+      "description": "Source de l'\u00e9v\u00e9nement (notre syst\u00e8me, HUB, eHealthBox...)"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "ID dans le syst\u00e8me source"
+    },
+    "provider": {
+      "type": "string",
+      "description": "Prestataire responsable"
+    },
+    "category": {
+      "type": "string",
+      "description": "Cat\u00e9gorie m\u00e9dicale"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "is_confidential": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Utilisateur cr\u00e9ateur"
+    }
+  },
+  "required": [
+    "patient_id",
+    "event_type",
+    "event_date",
+    "title"
+  ]
+}

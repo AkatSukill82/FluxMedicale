@@ -1,0 +1,45 @@
+{
+  "name": "AnonymousEpiData",
+  "type": "object",
+  "properties": {
+    "age": {
+      "type": "number",
+      "description": "\u00c2ge du patient (anonyme)"
+    },
+    "sex": {
+      "type": "string",
+      "enum": [
+        "M",
+        "F",
+        "autre"
+      ],
+      "description": "Sexe du patient"
+    },
+    "symptoms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste des sympt\u00f4mes observ\u00e9s"
+    },
+    "diagnosis": {
+      "type": "string",
+      "description": "Diagnostic pos\u00e9 (anonyme)"
+    },
+    "consultation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de la consultation"
+    },
+    "region_code": {
+      "type": "string",
+      "description": "Code r\u00e9gion (optionnel, pour stats g\u00e9ographiques)"
+    }
+  },
+  "required": [
+    "age",
+    "sex",
+    "symptoms",
+    "consultation_date"
+  ]
+}

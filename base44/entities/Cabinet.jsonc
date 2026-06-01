@@ -1,0 +1,95 @@
+{
+  "name": "Cabinet",
+  "type": "object",
+  "properties": {
+    "nom": {
+      "type": "string",
+      "description": "Nom du cabinet"
+    },
+    "adresse": {
+      "type": "string"
+    },
+    "ville": {
+      "type": "string"
+    },
+    "code_postal": {
+      "type": "string"
+    },
+    "telephone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "nihii_cabinet": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI du cabinet"
+    },
+    "couleur": {
+      "type": "string",
+      "description": "Couleur d'identification dans l'agenda"
+    },
+    "horaires": {
+      "type": "object",
+      "properties": {
+        "lundi": {
+          "type": "string"
+        },
+        "mardi": {
+          "type": "string"
+        },
+        "mercredi": {
+          "type": "string"
+        },
+        "jeudi": {
+          "type": "string"
+        },
+        "vendredi": {
+          "type": "string"
+        },
+        "samedi": {
+          "type": "string"
+        },
+        "dimanche": {
+          "type": "string"
+        }
+      }
+    },
+    "medecins": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des m\u00e9decins pratiquant dans ce cabinet"
+    },
+    "est_principal": {
+      "type": "boolean",
+      "default": false
+    },
+    "actif": {
+      "type": "boolean",
+      "default": true
+    },
+    "parametres_facturation": {
+      "type": "object",
+      "properties": {
+        "compte_bancaire": {
+          "type": "string"
+        },
+        "tva_applicable": {
+          "type": "boolean",
+          "default": false
+        },
+        "numero_tva": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "required": [
+    "nom",
+    "adresse",
+    "ville"
+  ]
+}

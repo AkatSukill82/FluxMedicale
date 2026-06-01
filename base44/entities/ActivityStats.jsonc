@@ -1,0 +1,51 @@
+{
+  "name": "ActivityStats",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de l'activit\u00e9"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin"
+    },
+    "consultations_count": {
+      "type": "number",
+      "default": 0
+    },
+    "new_patients_count": {
+      "type": "number",
+      "default": 0
+    },
+    "prescriptions_count": {
+      "type": "number",
+      "default": 0
+    },
+    "documents_generated_count": {
+      "type": "number",
+      "default": 0
+    },
+    "mycarenet_transactions_count": {
+      "type": "number",
+      "default": 0
+    },
+    "revenue_estimated": {
+      "type": "number",
+      "description": "Revenu estim\u00e9 (\u20ac)"
+    },
+    "average_consultation_duration": {
+      "type": "number",
+      "description": "Dur\u00e9e moyenne de consultation (minutes)"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "date",
+    "medecin_email"
+  ]
+}

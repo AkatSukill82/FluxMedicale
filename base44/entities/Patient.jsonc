@@ -1,0 +1,334 @@
+{
+  "name": "Patient",
+  "type": "object",
+  "properties": {
+    "identifier": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "system": {
+            "type": "string",
+            "description": "URI du syst\u00e8me d'identification FHIR BE"
+          },
+          "value": {
+            "type": "string",
+            "description": "Valeur de l'identifiant (ex: NISS)"
+          }
+        }
+      },
+      "description": "Identifiants FHIR (SSIN, etc.)"
+    },
+    "name": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "use": {
+            "type": "string",
+            "enum": [
+              "official",
+              "usual",
+              "maiden"
+            ],
+            "description": "Usage du nom (FHIR)"
+          },
+          "family": {
+            "type": "string",
+            "description": "Nom de famille"
+          },
+          "given": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Pr\u00e9nom(s)"
+          }
+        }
+      },
+      "description": "Nom du patient (FHIR)"
+    },
+    "telecom": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "system": {
+            "type": "string",
+            "enum": [
+              "phone",
+              "email"
+            ],
+            "description": "Type de contact (FHIR)"
+          },
+          "value": {
+            "type": "string",
+            "description": "Valeur du contact"
+          },
+          "use": {
+            "type": "string",
+            "enum": [
+              "home",
+              "work",
+              "temp",
+              "old",
+              "mobile"
+            ],
+            "description": "Usage du contact"
+          }
+        }
+      },
+      "description": "Contacts (FHIR)"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "other",
+        "unknown"
+      ],
+      "description": "Sexe du patient (FHIR)"
+    },
+    "birthDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de naissance (FHIR)"
+    },
+    "address": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Rue et num\u00e9ro"
+          },
+          "city": {
+            "type": "string",
+            "description": "Ville"
+          },
+          "postalCode": {
+            "type": "string",
+            "description": "Code postal"
+          },
+          "country": {
+            "type": "string",
+            "default": "BE"
+          }
+        }
+      },
+      "description": "Adresse (FHIR)"
+    },
+    "insurance_regime": {
+      "type": "string",
+      "enum": [
+        "MUTUELLE_BE",
+        "RCAM",
+        "SNCB",
+        "CAAMI",
+        "OSSOM",
+        "ASSURANCE_PRIVEE",
+        "AUCUN"
+      ],
+      "default": "MUTUELLE_BE",
+      "description": "R\u00e9gime d'assurance du patient"
+    },
+    "insurance_status": {
+      "type": "string",
+      "enum": [
+        "ACTIF",
+        "SUSPENDU",
+        "EXPIRE",
+        "NON_VERIFIE",
+        "EN_ORDRE",
+        "PAS_EN_ORDRE"
+      ],
+      "default": "NON_VERIFIE",
+      "description": "Statut d'assurabilit\u00e9"
+    },
+    "insurance_verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de derni\u00e8re v\u00e9rification"
+    },
+    "insurance_details": {
+      "type": "object",
+      "properties": {
+        "rcam_number": {
+          "type": "string",
+          "description": "Num\u00e9ro personnel RCAM"
+        },
+        "rcam_category": {
+          "type": "string",
+          "description": "Cat\u00e9gorie RCAM (1, 2, 3)"
+        },
+        "sncb_number": {
+          "type": "string",
+          "description": "Num\u00e9ro HR Rail/SNCB"
+        },
+        "private_insurer": {
+          "type": "string",
+          "description": "Nom assureur priv\u00e9 (DKV, AG, etc.)"
+        },
+        "private_policy_number": {
+          "type": "string",
+          "description": "Num\u00e9ro de police"
+        },
+        "reimbursement_rate": {
+          "type": "number",
+          "description": "Taux de remboursement (%)"
+        }
+      }
+    },
+    "mutuelle": {
+      "type": "string",
+      "description": "Nom de la mutuelle"
+    },
+    "numero_mutuelle": {
+      "type": "string",
+      "description": "Num\u00e9ro d'affiliation"
+    },
+    "antecedents_medicaux": {
+      "type": "string",
+      "description": "Ant\u00e9c\u00e9dents m\u00e9dicaux"
+    },
+    "allergies": {
+      "type": "string",
+      "description": "Allergies connues"
+    },
+    "medicaments_actuels": {
+      "type": "string",
+      "description": "M\u00e9dicaments actuels"
+    },
+    "groupe_sanguin": {
+      "type": "string",
+      "description": "Groupe sanguin"
+    },
+    "notes_importantes": {
+      "type": "string",
+      "description": "Notes importantes"
+    },
+    "gdpr_consent": {
+      "type": "object",
+      "properties": {
+        "has_consented": {
+          "type": "boolean",
+          "default": false
+        },
+        "consent_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "consent_version": {
+          "type": "string",
+          "description": "Version du consentement"
+        },
+        "data_processing_consent": {
+          "type": "boolean",
+          "default": false
+        },
+        "data_sharing_consent": {
+          "type": "boolean",
+          "default": false
+        },
+        "revoked": {
+          "type": "boolean",
+          "default": false
+        },
+        "revoked_date": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "description": "Consentement RGPD"
+    },
+    "therapeutic_link": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "default": false
+        },
+        "medecin_email": {
+          "type": "string"
+        },
+        "medecin_nihii": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "method": {
+          "type": "string",
+          "enum": [
+            "eid",
+            "manual"
+          ]
+        }
+      },
+      "description": "Lien th\u00e9rapeutique"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "Actif",
+        "Inactif",
+        "D\u00e9c\u00e9d\u00e9"
+      ],
+      "default": "Actif"
+    },
+    "data_retention_until": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin de conservation des donn\u00e9es"
+    },
+    "last_accessed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Dernier acc\u00e8s au dossier"
+    },
+    "last_accessed_by": {
+      "type": "string",
+      "description": "Dernier utilisateur ayant acc\u00e9d\u00e9"
+    }
+  },
+  "required": [
+    "name",
+    "birthDate"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "MessageThread",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titre ou sujet du fil"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "group",
+        "patient"
+      ],
+      "default": "direct",
+      "description": "Type: direct (2 personnes), group (plusieurs), patient (li\u00e9 \u00e0 un patient)"
+    },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des participants"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient si discussion li\u00e9e \u00e0 un patient"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient pour affichage rapide"
+    },
+    "cabinet_id": {
+      "type": "string",
+      "description": "Cabinet concern\u00e9 (optionnel)"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_message_preview": {
+      "type": "string"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_urgent": {
+      "type": "boolean",
+      "default": false
+    },
+    "unread_count": {
+      "type": "object",
+      "description": "Compteur de messages non lus par utilisateur"
+    }
+  },
+  "required": [
+    "participants"
+  ]
+}

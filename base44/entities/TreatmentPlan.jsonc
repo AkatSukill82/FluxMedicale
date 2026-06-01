@@ -1,0 +1,175 @@
+{
+  "name": "TreatmentPlan",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre du plan de traitement"
+    },
+    "description": {
+      "type": "string"
+    },
+    "condition": {
+      "type": "string",
+      "description": "Pathologie ou condition trait\u00e9e"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "target_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "actual_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "actif",
+        "en_pause",
+        "termine",
+        "abandonne"
+      ],
+      "default": "actif"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "haute",
+        "moyenne",
+        "basse"
+      ],
+      "default": "moyenne"
+    },
+    "objectives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "target_value": {
+            "type": "string"
+          },
+          "current_value": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "en_cours",
+              "atteint",
+              "non_atteint",
+              "en_attente"
+            ]
+          },
+          "progress_percent": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "medication",
+              "lifestyle",
+              "appointment",
+              "exam",
+              "exercise",
+              "diet",
+              "other"
+            ]
+          },
+          "frequency": {
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "a_faire",
+              "en_cours",
+              "termine",
+              "annule"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "overall_progress": {
+      "type": "number",
+      "default": 0
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_review_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "patient_id",
+    "title",
+    "start_date"
+  ]
+}

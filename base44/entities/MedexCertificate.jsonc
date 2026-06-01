@@ -1,0 +1,140 @@
+{
+  "name": "MedexCertificate",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string"
+    },
+    "patient_niss": {
+      "type": "string"
+    },
+    "patient_nom": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "incapacite_travail",
+        "aptitude",
+        "accident_travail",
+        "maladie_professionnelle",
+        "reprise_travail"
+      ],
+      "default": "incapacite_travail"
+    },
+    "date_debut": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but d'incapacit\u00e9"
+    },
+    "date_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin pr\u00e9vue"
+    },
+    "date_reprise": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de reprise effective"
+    },
+    "prolongation": {
+      "type": "boolean",
+      "default": false,
+      "description": "Est une prolongation"
+    },
+    "certificat_precedent_id": {
+      "type": "string",
+      "description": "ID du certificat pr\u00e9c\u00e9dent si prolongation"
+    },
+    "motif_code": {
+      "type": "string",
+      "description": "Code diagnostic (pas envoy\u00e9 \u00e0 l'employeur)"
+    },
+    "motif_description": {
+      "type": "string",
+      "description": "Description m\u00e9dicale (confidentielle)"
+    },
+    "sortie_autorisee": {
+      "type": "boolean",
+      "default": true,
+      "description": "Patient autoris\u00e9 \u00e0 sortir"
+    },
+    "horaires_sortie": {
+      "type": "string",
+      "description": "Horaires de sortie autoris\u00e9s"
+    },
+    "reprise_progressive": {
+      "type": "boolean",
+      "default": false
+    },
+    "pourcentage_reprise": {
+      "type": "number",
+      "description": "Pourcentage de reprise si progressive"
+    },
+    "employeur_nom": {
+      "type": "string"
+    },
+    "employeur_adresse": {
+      "type": "string"
+    },
+    "mutuelle_code": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "medecin_nihii": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "signed",
+        "sent_employer",
+        "sent_mutuelle",
+        "validated",
+        "rejected"
+      ],
+      "default": "draft"
+    },
+    "signature_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signature_method": {
+      "type": "string",
+      "enum": [
+        "eid",
+        "itsme",
+        "manual"
+      ],
+      "description": "M\u00e9thode de signature"
+    },
+    "sent_employer_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_mutuelle_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "medex_reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence MEDEX si transmis \u00e9lectroniquement"
+    },
+    "pdf_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "type",
+    "date_debut",
+    "medecin_email"
+  ]
+}

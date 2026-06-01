@@ -1,0 +1,83 @@
+{
+  "name": "DMG",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_niss": {
+      "type": "string",
+      "description": "NISS du patient"
+    },
+    "medecin_dmg_nihii": {
+      "type": "string",
+      "description": "NIHII du m\u00e9decin DMG"
+    },
+    "medecin_dmg_nom": {
+      "type": "string",
+      "description": "Nom du m\u00e9decin DMG"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "ACTIF",
+        "EXPIRE",
+        "SUSPENDU",
+        "AUCUN"
+      ],
+      "description": "Statut du DMG"
+    },
+    "date_ouverture": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'ouverture du DMG"
+    },
+    "date_expiration": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'expiration"
+    },
+    "date_derniere_consultation": {
+      "type": "string",
+      "format": "date",
+      "description": "Derni\u00e8re consultation DMG"
+    },
+    "mutuelle_code": {
+      "type": "string",
+      "description": "Code OA du patient"
+    },
+    "conditions_dmg": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Conditions sp\u00e9ciales DMG"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID transaction MyCareNet"
+    },
+    "derniere_verification": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "M\u00e9decin ayant v\u00e9rifi\u00e9"
+    },
+    "can_open_dmg": {
+      "type": "boolean",
+      "description": "Le m\u00e9decin peut-il ouvrir un DMG pour ce patient"
+    },
+    "can_renew_dmg": {
+      "type": "boolean",
+      "description": "Le m\u00e9decin peut-il renouveler le DMG"
+    }
+  },
+  "required": [
+    "patient_id",
+    "patient_niss",
+    "statut"
+  ]
+}

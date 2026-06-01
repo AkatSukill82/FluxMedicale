@@ -1,0 +1,107 @@
+{
+  "name": "InvoiceBatch",
+  "type": "object",
+  "properties": {
+    "batch_number": {
+      "type": "string",
+      "description": "Num\u00e9ro d'envoi unique (ex: LOT-2026-0314-001)"
+    },
+    "oa_code": {
+      "type": "string",
+      "description": "Code OA de la mutuelle"
+    },
+    "oa_name": {
+      "type": "string",
+      "description": "Nom de la mutuelle"
+    },
+    "invoice_count": {
+      "type": "number",
+      "description": "Nombre de factures dans le lot"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Montant total en centimes"
+    },
+    "insurance_total": {
+      "type": "number",
+      "description": "Total part mutuelle en centimes"
+    },
+    "patient_total": {
+      "type": "number",
+      "description": "Total part patient en centimes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "SENDING",
+        "SENT",
+        "ACCEPTED",
+        "PARTIAL",
+        "REJECTED",
+        "ERROR"
+      ],
+      "default": "PENDING"
+    },
+    "invoice_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs des factures dans le lot"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto_logout",
+        "scheduled"
+      ],
+      "default": "manual",
+      "description": "Comment le lot a \u00e9t\u00e9 d\u00e9clench\u00e9"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "response_summary": {
+      "type": "string",
+      "description": "R\u00e9sum\u00e9 de la r\u00e9ponse MyCareNet"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "oa_code",
+    "oa_name",
+    "invoice_count",
+    "total_amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

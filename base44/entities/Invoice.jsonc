@@ -1,0 +1,263 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "Num\u00e9ro de facture unique"
+    },
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient pour affichage"
+    },
+    "provider_id": {
+      "type": "string",
+      "description": "INAMI du m\u00e9decin prestataire"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "EFACT",
+        "EATTEST",
+        "PAPER",
+        "STANDARD"
+      ],
+      "description": "Type de facturation"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "CARD",
+        "CASH",
+        "BANK",
+        "PAPER",
+        "DOMICILIATION",
+        "PAYCONIQ"
+      ],
+      "description": "Mode de paiement"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PENDING",
+        "NOT_SENT",
+        "SENT",
+        "ERROR",
+        "ERROR_CORRECTED",
+        "ACCEPTED",
+        "REJECTED",
+        "PARTIAL",
+        "PAID",
+        "CANCELLED",
+        "CREDIT_NOTE"
+      ],
+      "default": "PENDING"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "ID du lot d'envoi group\u00e9"
+    },
+    "oa_code": {
+      "type": "string",
+      "description": "Code organisme assureur"
+    },
+    "oa_name": {
+      "type": "string",
+      "description": "Nom de la mutuelle"
+    },
+    "oa_response": {
+      "type": "string",
+      "description": "R\u00e9ponse d\u00e9taill\u00e9e de l'OA"
+    },
+    "oa_error_code": {
+      "type": "string",
+      "description": "Code erreur OA si refus"
+    },
+    "invoice_lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "nomenclature_code": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_price": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "vat_rate": {
+            "type": "number"
+          },
+          "consultation_id": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lignes de facturation d\u00e9taill\u00e9es"
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Sous-total hors taxes (centimes)"
+    },
+    "vat_amount": {
+      "type": "number",
+      "description": "Montant TVA (centimes)"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Montant total TTC (centimes)"
+    },
+    "amount_paid": {
+      "type": "number",
+      "default": 0,
+      "description": "Montant d\u00e9j\u00e0 pay\u00e9 (centimes)"
+    },
+    "amount_due": {
+      "type": "number",
+      "description": "Montant restant d\u00fb (centimes)"
+    },
+    "patient_contribution": {
+      "type": "number",
+      "description": "Part patient"
+    },
+    "insurance_contribution": {
+      "type": "number",
+      "description": "Part mutuelle"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID transaction MyCareNet"
+    },
+    "receipt_pdf_url": {
+      "type": "string",
+      "description": "URL du re\u00e7u PDF"
+    },
+    "invoice_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'\u00e9ch\u00e9ance"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date d'envoi \u00e0 la mutuelle"
+    },
+    "recurring_invoice_id": {
+      "type": "string",
+      "description": "ID de la facture r\u00e9currente source"
+    },
+    "credit_note_for": {
+      "type": "string",
+      "description": "ID de la facture originale si avoir"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes internes"
+    },
+    "payment_terms": {
+      "type": "string",
+      "description": "Conditions de paiement"
+    },
+    "reminder_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Nombre de relances envoy\u00e9es"
+    },
+    "last_reminder_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "payconiq_reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence de paiement Payconiq/QR"
+    },
+    "stagiaire_email": {
+      "type": "string"
+    },
+    "stagiaire_nom": {
+      "type": "string"
+    },
+    "stagiaire_nihii": {
+      "type": "string"
+    },
+    "maitre_stage_email": {
+      "type": "string"
+    },
+    "maitre_stage_nom": {
+      "type": "string"
+    },
+    "maitre_stage_nihii": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "provider_id",
+    "type",
+    "payment_method",
+    "invoice_date",
+    "total_amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "stagiaire_email": "{{user.email}}"
+        },
+        {
+          "maitre_stage_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "stagiaire_email": "{{user.email}}"
+        },
+        {
+          "maitre_stage_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

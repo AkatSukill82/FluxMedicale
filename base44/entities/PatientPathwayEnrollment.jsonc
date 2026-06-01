@@ -1,0 +1,124 @@
+{
+  "name": "PatientPathwayEnrollment",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "pathway_id": {
+      "type": "string",
+      "description": "ID du parcours CarePathway"
+    },
+    "pathway_name": {
+      "type": "string",
+      "description": "Nom du parcours pour affichage"
+    },
+    "enrolled_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date d'inscription au parcours"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "completed",
+        "abandoned"
+      ],
+      "default": "active"
+    },
+    "current_step_index": {
+      "type": "number",
+      "default": 0,
+      "description": "Index de l'\u00e9tape courante"
+    },
+    "step_statuses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "scheduled",
+              "completed",
+              "skipped",
+              "overdue"
+            ]
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "completed_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "completion_percentage": {
+      "type": "number",
+      "default": 0
+    },
+    "next_action_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_action_description": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "pathway_id",
+    "pathway_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "name": "Prescription",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin prescripteur"
+    },
+    "date_prescription": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "medicaments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nom_produit": {
+            "type": "string"
+          },
+          "cnk": {
+            "type": "string"
+          },
+          "posologie": {
+            "type": "string"
+          },
+          "duree_traitement": {
+            "type": "string"
+          },
+          "quantite": {
+            "type": "number",
+            "default": 1
+          },
+          "instructions": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "nom_produit",
+          "posologie"
+        ]
+      }
+    },
+    "statut_recip_e": {
+      "type": "string",
+      "enum": [
+        "Brouillon",
+        "Envoy\u00e9",
+        "Valid\u00e9",
+        "D\u00e9livr\u00e9",
+        "Annul\u00e9",
+        "Erreur"
+      ],
+      "default": "Brouillon"
+    },
+    "recip_e_rid": {
+      "type": "string",
+      "description": "RID unique de la prescription Recip-e"
+    },
+    "recip_e_barcode": {
+      "type": "string",
+      "description": "Code-barres GS1-128 pour la prescription"
+    },
+    "recip_e_validity_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but de validit\u00e9"
+    },
+    "recip_e_validity_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin de validit\u00e9"
+    },
+    "recip_e_response": {
+      "type": "string",
+      "description": "R\u00e9ponse JSON de Recip-e"
+    },
+    "feedback_recip_e": {
+      "type": "string"
+    },
+    "tracking_status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "COMPLETED",
+        "DISCONTINUED",
+        "ON_HOLD",
+        "PENDING"
+      ],
+      "default": "ACTIVE"
+    },
+    "adherence_level": {
+      "type": "string",
+      "enum": [
+        "EXCELLENT",
+        "GOOD",
+        "MODERATE",
+        "POOR",
+        "UNKNOWN"
+      ],
+      "default": "UNKNOWN"
+    },
+    "adherence_notes": {
+      "type": "string"
+    },
+    "pdf_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL du PDF g\u00e9n\u00e9r\u00e9"
+    },
+    "pdf_generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "email_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "email_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "email_recipient": {
+      "type": "string",
+      "format": "email"
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "archived_in_patient_file": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Prescription r\u00e9currente pour traitement chronique"
+    },
+    "recurring_frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "bimonthly",
+        "quarterly",
+        "biannual",
+        "annual"
+      ],
+      "description": "Fr\u00e9quence de renouvellement"
+    },
+    "recurring_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin de la prescription r\u00e9currente"
+    },
+    "next_renewal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du prochain renouvellement"
+    },
+    "parent_prescription_id": {
+      "type": "string",
+      "description": "ID de la prescription parent (pour renouvellements)"
+    },
+    "renewal_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Nombre de renouvellements effectu\u00e9s"
+    },
+    "max_renewals": {
+      "type": "number",
+      "description": "Nombre maximum de renouvellements autoris\u00e9s"
+    },
+    "chronic_condition": {
+      "type": "string",
+      "description": "Pathologie chronique associ\u00e9e"
+    },
+    "renewal_reminder_sent": {
+      "type": "boolean",
+      "default": false
+    },
+    "renewal_reminder_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "patient_id",
+    "medecin_email",
+    "date_prescription",
+    "medicaments"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "user"
+      }
+    }
+  }
+}

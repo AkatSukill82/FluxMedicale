@@ -1,0 +1,311 @@
+{
+  "name": "Sumehr",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_niss": {
+      "type": "string",
+      "description": "NISS du patient"
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "description": "Num\u00e9ro de version du Sumehr"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "validated",
+        "published",
+        "outdated"
+      ],
+      "default": "draft"
+    },
+    "hub_target": {
+      "type": "string",
+      "enum": [
+        "RSW",
+        "VITALINK",
+        "COZO"
+      ],
+      "description": "Hub cible pour publication"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "hub_reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence du document sur le Hub"
+    },
+    "active_problems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "code_system": {
+            "type": "string",
+            "default": "ICD-10"
+          },
+          "description": {
+            "type": "string"
+          },
+          "since": {
+            "type": "string",
+            "format": "date"
+          },
+          "certainty": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "probable",
+              "suspected"
+            ]
+          }
+        }
+      }
+    },
+    "inactive_problems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "resolved_date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    },
+    "allergies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "substance": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "medication",
+              "food",
+              "environmental",
+              "other"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "mild",
+              "moderate",
+              "severe",
+              "life_threatening"
+            ]
+          },
+          "reaction": {
+            "type": "string"
+          },
+          "certainty": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "probable",
+              "suspected"
+            ]
+          }
+        }
+      }
+    },
+    "current_medications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "cnk": {
+            "type": "string"
+          },
+          "atc": {
+            "type": "string"
+          },
+          "posology": {
+            "type": "string"
+          },
+          "route": {
+            "type": "string"
+          },
+          "since": {
+            "type": "string",
+            "format": "date"
+          },
+          "prescriber": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "vaccinations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "lot": {
+            "type": "string"
+          },
+          "administrator": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "surgical_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "procedure": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "hospital": {
+            "type": "string"
+          },
+          "surgeon": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "social_history": {
+      "type": "object",
+      "properties": {
+        "smoking": {
+          "type": "string"
+        },
+        "alcohol": {
+          "type": "string"
+        },
+        "drugs": {
+          "type": "string"
+        },
+        "occupation": {
+          "type": "string"
+        },
+        "living_situation": {
+          "type": "string"
+        }
+      }
+    },
+    "family_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "relation": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          },
+          "age_onset": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "care_team": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nihii": {
+            "type": "string"
+          },
+          "specialty": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "author_nihii": {
+      "type": "string"
+    },
+    "kmehr_xml": {
+      "type": "string",
+      "description": "Export KMEHR XML g\u00e9n\u00e9r\u00e9"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "author_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "author_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

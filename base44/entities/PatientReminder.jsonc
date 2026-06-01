@@ -1,0 +1,102 @@
+{
+  "name": "PatientReminder",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "rdv",
+        "prescription",
+        "resultat",
+        "suivi",
+        "vaccination",
+        "custom"
+      ],
+      "description": "Type de rappel"
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "email",
+        "sms",
+        "both"
+      ],
+      "default": "email"
+    },
+    "titre": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "date_rappel": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "planifie",
+        "envoye",
+        "echec",
+        "annule"
+      ],
+      "default": "planifie"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "enum": [
+        "RendezVous",
+        "Prescription",
+        "LabResult",
+        "Vaccination"
+      ],
+      "description": "Type d'entit\u00e9 li\u00e9e"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "delai_avant_jours": {
+      "type": "number",
+      "description": "D\u00e9lai en jours avant l'\u00e9v\u00e9nement"
+    },
+    "recurrence": {
+      "type": "string",
+      "enum": [
+        "once",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "once"
+    },
+    "date_envoi": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "erreur_envoi": {
+      "type": "string"
+    },
+    "medecin_email": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "type",
+    "date_rappel"
+  ]
+}

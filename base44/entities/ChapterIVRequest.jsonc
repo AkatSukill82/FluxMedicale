@@ -1,0 +1,189 @@
+{
+  "name": "ChapterIVRequest",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_niss": {
+      "type": "string",
+      "description": "NISS du patient"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "medication",
+        "ambulatory",
+        "device"
+      ],
+      "default": "medication",
+      "description": "Type de demande (m\u00e9dicament, soins ambulatoires, dispositif)"
+    },
+    "medication_cnk": {
+      "type": "string",
+      "description": "Code CNK du m\u00e9dicament"
+    },
+    "medication_name": {
+      "type": "string",
+      "description": "Nom du m\u00e9dicament"
+    },
+    "paragraph": {
+      "type": "string",
+      "description": "Num\u00e9ro du paragraphe Chapitre IV"
+    },
+    "diagnosis_code": {
+      "type": "string",
+      "description": "Code ICD-10 du diagnostic"
+    },
+    "diagnosis_description": {
+      "type": "string",
+      "description": "Description du diagnostic"
+    },
+    "justification": {
+      "type": "string",
+      "description": "Justification m\u00e9dicale de la demande"
+    },
+    "prescriber_nihii": {
+      "type": "string",
+      "description": "NIHII du prescripteur"
+    },
+    "prescriber_email": {
+      "type": "string",
+      "description": "Email du prescripteur"
+    },
+    "duration_requested": {
+      "type": "number",
+      "default": 12,
+      "description": "Dur\u00e9e demand\u00e9e en mois"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PENDING",
+        "SUBMITTED",
+        "APPROVED",
+        "REJECTED",
+        "EXPIRED",
+        "CANCELLED"
+      ],
+      "default": "DRAFT",
+      "description": "Statut de la demande"
+    },
+    "mycarenet_reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence MyCareNet de la demande"
+    },
+    "oa_code": {
+      "type": "string",
+      "description": "Code de l'organisme assureur"
+    },
+    "oa_name": {
+      "type": "string",
+      "description": "Nom de l'organisme assureur"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de soumission"
+    },
+    "response_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date de r\u00e9ponse du m\u00e9decin-conseil"
+    },
+    "response_message": {
+      "type": "string",
+      "description": "Message de r\u00e9ponse"
+    },
+    "approval_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but de l'accord"
+    },
+    "approval_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin de l'accord"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Motif de refus si rejet\u00e9"
+    },
+    "rejection_code": {
+      "type": "string",
+      "description": "Code du motif de refus"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Pi\u00e8ces jointes (rapports, examens)"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Motif d'annulation"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancelled_by": {
+      "type": "string"
+    },
+    "renewal_of": {
+      "type": "string",
+      "description": "ID de la demande pr\u00e9c\u00e9dente si renouvellement"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "description": "Rappel de renouvellement envoy\u00e9"
+    }
+  },
+  "required": [
+    "patient_id",
+    "patient_niss",
+    "paragraph",
+    "prescriber_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "prescriber_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "prescriber_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

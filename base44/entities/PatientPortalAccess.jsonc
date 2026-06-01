@@ -1,0 +1,64 @@
+{
+  "name": "PatientPortalAccess",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "patient_email": {
+      "type": "string",
+      "description": "Email du patient pour le portail"
+    },
+    "patient_name": {
+      "type": "string",
+      "description": "Nom du patient"
+    },
+    "access_code": {
+      "type": "string",
+      "description": "Code d'acc\u00e8s unique"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_login": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "view_appointments": {
+          "type": "boolean",
+          "default": true
+        },
+        "view_prescriptions": {
+          "type": "boolean",
+          "default": true
+        },
+        "view_lab_results": {
+          "type": "boolean",
+          "default": true
+        },
+        "send_messages": {
+          "type": "boolean",
+          "default": true
+        },
+        "book_appointments": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin traitant"
+    }
+  },
+  "required": [
+    "patient_id",
+    "patient_email",
+    "medecin_email"
+  ]
+}

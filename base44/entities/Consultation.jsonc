@@ -1,0 +1,83 @@
+{
+  "name": "Consultation",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient concern\u00e9."
+    },
+    "rendez_vous_id": {
+      "type": "string",
+      "description": "ID du rendez-vous associ\u00e9 (optionnel)."
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin responsable."
+    },
+    "date_consultation": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date et heure de la consultation."
+    },
+    "motif": {
+      "type": "string",
+      "description": "Motif de la consultation."
+    },
+    "anamnese": {
+      "type": "string",
+      "description": "Anamn\u00e8se et histoire de la maladie."
+    },
+    "examen_clinique": {
+      "type": "string",
+      "description": "R\u00e9sultats de l'examen clinique."
+    },
+    "diagnostic": {
+      "type": "string",
+      "description": "Diagnostic(s) pos\u00e9(s)."
+    },
+    "prescriptions": {
+      "type": "string",
+      "description": "Traitements et prescriptions."
+    },
+    "fichiers_joints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      },
+      "description": "Liste des URLs des fichiers joints."
+    },
+    "statut": {
+      "type": "string",
+      "enum": [
+        "Brouillon",
+        "Completee",
+        "Verrouillee"
+      ],
+      "default": "Brouillon",
+      "description": "Statut de la note de consultation."
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "description": "Num\u00e9ro de version de la note."
+    },
+    "last_updated_by": {
+      "type": "string",
+      "description": "Email de l'utilisateur ayant fait la derni\u00e8re modification."
+    }
+  },
+  "required": [
+    "patient_id",
+    "medecin_email",
+    "date_consultation"
+  ],
+  "rls": {
+    "read": {
+      "created_by": "{{user.email}}"
+    },
+    "write": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "name": "CabinetConfig",
+  "type": "object",
+  "properties": {
+    "cabinet_name": {
+      "type": "string",
+      "description": "Nom du cabinet"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL du logo"
+    },
+    "stamp_url": {
+      "type": "string",
+      "description": "URL du tampon/cachet"
+    },
+    "signature_url": {
+      "type": "string",
+      "description": "URL de la signature"
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postal_code": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string",
+          "default": "BE"
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "phone": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "website": {
+          "type": "string"
+        }
+      }
+    },
+    "inami_number": {
+      "type": "string",
+      "description": "Num\u00e9ro INAMI du cabinet"
+    },
+    "document_footer": {
+      "type": "string",
+      "description": "Pied de page documents"
+    },
+    "brand_colors": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "user"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}

@@ -1,0 +1,134 @@
+{
+  "name": "PatientDocument",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "description": "ID du patient"
+    },
+    "consultation_id": {
+      "type": "string",
+      "description": "ID de la consultation associ\u00e9e (optionnel)"
+    },
+    "file_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL du fichier upload\u00e9"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Nom original du fichier"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "Type MIME du fichier"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Taille du fichier en octets"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "resultat_labo",
+        "radiographie",
+        "scanner",
+        "irm",
+        "echographie",
+        "ecg",
+        "compte_rendu",
+        "ordonnance",
+        "courrier",
+        "certificat",
+        "facture",
+        "autre"
+      ],
+      "default": "autre",
+      "description": "Type de document m\u00e9dical"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre du document"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description du document"
+    },
+    "document_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date du document"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags pour la recherche"
+    },
+    "medecin_email": {
+      "type": "string",
+      "description": "Email du m\u00e9decin qui a upload\u00e9"
+    },
+    "is_confidential": {
+      "type": "boolean",
+      "default": false,
+      "description": "Document confidentiel (acc\u00e8s restreint)"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "upload",
+        "scan",
+        "email",
+        "ehealthbox",
+        "labo",
+        "autre"
+      ],
+      "default": "upload",
+      "description": "Source du document"
+    },
+    "external_reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence externe (n\u00b0 labo, etc.)"
+    }
+  },
+  "required": [
+    "patient_id",
+    "file_url",
+    "file_name",
+    "document_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
