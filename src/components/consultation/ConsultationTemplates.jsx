@@ -20,7 +20,9 @@ import {
   Stethoscope
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { DEFAULT_TEMPLATES } from './consultationTemplateData';
+import { DEFAULT_CONSULTATION_TEMPLATES } from '@/components/consultation-templates/defaultTemplates';
+
+const DEFAULT_TEMPLATES = DEFAULT_CONSULTATION_TEMPLATES;
 
 export default function ConsultationTemplates({ isOpen, onClose, onSelectTemplate }) {
   const queryClient = useQueryClient();

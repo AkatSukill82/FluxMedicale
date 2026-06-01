@@ -175,8 +175,8 @@ export default function AppShell({ children, currentPageName }) {
         { title: 'Épidémiologie', path: 'Epidemiologie', icon: Microscope },
         { title: 'Formation', path: 'FormationContinue', icon: GraduationCap },
         { title: 'Doctolib/Doctena', path: 'IntegrationDoctolib', icon: ArrowLeftRight },
-        { title: 'Modèles Consult.', path: 'ModelesConsultation', icon: ClipboardList },
         { title: 'Chat Interne', path: 'ChatInterne', icon: MessageCircle },
+        { title: 'Modèles Consultation', path: 'ModelesConsultation', icon: ClipboardList },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
         { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];
