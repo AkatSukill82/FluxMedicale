@@ -12,11 +12,9 @@ export const eidAgentService = {
 
   // Démarrer la connexion WebSocket vers l'agent local
   async connect() {
-    console.log('[eID Agent] Tentative de connexion à ws://127.0.0.1:27272/events');
 
     // Vérifier si déjà connecté
     if (this.isConnected && this.ws && this.ws.readyState === WebSocket.OPEN) {
-      console.log('[eID Agent] Déjà connecté');
       return;
     }
 
@@ -25,7 +23,6 @@ export const eidAgentService = {
       this.ws = new WebSocket('ws://127.0.0.1:27272/events');
 
       this.ws.onopen = () => {
-        console.log('[eID Agent] ✅ Connecté à l\'agent local');
         this.isConnected = true;
         this.reconnectAttempts = 0;
         this.notifyListeners({ type: 'AGENT_CONNECTED' });
@@ -37,13 +34,11 @@ export const eidAgentService = {
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('[eID Agent] 📨 Événement reçu:', data);
 
           // Debounce pour éviter doubles lectures
           if (data.type === 'card_inserted') {
             const now = Date.now();
             if (now - this.lastReadTimestamp < this.DEBOUNCE_MS) {
-              console.log('[eID Agent] ⏭️  Lecture ignorée (debounce)');
               return;
             }
             this.lastReadTimestamp = now;
@@ -56,12 +51,10 @@ export const eidAgentService = {
       };
 
       this.ws.onerror = (error) => {
-        console.log('[eID Agent] ⚠️  Erreur WebSocket - Service local non disponible');
         this.isConnected = false;
       };
 
       this.ws.onclose = (event) => {
-        console.log('[eID Agent] 🔌 Déconnecté (code:', event.code, ')');
         this.isConnected = false;
         this.ws = null;
         this.stopStatusCheck();
@@ -71,13 +64,11 @@ export const eidAgentService = {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // Backoff exponentiel max 30s
-          console.log(`[eID Agent] 🔄 Tentative de reconnexion ${this.reconnectAttempts}/${this.maxReconnectAttempts} dans ${delay}ms`);
           
           this.reconnectTimeout = setTimeout(() => {
             this.connect();
           }, delay);
         } else {
-          console.log('[eID Agent] ❌ Nombre max de tentatives atteint');
           this.notifyListeners({ 
             type: 'AGENT_ERROR',
             message: 'Agent local non disponible - Veuillez vérifier l\'installation'
@@ -86,7 +77,6 @@ export const eidAgentService = {
       };
 
     } catch (error) {
-      console.log('[eID Agent] ❌ Service local non accessible');
       this.isConnected = false;
       this.notifyListeners({ 
         type: 'AGENT_ERROR',
@@ -109,7 +99,6 @@ export const eidAgentService = {
 
       if (response.ok) {
         const status = await response.json();
-        console.log('[eID Agent] 📊 Statut:', status);
         return {
           isRunning: true,
           isConnected: status.ok,
@@ -120,9 +109,7 @@ export const eidAgentService = {
       }
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.log('[eID Agent] ⏱️  Timeout vérification statut');
       } else {
-        console.log('[eID Agent] ❌ Agent local non détecté');
       }
     }
 
@@ -144,7 +131,6 @@ export const eidAgentService = {
     this.statusCheckInterval = setInterval(async () => {
       const status = await this.checkStatus();
       if (!status.isRunning && this.isConnected) {
-        console.log('[eID Agent] ⚠️  Agent arrêté - déconnexion');
         this.disconnect();
       }
     }, 30000); // Check toutes les 30s
@@ -158,16 +144,27 @@ export const eidAgentService = {
     }
   },
 
-  // Récupérer la dernière carte lue
+  // Récupérer les données de la dernière carte lue via l'agent eID Viewer local
+  // Retourne les données publiques (NISS, nom, prénom, date naissance, adresse) sans PIN
   async getLastCard() {
     try {
-      const response = await fetch('http://127.0.0.1:27272/last-card');
+      const response = await fetch('http://127.0.0.1:27272/last-card', {
+        signal: AbortSignal.timeout(5000),
+      });
       if (response.ok) {
         const data = await response.json();
-        return data;
+        // Normaliser le format vers le format attendu par useEIDReader
+        return {
+          nationalNumber: data.nationalNumber || data.national_number || data.niss || null,
+          firstName:      data.firstName      || data.first_name      || data.prenom || null,
+          lastName:       data.lastName       || data.last_name       || data.nom    || null,
+          birthDate:      data.birthDate      || data.birth_date      || data.dateNaissance || null,
+          gender:         data.gender         || data.sexe            || null,
+          address:        data.address        || null,
+        };
       }
-    } catch (error) {
-      console.log('[eID Agent] Erreur récupération dernière carte:', error);
+    } catch {
+      // Agent non disponible ou timeout — silencieux, l'appelant gère le fallback
     }
     return null;
   },
@@ -179,11 +176,9 @@ export const eidAgentService = {
         method: 'POST'
       });
       if (response.ok) {
-        console.log('[eID Agent] 🧪 Simulation insertion déclenchée');
         return true;
       }
     } catch (error) {
-      console.log('[eID Agent] Erreur simulation:', error);
     }
     return false;
   },
@@ -221,7 +216,6 @@ export const eidAgentService = {
     
     this.isConnected = false;
     this.reconnectAttempts = 0;
-    console.log('[eID Agent] 🔌 Déconnexion propre');
   },
 
   // Réinitialiser les tentatives de reconnexion

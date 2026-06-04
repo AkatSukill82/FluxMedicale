@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { eidDetectionService } from './eidDetectionService';
+import { eidAgentService } from './eidAgentService';
 import { webEidService } from './webEidService';
 import { nissValidator } from './nissValidator';
 import { useI18n } from '../i18n/i18nContext';
@@ -59,13 +60,23 @@ export const useEIDReader = () => {
     const response = await fetch('http://localhost:35963/v1/card-data', {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(15000)
+      signal: AbortSignal.timeout(15000),
     });
-
-    if (!response.ok) {
-      throw new Error('e-Contract API failed');
-    }
+    if (!response.ok) throw new Error(`e-Contract réponse HTTP ${response.status}`);
     return await response.json();
+  }, []);
+
+  // Lire via l'agent local Belgium eID Viewer (port 27272)
+  // Ne nécessite pas de PIN — lit les données publiques de la carte
+  const readViaLocalAgent = useCallback(async () => {
+    const agentStatus = await eidAgentService.checkStatus();
+    if (!agentStatus.isRunning) throw new Error('Agent eID Viewer non détecté (port 27272)');
+
+    const cardData = await eidAgentService.getLastCard();
+    if (!cardData || !cardData.nationalNumber) {
+      throw new Error('Aucune donnée de carte disponible. Retirez et réinsérez votre carte eID.');
+    }
+    return cardData;
   }, []);
 
   const readEID = useCallback(async () => {
@@ -75,8 +86,8 @@ export const useEIDReader = () => {
 
     try {
       const currentUser = await base44.auth.me();
-      
-      // Détecter rapidement les middlewares disponibles
+
+      // Détecter les middlewares disponibles
       let currentStatus;
       try {
         currentStatus = await eidDetectionService.detectEIDMiddleware();
@@ -85,30 +96,53 @@ export const useEIDReader = () => {
         currentStatus = { hasWebEid: false, hasEContract: false, hasMiddleware: false };
       }
 
-      let eidData;
-      
-      // Essayer Web-eID d'abord (recommandé), puis e-Contract
+      let eidData = null;
+      const errors = [];
+
+      // Méthode 1 : Web-eID (recommandé — avec PIN)
       if (currentStatus.hasWebEid) {
         try {
-          toast.info("Authentification Web-eID en cours...");
+          toast.info('Authentification Web-eID — entrez votre PIN…');
           eidData = await readViaWebEid();
-        } catch (webEidError) {
-          console.warn('[eID Reader] Web-eID failed:', webEidError.message);
-          if (currentStatus.hasEContract) {
-            toast.info("Tentative via e-Contract...");
-            eidData = await readViaEContract();
-          } else {
-            throw webEidError;
+        } catch (err) {
+          // Si l'utilisateur annule, on s'arrête immédiatement
+          if (err.message?.includes('annulée') || err.message?.includes('cancelled')) {
+            setIsReading(false);
+            return { status: 'CANCELLED' };
           }
+          errors.push(`Web-eID : ${err.message}`);
         }
-      } else if (currentStatus.hasEContract) {
-        eidData = await readViaEContract();
-      } else {
-        // Aucun middleware: retourner proprement pour permettre le fallback manuel
+      }
+
+      // Méthode 2 : Agent local Belgium eID Viewer (sans PIN)
+      if (!eidData) {
+        try {
+          toast.info('Lecture via eID Viewer local…');
+          eidData = await readViaLocalAgent();
+        } catch (err) {
+          errors.push(`eID Viewer local : ${err.message}`);
+        }
+      }
+
+      // Méthode 3 : e-Contract.be (fallback legacy)
+      if (!eidData && currentStatus.hasEContract) {
+        try {
+          toast.info('Lecture via e-Contract…');
+          eidData = await readViaEContract();
+        } catch (err) {
+          errors.push(`e-Contract : ${err.message}`);
+        }
+      }
+
+      // Aucune méthode n'a fonctionné
+      if (!eidData) {
         setIsReading(false);
         toast.dismiss();
-        toast.info("Lecteur eID non détecté — utilisez la saisie manuelle du NISS.", { duration: 4000 });
-        return { status: 'NO_MIDDLEWARE' };
+        const detail = errors.length ? ` (${errors.join(' / ')})` : '';
+        toast.info(`Lecteur eID non disponible${detail} — utilisez la saisie manuelle du NISS.`, {
+          duration: 6000,
+        });
+        return { status: 'NO_MIDDLEWARE', errors };
       }
 
       const rawNiss = eidData.nationalNumber;
