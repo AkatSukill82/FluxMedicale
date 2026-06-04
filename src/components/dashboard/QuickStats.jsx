@@ -1,68 +1,74 @@
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Users, Calendar, Clock, TrendingUp } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users, Calendar, Clock, Heart, Euro, Shield } from 'lucide-react';
 
-export default function QuickStats({ 
-  totalPatients, 
-  todayAppointments, 
-  pendingAppointments, 
-  isLoading 
+export default function QuickStats({
+  totalPatients,
+  todayAppointments,
+  pendingAppointments,
+  dmgCount,
+  monthRevenueCents,
+  bimCount,
+  isLoading,
 }) {
   const stats = [
     {
-      title: "Total Patients",
-      value: totalPatients,
+      title: 'Patients actifs',
+      value: totalPatients ?? '—',
       icon: Users,
-      color: "from-blue-500 to-blue-600",
-      textColor: "text-blue-600"
+      color: 'from-blue-500 to-blue-600',
+      sub: dmgCount != null ? `${dmgCount} avec DMG` : null,
     },
     {
-      title: "RDV Aujourd'hui",
-      value: todayAppointments,
+      title: "RDV aujourd'hui",
+      value: todayAppointments ?? '—',
       icon: Calendar,
-      color: "from-green-500 to-green-600",
-      textColor: "text-green-600"
+      color: 'from-green-500 to-green-600',
+      sub: pendingAppointments != null ? `${pendingAppointments} en attente` : null,
     },
     {
-      title: "RDV en Attente",
-      value: pendingAppointments,
-      icon: Clock,
-      color: "from-orange-500 to-orange-600",
-      textColor: "text-orange-600"
+      title: 'CA du mois',
+      value: monthRevenueCents != null
+        ? `${(monthRevenueCents / 100).toLocaleString('fr-BE', { minimumFractionDigits: 2 })} €`
+        : '—',
+      icon: Euro,
+      color: 'from-emerald-500 to-emerald-600',
+      sub: 'Honoraires facturés',
     },
     {
-      title: "Cette Semaine",
-      value: todayAppointments + pendingAppointments,
-      icon: TrendingUp,
-      color: "from-purple-500 to-purple-600",
-      textColor: "text-purple-600"
-    }
+      title: 'Patients BIM/OMNIO',
+      value: bimCount ?? '—',
+      icon: Shield,
+      color: 'from-purple-500 to-purple-600',
+      sub: 'Tiers payant obligatoire',
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-      {stats.map((stat, index) => (
-        <Card key={index} className="relative overflow-hidden shadow-lg border-0 bg-white/90 backdrop-blur">
-          <div className={`absolute top-0 right-0 w-24 h-24 rounded-full bg-gradient-to-br ${stat.color} opacity-10 translate-x-6 -translate-y-6`} />
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-600 mb-2">
-                  {stat.title}
-                </p>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-16" />
-                ) : (
-                  <p className="text-3xl font-bold text-slate-900">
-                    {stat.value}
-                  </p>
-                )}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {stats.map((stat) => (
+        <Card key={stat.title} className="border-0 shadow-sm overflow-hidden">
+          <CardContent className="p-4">
+            {isLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-16" />
               </div>
-              <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} bg-opacity-20`}>
-                <stat.icon className={`w-6 h-6 ${stat.textColor}`} />
+            ) : (
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-slate-500 mb-1">{stat.title}</p>
+                  <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+                  {stat.sub && (
+                    <p className="text-xs text-slate-400 mt-1">{stat.sub}</p>
+                  )}
+                </div>
+                <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center shrink-0`}>
+                  <stat.icon className="w-4 h-4 text-white" />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       ))}

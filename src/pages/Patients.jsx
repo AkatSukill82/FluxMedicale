@@ -125,8 +125,9 @@ export default function Patients() {
     navigate(createPageUrl('Dashboard'));
   };
 
-  const { data: allPatientsRaw = [], isLoading: isLoadingList } = useOfflinePatients('-created_date', 500);
-  
+  // Chargement paginé : 100 patients max pour ne pas bloquer l'interface
+  const { data: allPatientsRaw = [], isLoading: isLoadingList } = useOfflinePatients('-created_date', 100);
+
   const allPatients = React.useMemo(() => {
     return [...allPatientsRaw].sort((a, b) => {
       const nameA = a.name?.find(n => n.use === 'official') || a.name?.[0] || {};

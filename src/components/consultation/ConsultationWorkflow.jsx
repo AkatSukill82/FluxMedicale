@@ -65,14 +65,25 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   const [isSaving, setIsSaving] = useState(false);
   
   // Données de la consultation
+  // Format SOAP (Subjectif / Objectif / Assessment / Plan)
+  // Standard international de documentation médicale
   const [consultationData, setConsultationData] = useState({
+    // S — Subjectif : ce que dit le patient
     motif: '',
-    icpc2_code: '',      // Code ICPC-2 (classification internationale MG belge)
+    icpc2_code: '',
     icpc2_label: '',
-    anamnese: '',
+    anamnese: '',           // Histoire de la maladie actuelle
+    antecedents_pertinents: '', // Antécédents pertinents pour cette consultation
+    // O — Objectif : ce que le médecin observe/mesure
     examen_clinique: '',
-    diagnostic: '',
-    traitement: '',
+    // A — Assessment : évaluation diagnostique
+    diagnostic: '',         // Diagnostic principal (CIM-10 ou texte libre)
+    diagnostic_differentiel: '', // Diagnostics alternatifs envisagés
+    // P — Plan : ce que le médecin décide
+    traitement: '',         // Traitement médicamenteux
+    non_drug_treatment: '', // Traitements non médicamenteux
+    suivi: '',              // Consignes de suivi / retour si aggravation
+    arrêt_travail_jours: 0, // 0 = pas d'arrêt de travail
     notes: '',
   });
 
