@@ -1,102 +1,101 @@
 /**
- * Service Web-eID pour la lecture de carte eID belge
+ * Service Web-eID — lecture carte eID belge SANS PIN
  *
- * Implémentation sans dépendance externe.
- * Communique directement avec l'extension navigateur Web-eID via window.postMessage.
+ * Utilise getSigningCertificate() qui retourne le certificat de signature
+ * sans demander le PIN. Ce certificat contient : NISS, nom, prénom.
+ *
+ * Protocole window.postMessage (web-eid-webextension) :
+ *   action : "web-eid-get-signing-certificate"   (tiret, pas espace)
+ *   ack    : "web-eid-get-signing-certificate-ack"
  *
  * Prérequis :
- *  1. Extension Web-eID Chrome : https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic
- *  2. Application native Web-eID : https://installer.id.ee/media/web-eid/web-eid_2.8.0.913.x64.exe
- *  3. Middleware eID belge : https://eid.belgium.be/fr/telechargements
- *
- * Si l'extension n'est pas installée → isAvailable: false → useEIDReader bascule
- * automatiquement sur l'agent local (port 27272) ou e-Contract (35963).
+ *  1. Extension Chrome Web-eID installée
+ *  2. Application native Web-eID installée
+ *  3. Middleware Belgium eID installé
  */
 import { nissValidator } from './nissValidator';
 
-const MSG_TIMEOUT = 5000;
+const MSG_TIMEOUT = 8000;
 
-/**
- * Envoie un message à l'extension Web-eID et attend la réponse.
- */
-function postToExtension(payload, expectedAction) {
+function sendToExtension(payload, ackAction) {
   return new Promise((resolve, reject) => {
     const nonce = crypto.randomUUID();
+
     const timer = setTimeout(() => {
       window.removeEventListener('message', handler);
       reject(new Error('ERR_WEBEID_TIMEOUT'));
     }, MSG_TIMEOUT);
 
     function handler(event) {
-      if (event.source !== window) return;
-      const d = event.data;
-      if (!d || d.nonce !== nonce) return;
-      if (d.action === expectedAction) {
+      if (!event.data || event.data.nonce !== nonce) return;
+      if (event.data.action === ackAction) {
         clearTimeout(timer);
         window.removeEventListener('message', handler);
-        if (d.error) reject(Object.assign(new Error(d.error.message || d.error), { code: d.error.code || d.error }));
-        else resolve(d);
+        const err = event.data.error;
+        if (err) {
+          const e = new Error(err.message || String(err));
+          e.code = err.code || String(err);
+          reject(e);
+        } else {
+          resolve(event.data);
+        }
       }
     }
 
     window.addEventListener('message', handler);
-    window.postMessage({ ...payload, nonce }, '*');
+    window.postMessage({ ...payload, nonce }, window.location.origin);
   });
 }
 
 /**
- * Parser ASN.1 minimal pour extraire les champs du Subject d'un certificat X.509.
+ * Parser ASN.1 minimal — extrait Subject d'un certificat X.509 DER (base64).
  */
-const parseAsn1 = {
-  parseCertificate(base64Cert) {
+const asn1 = {
+  parse(b64) {
     try {
-      const bin = atob(base64Cert);
+      const bin = atob(b64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      return this.extractSubject(bytes);
+      return {
+        serialNumber: this.oid(bytes, [0x55, 0x04, 0x05]), // NISS
+        givenName:    this.oid(bytes, [0x55, 0x04, 0x2A]),
+        surname:      this.oid(bytes, [0x55, 0x04, 0x04]),
+        commonName:   this.oid(bytes, [0x55, 0x04, 0x03]),
+      };
     } catch { return null; }
   },
 
-  extractSubject(bytes) {
-    return {
-      serialNumber: this.findOid(bytes, [0x55, 0x04, 0x05]), // 2.5.4.5
-      givenName:    this.findOid(bytes, [0x55, 0x04, 0x2A]), // 2.5.4.42
-      surname:      this.findOid(bytes, [0x55, 0x04, 0x04]), // 2.5.4.4
-      commonName:   this.findOid(bytes, [0x55, 0x04, 0x03]), // 2.5.4.3
-    };
-  },
-
-  findOid(bytes, oid) {
-    for (let i = 0; i < bytes.length - oid.length - 4; i++) {
-      if (oid.every((b, j) => bytes[i + j] === b)) {
-        const type = bytes[i + oid.length];
-        const len  = bytes[i + oid.length + 1];
-        if (len < 1 || len > 200) continue;
-        const start = i + oid.length + 2;
-        const end   = start + len;
-        if (end > bytes.length) continue;
-        if (type === 0x1E) {
-          let s = '';
-          for (let k = start; k < end; k += 2)
-            s += String.fromCharCode((bytes[k] << 8) | bytes[k + 1]);
-          return s.trim();
-        }
-        let s = '';
-        for (let k = start; k < end; k++) s += String.fromCharCode(bytes[k]);
-        try { return decodeURIComponent(escape(s)).trim(); } catch { return s.trim(); }
+  oid(bytes, pattern) {
+    for (let i = 0; i < bytes.length - pattern.length - 4; i++) {
+      if (!pattern.every((b, j) => bytes[i + j] === b)) continue;
+      const type = bytes[i + pattern.length];
+      const len  = bytes[i + pattern.length + 1];
+      if (!len || len > 200) continue;
+      const s = i + pattern.length + 2;
+      const e = s + len;
+      if (e > bytes.length) continue;
+      if (type === 0x1E) {
+        let r = '';
+        for (let k = s; k < e; k += 2)
+          r += String.fromCharCode((bytes[k] << 8) | bytes[k + 1]);
+        return r.trim();
       }
+      let r = '';
+      for (let k = s; k < e; k++) r += String.fromCharCode(bytes[k]);
+      try { return decodeURIComponent(escape(r)).trim(); } catch { return r.trim(); }
     }
     return null;
   },
 };
 
 export const webEidService = {
-  parseAsn1,
-
-  /** Vérifie si l'extension Web-eID est installée et active. */
+  /** Vérifie si l'extension Web-eID est disponible. */
   async checkStatus() {
     try {
-      const res = await postToExtension({ action: 'web-eid status' }, 'web-eid status-ack');
+      const res = await sendToExtension(
+        { action: 'web-eid-status' },
+        'web-eid-status-ack'
+      );
       return {
         isAvailable: true,
         extensionInstalled: true,
@@ -106,23 +105,31 @@ export const webEidService = {
         error: null,
       };
     } catch {
-      return { isAvailable: false, extensionInstalled: false, nativeAppInstalled: false, error: 'Extension Web-eID non détectée.' };
+      return {
+        isAvailable: false,
+        extensionInstalled: false,
+        nativeAppInstalled: false,
+        error: 'Extension Web-eID non détectée.',
+      };
     }
   },
 
-  /** Lit la carte eID via l'extension (demande PIN). */
+  /**
+   * Lit les données de la carte eID SANS PIN via getSigningCertificate.
+   * Le certificat de signature contient NISS, nom, prénom.
+   */
   async readCardData(options = {}) {
-    const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
     try {
-      const res = await postToExtension(
-        { action: 'web-eid authenticate', lang: options.lang || 'fr', nonce },
-        'web-eid authenticate-ack'
+      const res = await sendToExtension(
+        { action: 'web-eid-get-signing-certificate', lang: options.lang || 'fr' },
+        'web-eid-get-signing-certificate-ack'
       );
 
-      if (!res.unverifiedCertificate) throw new Error('Certificat absent dans la réponse.');
+      const certB64 = res.certificate || res.unverifiedCertificate;
+      if (!certB64) throw new Error('Certificat absent dans la réponse Web-eID.');
 
-      const cert = parseAsn1.parseCertificate(res.unverifiedCertificate);
-      if (!cert) throw new Error('Impossible de parser le certificat X.509.');
+      const cert = asn1.parse(certB64);
+      if (!cert) throw new Error('Impossible de lire le certificat.');
 
       const normalizedNiss = nissValidator.normalize(cert.serialNumber || '');
       const birthDate = normalizedNiss
@@ -147,31 +154,25 @@ export const webEidService = {
   getErrorMessage(error) {
     const code = error.code || error.message || '';
     const map = {
-      'ERR_WEBEID_USER_CANCELLED':       "Opération annulée par l'utilisateur.",
-      'ERR_WEBEID_NATIVE_UNAVAILABLE':   'Application Web-eID non installée. Téléchargez-la sur web-eid.eu.',
-      'ERR_WEBEID_EXTENSION_UNAVAILABLE':'Extension Web-eID absente. Installez-la dans votre navigateur.',
-      'ERR_WEBEID_VERSION_MISMATCH':     "Version incompatible. Mettez à jour l'application et l'extension.",
-      'ERR_WEBEID_CARD_NOT_FOUND':       'Aucune carte eID détectée. Insérez votre carte.',
-      'ERR_WEBEID_WRONG_PIN':            'Code PIN incorrect.',
-      'ERR_WEBEID_PIN_BLOCKED':          'Code PIN bloqué. Utilisez votre PUK.',
-      'ERR_WEBEID_TIMEOUT':              'Délai dépassé. Réessayez.',
+      ERR_WEBEID_USER_CANCELLED:        "Opération annulée.",
+      ERR_WEBEID_NATIVE_UNAVAILABLE:    "Application Web-eID non installée (web-eid.eu).",
+      ERR_WEBEID_EXTENSION_UNAVAILABLE: "Extension Web-eID absente dans Chrome.",
+      ERR_WEBEID_VERSION_MISMATCH:      "Mettez à jour l'extension et l'application Web-eID.",
+      ERR_WEBEID_CARD_NOT_FOUND:        "Aucune carte eID dans le lecteur.",
+      ERR_WEBEID_TIMEOUT:               "Délai dépassé — vérifiez que la carte est insérée.",
     };
     for (const [k, v] of Object.entries(map)) {
       if (code.includes(k)) return v;
     }
-    return error.message || 'Erreur lors de la lecture eID.';
+    return error.message || 'Erreur lecture eID.';
   },
 
-  getInstallationLinks() {
-    return {
-      main:             'https://web-eid.eu/',
-      windows:          'https://installer.id.ee/media/web-eid/web-eid_2.8.0.913.x64.exe',
-      macos:            'https://installer.id.ee/media/web-eid/web-eid_2.8.0.710.dmg',
-      macosSafari:      'https://apps.apple.com/ee/app/web-eid/id1576665083',
-      linux:            'https://web-eid.eu/',
-      chromeExtension:  'https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic',
-      firefoxExtension: 'https://addons.mozilla.org/firefox/addon/web-eid-webextension/',
-      officialMiddleware:'https://eid.belgium.be/fr/telechargements',
-    };
-  },
+  getInstallationLinks: () => ({
+    main:              'https://web-eid.eu/',
+    windows:           'https://installer.id.ee/media/web-eid/web-eid_2.8.0.913.x64.exe',
+    macos:             'https://installer.id.ee/media/web-eid/web-eid_2.8.0.710.dmg',
+    chromeExtension:   'https://chromewebstore.google.com/detail/web-eid/ncibgoaomkmdpilpocfeponihegamlic',
+    firefoxExtension:  'https://addons.mozilla.org/firefox/addon/web-eid-webextension/',
+    officialMiddleware:'https://eid.belgium.be/fr/telechargements',
+  }),
 };

@@ -35,20 +35,16 @@ export const useEIDReader = () => {
   // Lire via Web-eID (authentification - retourne certificat avec données)
   const readViaWebEid = useCallback(async () => {
     try {
-      // Utiliser la méthode readCardData du service Web-eID
+      // getSigningCertificate → lecture SANS PIN (nom, NISS, date naissance)
       const cardData = await webEidService.readCardData({ lang: 'fr' });
-      
-      if (!cardData.success) {
-        throw new Error('Échec de la lecture des données');
-      }
-      
+      if (!cardData.success) throw new Error('Échec de la lecture des données');
       return {
         nationalNumber: cardData.nationalNumber,
-        firstName: cardData.firstName,
-        lastName: cardData.lastName,
-        birthDate: cardData.birthDate,
-        gender: cardData.gender,
-        address: null // L'adresse n'est pas dans le certificat
+        firstName:      cardData.firstName,
+        lastName:       cardData.lastName,
+        birthDate:      cardData.birthDate,
+        gender:         cardData.gender,
+        address:        null,
       };
     } catch (error) {
       throw new Error(error.message || 'Erreur Web-eID');
@@ -102,7 +98,7 @@ export const useEIDReader = () => {
       // Méthode 1 : Web-eID (recommandé — avec PIN)
       if (currentStatus.hasWebEid) {
         try {
-          toast.info('Authentification Web-eID — entrez votre PIN…');
+          toast.info('Lecture de la carte eID en cours…');
           eidData = await readViaWebEid();
         } catch (err) {
           // Si l'utilisateur annule, on s'arrête immédiatement
