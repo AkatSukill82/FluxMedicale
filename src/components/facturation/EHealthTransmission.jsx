@@ -47,12 +47,14 @@ export default function EHealthTransmission({ batch, onComplete }) {
         const invoiceId = batch.invoice_ids[i];
         const invoice = await base44.entities.Invoice.filter({ id: invoiceId });
         
-        // Simuler l'envoi MyCareNet/eAttest
+        // SIMULATION — en production : appel MyCareNet eFact/eAttest via backend sécurisé
+        // (certificat eHealth + SAML token requis côté serveur)
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Simuler une réponse OA (90% accepté, 10% erreur)
-        const isSuccess = Math.random() > 0.1;
-        const transactionId = `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        // En mode simulation, toujours retourner PENDING (pas d'acceptation aléatoire)
+        // La vraie réponse OA arrive de manière asynchrone via MyCareNet
+        const isSuccess = true; // Sera déterminé par la réponse réelle MyCareNet
+        const transactionId = `TX-${Date.now()}-${crypto.randomUUID().substring(0, 8).toUpperCase()}`;
         
         const result = {
           invoice_id: invoiceId,

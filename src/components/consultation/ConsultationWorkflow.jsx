@@ -48,13 +48,7 @@ import { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import useConsultationDraft from './useConsultationDraft';
 import DraftRecoveryBanner from './DraftRecoveryBanner';
-
-// Motifs de consultation fréquents
-const COMMON_REASONS = [
-  'Fièvre', 'Toux', 'Mal de gorge', 'Douleurs abdominales',
-  'Fatigue', 'Maux de tête', 'Douleurs articulaires', 'Contrôle',
-  'Renouvellement ordonnance', 'Certificat médical', 'Vaccination'
-];
+import { searchICPC2, ICPC2_CHAPTERS } from '@/lib/icpc2Data';
 
 // Étapes du workflow
 const STEPS = [
@@ -73,12 +67,34 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
   // Données de la consultation
   const [consultationData, setConsultationData] = useState({
     motif: '',
+    icpc2_code: '',      // Code ICPC-2 (classification internationale MG belge)
+    icpc2_label: '',
     anamnese: '',
     examen_clinique: '',
     diagnostic: '',
     traitement: '',
-    notes: ''
+    notes: '',
   });
+
+  // Recherche ICPC-2
+  const [icpc2Query, setIcpc2Query] = useState('');
+  const [icpc2Results, setIcpc2Results] = useState([]);
+
+  const handleIcpc2Search = (q) => {
+    setIcpc2Query(q);
+    setIcpc2Results(q.length >= 2 ? searchICPC2(q) : []);
+  };
+
+  const selectIcpc2 = (item) => {
+    setConsultationData((prev) => ({
+      ...prev,
+      icpc2_code: item.code,
+      icpc2_label: item.label,
+      motif: prev.motif || item.label,
+    }));
+    setIcpc2Query(`${item.code} – ${item.label}`);
+    setIcpc2Results([]);
+  };
   
   const [vitalSigns, setVitalSigns] = useState({});
   const [diagnosisCodes, setDiagnosisCodes] = useState([]);
@@ -655,31 +671,58 @@ export default function ConsultationWorkflow({ patient, isOpen, onClose }) {
                   Utiliser un template
                 </Button>
               </div>
+              {/* Code ICPC-2 */}
+              <div>
+                <Label className="text-sm font-semibold mb-2 block">
+                  Code ICPC-2
+                  <span className="ml-2 text-xs font-normal text-slate-400">
+                    (Classification internationale MG — recommandé SSMG/WVVH)
+                  </span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    value={icpc2Query}
+                    onChange={(e) => handleIcpc2Search(e.target.value)}
+                    placeholder="Rechercher par code ou libellé (ex: R05, toux…)"
+                    className="w-full"
+                  />
+                  {icpc2Results.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-56 overflow-y-auto">
+                      {icpc2Results.map((item) => (
+                        <button
+                          key={item.code}
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b last:border-0 flex items-center gap-3"
+                          onClick={() => selectIcpc2(item)}
+                        >
+                          <span className="font-mono text-sm font-bold text-blue-600 w-10 shrink-0">
+                            {item.code}
+                          </span>
+                          <div>
+                            <p className="text-sm">{item.label}</p>
+                            <p className="text-xs text-slate-400">{ICPC2_CHAPTERS[item.chapter]}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {consultationData.icpc2_code && (
+                  <p className="text-xs text-blue-600 mt-1">
+                    Code sélectionné : <strong>{consultationData.icpc2_code}</strong> — {consultationData.icpc2_label}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <Label className="text-lg font-semibold mb-3 block">Motif de consultation</Label>
                 <Textarea
                   value={consultationData.motif}
                   onChange={(e) => setConsultationData({...consultationData, motif: e.target.value})}
-                  placeholder="Décrivez rapidement le motif..."
+                  placeholder="Décrivez le motif en texte libre (complète le code ICPC-2)…"
                   className="text-lg h-24 resize-none"
                   autoFocus
                 />
-              </div>
-              <div>
-                <Label className="text-sm font-semibold mb-3 block text-slate-600">Motifs fréquents</Label>
-                <div className="flex flex-wrap gap-2">
-                  {COMMON_REASONS.map(reason => (
-                    <Button
-                      key={reason}
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setConsultationData({...consultationData, motif: reason})}
-                      className="text-base h-12"
-                    >
-                      {reason}
-                    </Button>
-                  ))}
-                </div>
               </div>
             </div>
           )}

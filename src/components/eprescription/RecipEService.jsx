@@ -1,33 +1,34 @@
 /**
  * Service Recip-e - Gestion des prescriptions électroniques belges
- * 
- * NOTE: Ce service fonctionne en mode simulation.
- * Pour une intégration réelle, configurez les secrets:
- * - RECIP_E_ENDPOINT
- * - RECIP_E_KEYSTORE_BASE64
- * - RECIP_E_KEYSTORE_PASSWORD
+ *
+ * STATUT : MODE SIMULATION — NE PAS UTILISER EN PRODUCTION
+ *
+ * Pour l'intégration réelle Recip-e (Farmaflux / eHealth platform) :
+ *  1. Déployer une fonction backend sécurisée avec :
+ *     - Certificat eHealth du médecin (keystore PKCS#12)
+ *     - Authentification SAML auprès du STS eHealth
+ *     - Appel au webservice wsPrescriberService (SOAP)
+ *  2. Configurer les variables d'environnement backend :
+ *     - RECIP_E_ENDPOINT (https://services.ehealth.fgov.be/... )
+ *     - RECIP_E_KEYSTORE_BASE64
+ *     - RECIP_E_KEYSTORE_PASSWORD
+ *  3. Ce fichier doit appeler la fonction backend, pas le webservice directement
+ *
+ * FAIL-SECURE : en cas d'erreur, la prescription est rejetée (pas acceptée par défaut)
  */
 
-// Mode simulation activé par défaut
 const SIMULATION_MODE = true;
-
-// Délai simulé pour les appels API (ms)
 const SIMULATED_DELAY = 800;
 
-/**
- * Génère un RID (Recip-e ID) simulé
- */
 const generateSimulatedRID = () => {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substr(2, 8).toUpperCase();
-  return `BEL${timestamp}${random}`;
+  // Utiliser crypto.randomUUID() plutôt que Math.random() pour les identifiants
+  const randomPart = crypto.randomUUID().replace(/-/g, '').substring(0, 8).toUpperCase();
+  return `BEP${timestamp}${randomPart}`;
 };
 
-/**
- * Simule un délai réseau
- */
-const simulateNetworkDelay = () => 
-  new Promise(resolve => setTimeout(resolve, SIMULATED_DELAY + Math.random() * 500));
+const simulateNetworkDelay = () =>
+  new Promise((resolve) => setTimeout(resolve, SIMULATED_DELAY));
 
 /**
  * Crée et envoie une prescription à Recip-e
@@ -104,9 +105,9 @@ export async function getPrescriptionStatus(rid) {
       };
     }
 
-    // Simulation de différents statuts
-    const statuses = ["CREATED", "DELIVERED", "PARTIALLY_DELIVERED", "EXPIRED"];
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    // En simulation : retourner CREATED (statut initial réel Recip-e)
+    // En production, interroger le webservice wsPrescriberService côté backend
+    const randomStatus = "CREATED";
 
     return {
       success: true,

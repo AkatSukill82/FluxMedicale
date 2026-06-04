@@ -136,7 +136,6 @@ export const useDocumentService = (currentUser, patient) => {
     setIsLoading(true);
     setError(null);
 
-    console.log(`[eHealthBox SIM] Envoi document ${documentId} à ${recipient.name}`);
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -178,7 +177,6 @@ export const useDocumentService = (currentUser, patient) => {
     setIsLoading(true);
     setError(null);
 
-    console.log(`[Mult-eMediatt SIM] Envoi attestation ${documentId} pour NISS ${patientNiss}`);
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1800));

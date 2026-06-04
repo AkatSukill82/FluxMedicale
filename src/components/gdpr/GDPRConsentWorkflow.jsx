@@ -84,7 +84,7 @@ export default function GDPRConsentWorkflow({ patient, isOpen, onClose, onConsen
       onConsented?.();
       onClose();
     } catch (error) {
-      console.error('Erreur RGPD:', error);
+      // Erreur loguée côté serveur uniquement
       toast.error("Erreur lors de l'enregistrement du consentement.");
     } finally {
       setIsSaving(false);

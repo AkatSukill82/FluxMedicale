@@ -20,7 +20,6 @@ export const useDMG = (currentUser) => {
       return null;
     }
     
-    console.log(`[MyCareNet eDMG SIM] Consultation DMG pour NISS: ${patientNiss}`);
 
     // Log d'audit
     await AuditLog.create({
@@ -92,7 +91,6 @@ export const useDMG = (currentUser) => {
           ...selectedScenario
         };
         
-        console.log('[MyCareNet eDMG SIM] Résultat:', result);
         resolve(result);
       }, 1200);
     });
@@ -111,7 +109,6 @@ export const useDMG = (currentUser) => {
       return null;
     }
     
-    console.log(`[MyCareNet eDMG SIM] Ouverture DMG pour NISS: ${patientNiss}`);
 
     await AuditLog.create({
       user_email: currentUser.email,
@@ -173,7 +170,6 @@ export const useDMG = (currentUser) => {
       return null;
     }
     
-    console.log(`[MyCareNet eDMG SIM] Renouvellement DMG pour NISS: ${patientNiss}`);
 
     await AuditLog.create({
       user_email: currentUser.email,

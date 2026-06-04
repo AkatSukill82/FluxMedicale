@@ -85,7 +85,7 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
       queryClient.invalidateQueries({ queryKey: ['patient', patient.id] });
       queryClient.invalidateQueries({ queryKey: ['patientHubStatus', patient.id] });
       queryClient.invalidateQueries({ queryKey: ['allPatients'] });
-      toast.success('Lien thérapeutique créé pour 3 ans');
+      toast.success('Lien thérapeutique créé — valide 1 an (AR 6 juin 2010)');
       onClose();
       // Appeler onSuccess après la fermeture pour que le parent puisse refetch
       setTimeout(() => onSuccess?.(), 100);
@@ -125,7 +125,7 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
           <Alert className="bg-blue-50 border-blue-200">
             <Shield className="w-4 h-4 text-blue-600" />
             <AlertDescription className="text-blue-900 text-sm">
-              Le lien thérapeutique avec <strong>{patientName}</strong> sera valide pendant <strong>3 ans</strong>.
+              Le lien thérapeutique avec <strong>{patientName}</strong> sera valide pendant <strong>1 an</strong> (AR 6 juin 2010 — médecin généraliste).
             </AlertDescription>
           </Alert>
 
