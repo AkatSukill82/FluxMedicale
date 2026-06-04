@@ -56,7 +56,7 @@ export const ICPC2_FREQUENT = [
   { code: 'D84', label: 'Œsophagite / RGO', chapter: 'D' },
   { code: 'D85', label: 'Ulcère duodénal', chapter: 'D' },
   { code: 'D87', label: 'Constipation', chapter: 'D' },
-  { code: 'D93', label: 'Syndrome de l'intestin irritable', chapter: 'D' },
+  { code: 'D93', label: "Syndrome de l'intestin irritable", chapter: 'D' },
 
   // Cardiovasculaire
   { code: 'K01', label: 'Douleur cardiaque', chapter: 'K' },
@@ -71,7 +71,7 @@ export const ICPC2_FREQUENT = [
   { code: 'L01', label: 'Douleur cervicale', chapter: 'L' },
   { code: 'L02', label: 'Dorsalgie', chapter: 'L' },
   { code: 'L03', label: 'Lombalgie', chapter: 'L' },
-  { code: 'L04', label: 'Douleur thoracique d'origine musculosquelettique', chapter: 'L' },
+  { code: 'L04', label: "Douleur thoracique d'origine musculosquelettique", chapter: 'L' },
   { code: 'L08', label: 'Douleur articulaire SAI', chapter: 'L' },
   { code: 'L89', label: 'Arthrose', chapter: 'L' },
   { code: 'L92', label: 'Épaule gelée', chapter: 'L' },
