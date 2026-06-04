@@ -53,18 +53,21 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
 
   const createLinkMutation = useMutation({
     mutationFn: async (method) => {
-      // Créer le lien thérapeutique avec validité de 3 ans
-      const expiryDate = addYears(new Date(), 3);
-      
+      // Lien thérapeutique médecin généraliste : validité 1 an (AR 6 juin 2010)
+      // Pour les spécialistes : validité par épisode de soins (non définie ici)
+      const expiryDate = addYears(new Date(), 1);
+
       await base44.entities.Patient.update(patient.id, {
         therapeutic_link: {
           active: true,
           medecin_email: currentUser?.email,
-          medecin_nihii: manualNihii || currentUser?.inami || 'unknown',
+          medecin_nihii: manualNihii || currentUser?.inami || currentUser?.numero_inami || '',
           created_at: new Date().toISOString(),
           expires_at: expiryDate.toISOString(),
-          method: method // 'eid' ou 'manual'
-        }
+          // AR 6 juin 2010 : le lien thérapeutique GP est valable 1 an, renouvelable
+          legal_basis: 'AR 6 juin 2010 – Lien thérapeutique médecin généraliste',
+          method, // 'eid' ou 'manual'
+        },
       });
 
       // Log audit

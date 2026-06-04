@@ -33,7 +33,7 @@ import {
   Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import moment from 'moment';
+import { format as dateFnsFormat } from 'date-fns';
 
 const MYCARENET_SERVICES = [
   { id: 'memberdata', label: 'MemberData', description: 'Vérification assurabilité', icon: Users },
@@ -374,7 +374,7 @@ export default function MyCareNetManager() {
 
               {existingConfig?.last_connection_test && (
                 <p className="text-sm text-muted-foreground">
-                  Dernier test: {moment(existingConfig.last_connection_test).format('DD/MM/YYYY HH:mm')}
+                  Dernier test: {dateFnsFormat(new Date(existingConfig.last_connection_test), 'dd/MM/yyyy HH:mm')}
                 </p>
               )}
             </CardContent>
@@ -473,7 +473,7 @@ export default function MyCareNetManager() {
                               {getStatusBadge(log.status)}
                             </div>
                             <span className="text-sm text-muted-foreground">
-                              {moment(log.started_at).format('DD/MM/YYYY HH:mm')}
+                              {dateFnsFormat(new Date(log.started_at), 'dd/MM/yyyy HH:mm')}
                             </span>
                           </div>
                           

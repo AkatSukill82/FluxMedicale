@@ -18,13 +18,27 @@ export default function AssurabilityChecker({
     setChecking(true);
     setResult(null);
 
+    const niss = patient?.identifier?.find((id) => id.system?.includes('ssin'))?.value;
+    if (!niss) {
+      toast.error('NISS du patient requis pour la vérification d\'assurabilité MyCareNet.');
+      setChecking(false);
+      return;
+    }
+
     try {
-      // Simuler une vérification (en production, appeler MyCareNet)
+      // SIMULATION — en production : appel MyCareNet webservice eTar / consult-insurability
+      // Nécessite : certificat eHealth + SAML token + NISS patient + codes nomenclature
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       const mutuelle = patient?.mutuelle || 'Non renseignée';
       const isConventioned = mutuelle !== 'Non conventionné';
-      
+      const specialRights = patient?.special_rights || [];
+      const isBIM = specialRights.includes('BIM') || specialRights.includes('OMNIO');
+      const isMAF = specialRights.includes('MAF');
+
+      // Tiers payant obligatoire : BIM/OMNIO (AR 28/04/2011) + parcours soins chroniques
+      const tiersPayantObligatoire = isBIM || specialRights.includes('CHRONIC_DISEASE_PATHWAY');
+
       const errors = [];
       const corrections = [];
       let totalCorrection = 0;
@@ -32,8 +46,15 @@ export default function AssurabilityChecker({
       selectedCodes.forEach(code => {
         const customPrice = customPrices[code.id];
         const expectedHonorarium = code.honorarium;
-        const expectedReimbursed = isConventioned ? code.reimbursed : Math.floor(code.reimbursed * 0.75);
-        const expectedPatientShare = expectedHonorarium - expectedReimbursed;
+        // Non-conventionné : remboursement réduit à 75% (art. 35 LSSS)
+        let expectedReimbursed = isConventioned ? code.reimbursed : Math.floor(code.reimbursed * 0.75);
+        // BIM : ticket modérateur réduit
+        if (isBIM && code.patient_share_bim != null) {
+          expectedReimbursed = expectedHonorarium - code.patient_share_bim;
+        }
+        // MAF : ticket modérateur = 0
+        if (isMAF) expectedReimbursed = expectedHonorarium;
+        const expectedPatientShare = Math.max(0, expectedHonorarium - expectedReimbursed);
 
         // Vérifier si le prix personnalisé diffère
         if (customPrice && customPrice.honorarium !== expectedHonorarium) {
@@ -65,9 +86,12 @@ export default function AssurabilityChecker({
           success: false,
           mutuelle,
           isConventioned,
+          isBIM,
+          isMAF,
+          tiersPayantObligatoire,
           errors,
           corrections,
-          totalCorrection
+          totalCorrection,
         });
         toast.warning(`${errors.length} erreur(s) de prix détectée(s)`);
       } else {
@@ -75,9 +99,12 @@ export default function AssurabilityChecker({
           success: true,
           mutuelle,
           isConventioned,
-          message: 'Tous les prix sont conformes aux tarifs INAMI'
+          isBIM,
+          isMAF,
+          tiersPayantObligatoire,
+          message: 'Tous les prix sont conformes aux tarifs INAMI',
         });
-        toast.success('Vérification réussie - Prix conformes');
+        toast.success('Vérification réussie — Prix conformes aux tarifs INAMI');
       }
     } catch (error) {
       toast.error('Erreur lors de la vérification');
@@ -135,17 +162,28 @@ export default function AssurabilityChecker({
                 <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
               )}
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
                   <h4 className="font-semibold text-sm">
                     {result.success ? 'Vérification réussie' : 'Erreurs détectées'}
                   </h4>
                   <Badge variant={result.isConventioned ? 'default' : 'secondary'} className="text-xs">
                     {result.isConventioned ? 'Conventionné' : 'Non conventionné'}
                   </Badge>
+                  {result.isBIM && (
+                    <Badge className="bg-green-100 text-green-800 text-xs">BIM/OMNIO</Badge>
+                  )}
+                  {result.isMAF && (
+                    <Badge className="bg-orange-100 text-orange-800 text-xs">MAF</Badge>
+                  )}
+                  {result.tiersPayantObligatoire && (
+                    <Badge className="bg-blue-100 text-blue-800 text-xs">
+                      Tiers payant OBLIGATOIRE
+                    </Badge>
+                  )}
                 </div>
-                
+
                 <p className="text-xs text-muted-foreground mb-1">
-                  Mutuelle: <strong>{result.mutuelle}</strong>
+                  Mutuelle : <strong>{result.mutuelle}</strong>
                 </p>
 
                 {result.success ? (

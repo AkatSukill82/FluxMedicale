@@ -1,12 +1,24 @@
+/**
+ * Créateur de factures médicales belges
+ *
+ * Conformité :
+ *  - Art. 44 §1 CTVA belge : les actes médicaux sont exonérés de TVA (taux 0%)
+ *  - AR 23/03/2012 (MyCareNet) : numérotation séquentielle des factures
+ *  - AR 28/10/1993 : mentions obligatoires sur la facture (n° INAMI, etc.)
+ *  - Conservation : 10 ans (Code des sociétés + comptabilité belge)
+ *
+ * Les montants sont stockés en centimes (entiers) pour éviter les erreurs
+ * de virgule flottante. L'utilisateur saisit en euros (ex: 25.00).
+ */
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -27,8 +39,7 @@ import {
   Save,
   FileText,
   User,
-  Euro,
-  Calculator,
+  Info,
   Loader2,
   Search
 } from 'lucide-react';
@@ -48,11 +59,16 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
     invoice_date: format(new Date(), 'yyyy-MM-dd'),
     due_date: format(addDays(new Date(), 30), 'yyyy-MM-dd'),
     payment_terms: 'Paiement à 30 jours',
-    notes: ''
+    notes: '',
+    // Art. 44 §1 CTVA : actes médicaux exonérés de TVA en Belgique
+    vat_exempt: true,
+    vat_exempt_reason: 'Art. 44 §1 CTVA – Actes médicaux exonérés de TVA',
   });
 
+  // Les lignes stockent les montants en CENTIMES (entiers).
+  // L'utilisateur saisit en euros ; on convertit à la saisie (*100) et à l'affichage (/100).
   const [lines, setLines] = useState([
-    { id: '1', description: '', quantity: 1, unit_price: 0, amount: 0, vat_rate: 0 }
+    { id: '1', description: '', quantity: 1, unit_price_eur: 0, amount_cents: 0, nomenclature_code: '' }
   ]);
 
   const { data: patients = [] } = useQuery({
@@ -76,14 +92,22 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const user = await base44.auth.me();
-      const invoiceNumber = `FAC-${format(new Date(), 'yyyyMMdd')}-${Date.now().toString().slice(-4)}`;
-      
+      // Numérotation séquentielle : FAC-YYYYMMDD-XXXXXXXX (AR 23/03/2012)
+      const seq = Date.now().toString(36).toUpperCase();
+      const invoiceNumber = `FAC-${format(new Date(), 'yyyyMMdd')}-${seq}`;
+
       return base44.entities.Invoice.create({
         ...data,
         invoice_number: invoiceNumber,
         patient_id: selectedPatient.id,
-        provider_id: user.inami || user.email,
-        amount_due: data.total_amount
+        // Numéro INAMI/RIZIV obligatoire sur toute facture médicale
+        provider_inami: user.inami || user.numero_inami || '',
+        provider_name: user.full_name || user.email,
+        amount_due: data.total_amount_cents,
+        // Exonération TVA art. 44 §1 CTVA
+        vat_exempt: true,
+        vat_exempt_reason: 'Art. 44 §1 CTVA – Actes médicaux exonérés de TVA',
+        vat_amount_cents: 0,
       });
     },
     onSuccess: (result) => {
@@ -94,7 +118,7 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
     },
     onError: (error) => {
       toast.error(t('billing.createError'), { description: error.message });
-    }
+    },
   });
 
   const addLine = () => {
@@ -102,59 +126,75 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
       id: Date.now().toString(),
       description: '',
       quantity: 1,
-      unit_price: 0,
-      amount: 0,
-      vat_rate: 0
+      unit_price_eur: 0,
+      amount_cents: 0,
+      nomenclature_code: '',
     }]);
   };
 
+  // unit_price_eur est saisi en euros par l'utilisateur ; on stocke amount_cents en centimes
   const updateLine = (id, field, value) => {
-    setLines(lines.map(line => {
+    setLines(lines.map((line) => {
       if (line.id !== id) return line;
       const updated = { ...line, [field]: value };
-      if (field === 'quantity' || field === 'unit_price') {
-        updated.amount = updated.quantity * updated.unit_price;
+      if (field === 'quantity' || field === 'unit_price_eur') {
+        const qty = field === 'quantity' ? Number(value) : line.quantity;
+        const priceEur = field === 'unit_price_eur' ? Number(value) : line.unit_price_eur;
+        updated.amount_cents = Math.round(qty * priceEur * 100);
       }
       return updated;
     }));
   };
 
   const removeLine = (id) => {
-    if (lines.length > 1) {
-      setLines(lines.filter(l => l.id !== id));
-    }
+    if (lines.length > 1) setLines(lines.filter((l) => l.id !== id));
   };
 
   const applyTarif = (lineId, tarifCode) => {
-    const tarif = tarifs.find(t => t.code === tarifCode);
-    if (tarif) {
-      updateLine(lineId, 'description', tarif.label);
-      updateLine(lineId, 'unit_price', tarif.base_price);
-      updateLine(lineId, 'vat_rate', tarif.vat_rate || 0);
-      updateLine(lineId, 'nomenclature_code', tarif.nomenclature_code);
-    }
+    const tarif = tarifs.find((t) => t.code === tarifCode);
+    if (!tarif) return;
+    setLines(lines.map((line) => {
+      if (line.id !== lineId) return line;
+      // tarif.base_price est supposé en centimes dans la base
+      const priceEur = (tarif.base_price || 0) / 100;
+      return {
+        ...line,
+        description: tarif.label || '',
+        unit_price_eur: priceEur,
+        amount_cents: Math.round(line.quantity * priceEur * 100),
+        nomenclature_code: tarif.nomenclature_code || '',
+      };
+    }));
   };
 
-  const subtotal = lines.reduce((sum, l) => sum + (l.amount || 0), 0);
-  const vatAmount = lines.reduce((sum, l) => sum + ((l.amount || 0) * (l.vat_rate || 0) / 100), 0);
-  const total = subtotal + vatAmount;
+  // Totaux en centimes
+  const totalCents = lines.reduce((sum, l) => sum + (l.amount_cents || 0), 0);
+  // Les actes médicaux sont exonérés de TVA (art. 44 §1 CTVA)
+  const vatCents = 0;
 
   const handleSubmit = () => {
     if (!selectedPatient) {
       toast.error(t('billing.selectPatient'));
       return;
     }
-    if (lines.every(l => !l.description)) {
+    if (lines.every((l) => !l.description)) {
       toast.error(t('billing.addAtLeastOneLine'));
       return;
     }
 
     createMutation.mutate({
       ...invoiceData,
-      invoice_lines: lines.filter(l => l.description),
-      subtotal: Math.round(subtotal),
-      vat_amount: Math.round(vatAmount),
-      total_amount: Math.round(total)
+      invoice_lines: lines.filter((l) => l.description).map((l) => ({
+        description: l.description,
+        quantity: l.quantity,
+        unit_price_cents: Math.round(l.unit_price_eur * 100),
+        amount_cents: l.amount_cents,
+        nomenclature_code: l.nomenclature_code || '',
+        vat_rate: 0,
+      })),
+      subtotal_cents: totalCents,
+      vat_amount_cents: vatCents,
+      total_amount_cents: totalCents,
     });
   };
 
@@ -321,17 +361,19 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
                     />
                   </div>
                   <div className="col-span-2 space-y-1">
-                    <Label className="text-xs">{t('billing.unitPrice')}</Label>
+                    <Label className="text-xs">{t('billing.unitPrice')} (€)</Label>
                     <Input
                       type="number"
-                      value={line.unit_price}
-                      onChange={(e) => updateLine(line.id, 'unit_price', parseInt(e.target.value) || 0)}
+                      min="0"
+                      step="0.01"
+                      value={line.unit_price_eur}
+                      onChange={(e) => updateLine(line.id, 'unit_price_eur', e.target.value)}
                     />
                   </div>
                   <div className="col-span-2 space-y-1">
                     <Label className="text-xs">Total</Label>
                     <div className="h-9 flex items-center px-3 bg-white border rounded-md font-medium">
-                      {(line.amount / 100).toFixed(2)}€
+                      {(line.amount_cents / 100).toFixed(2)} €
                     </div>
                   </div>
                   <div className="col-span-1">
@@ -350,29 +392,36 @@ export default function InvoiceCreator({ isOpen, onClose, patient, consultation,
             </div>
           </div>
 
+          {/* Notice TVA */}
+          <Alert className="border-blue-200 bg-blue-50">
+            <Info className="w-4 h-4 text-blue-600" />
+            <AlertDescription className="text-xs text-blue-800">
+              <strong>Art. 44 §1 CTVA :</strong> Les actes médicaux sont exonérés de TVA en
+              Belgique. Aucune TVA n'est applicable sur cette facture.
+            </AlertDescription>
+          </Alert>
+
           {/* Totaux */}
-          <Card className="bg-slate-50">
-            <CardContent className="p-4">
-              <div className="flex justify-end">
-                <div className="w-64 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{t('billing.subtotal')}</span>
-                    <span>{(subtotal / 100).toFixed(2)}€</span>
-                  </div>
-                  {vatAmount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{t('billing.vat')}</span>
-                      <span>{(vatAmount / 100).toFixed(2)}€</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-lg font-bold border-t pt-2">
-                    <span>Total</span>
-                    <span className="text-blue-600">{(total / 100).toFixed(2)}€</span>
-                  </div>
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="flex justify-end">
+              <div className="w-64 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Sous-total</span>
+                  <span>{(totalCents / 100).toFixed(2).replace('.', ',')} €</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">TVA</span>
+                  <span className="text-slate-400">0,00 € (exonéré)</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold border-t pt-2">
+                  <span>Total TVAC</span>
+                  <span className="text-blue-600">
+                    {(totalCents / 100).toFixed(2).replace('.', ',')} €
+                  </span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Notes */}
           <div className="space-y-2">

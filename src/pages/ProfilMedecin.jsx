@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '@/entities/User';
 import { AuditLog } from '@/entities/AuditLog';
 import { base44 } from '@/api/base44Client';
+import { inamiValidator } from '@/lib/inamiValidator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -421,13 +422,20 @@ export default function ProfilMedecinPage() {
                   />
                 </div>
                 <div>
-                  <Label>Numéro INAMI 🔒</Label>
+                  <Label>Numéro INAMI/NIHII 🔒</Label>
                   <Input
                     value={formData.numero_inami}
                     onChange={(e) => handleChange('numero_inami', e.target.value)}
                     disabled={!canEditIdentity}
+                    placeholder="ex: 1-54785-04-562"
                     className={!canEditIdentity ? 'bg-slate-100' : ''}
                   />
+                  {formData.numero_inami && (() => {
+                    const v = inamiValidator.validate(formData.numero_inami);
+                    return !v.isValid
+                      ? <p className="text-xs text-red-600 mt-1">{v.error}</p>
+                      : <p className="text-xs text-green-600 mt-1">✓ Valide — {inamiValidator.getCategory(formData.numero_inami)}</p>;
+                  })()}
                   {!canEditIdentity && (
                     <p className="text-xs text-slate-500 mt-1">
                       Modifiable uniquement par Super Admin
