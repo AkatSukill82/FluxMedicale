@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format as dateFnsFormat } from 'date-fns';
+import IntegrationStatusBanner from '@/components/integrations/IntegrationStatusBanner';
 
 const MYCARENET_SERVICES = [
   { id: 'memberdata', label: 'MemberData', description: 'Vérification assurabilité', icon: Users },
@@ -261,6 +262,7 @@ export default function MyCareNetManager() {
 
   return (
     <div className="space-y-6">
+      <IntegrationStatusBanner service="myCareNet" />
       <Tabs defaultValue="config" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="config"><Settings className="w-4 h-4 mr-2" /> Configuration</TabsTrigger>

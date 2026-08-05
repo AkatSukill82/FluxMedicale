@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, FileText, Users, Database, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 const CONSENT_VERSION = '1.0.0';
 
@@ -40,7 +41,7 @@ export default function GDPRConsent({ patient, isOpen, onClose, onConsentGranted
       });
 
       // Logger le consentement
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: (await base44.auth.me()).email,
         action: 'GDPR_CONSENT_GRANTED',
         target_entity: 'Patient',

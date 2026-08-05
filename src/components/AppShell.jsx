@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
+import { purgeLocalData } from "@/lib/sessionPurge";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -145,10 +146,16 @@ export default function AppShell({ children, currentPageName }) {
             console.warn('Auto-send invoices before logout failed:', autoSendErr);
           }
 
+          // Efface brouillons de consultation, cohortes et base hors-ligne
+          // avant de rendre le poste à l'utilisateur suivant.
+          await purgeLocalData();
           await base44.auth.logout();
           window.location.href = '/';
         } catch (error) {
           console.error('Erreur déconnexion:', error);
+          // La purge locale doit avoir lieu même si l'envoi des factures ou
+          // l'appel de déconnexion a échoué.
+          await purgeLocalData().catch(() => {});
         }
       };
 
@@ -156,37 +163,26 @@ export default function AppShell({ children, currentPageName }) {
   const isEditor = user?.role === 'editor';
   const canAccessAdmin = isAdmin;
 
+  // Navigation reduite au quotidien du medecin. Les ecrans retires ne sont pas
+  // perdus : leur logique vit dans src/components/ et sera rebranchee en onglet
+  // dans la page qui la concerne (dossier patient, Facturation, Prescriptions...).
   const navigationItems = [
         { title: t('nav.dashboard'), path: 'Dashboard', icon: LayoutDashboard },
         { title: t('nav.patients'), path: 'Patients', icon: Users },
         { title: t('nav.agenda'), path: 'Agenda', icon: Calendar },
         { title: t('nav.messaging'), path: 'Inbox', icon: MessageSquare },
+        { title: 'Prescriptions', path: 'Prescriptions', icon: Pill },
         { title: t('nav.billing'), path: 'Facturation', icon: CreditCard },
         { title: t('nav.guard'), path: 'Garde', icon: Phone },
         { title: t('nav.stocks'), path: 'Stock', icon: Package },
-        { title: t('nav.medications'), path: 'Medicaments', icon: Pill },
-        { title: t('nav.chapter4'), path: 'ChapitreIV', icon: Shield },
         { title: t('nav.statistics'), path: 'Statistiques', icon: BarChart3 },
-        { title: 'Analyses', path: 'Analyses', icon: Activity },
-        { title: 'Parcours', path: 'ParcoursPatient', icon: Route },
-        { title: 'Portail Patient', path: 'PortailPatient', icon: Globe },
-        { title: 'Signature', path: 'SignatureElectronique', icon: PenTool },
-        { title: 'Export Comptable', path: 'ExportComptable', icon: Calculator },
-        { title: 'Épidémiologie', path: 'Epidemiologie', icon: Microscope },
-        { title: 'Formation', path: 'FormationContinue', icon: GraduationCap },
-        { title: 'Doctolib/Doctena', path: 'IntegrationDoctolib', icon: ArrowLeftRight },
-        { title: 'Chat Interne', path: 'ChatInterne', icon: MessageCircle },
-        { title: 'Modèles Consultation', path: 'ModelesConsultation', icon: ClipboardList },
         { title: t('nav.documentation'), path: 'Documentation', icon: BookOpen },
-        { title: t('nav.notifications'), path: 'Notifications', icon: Bell },
       ];
-  
+
   const adminNavItems = [
     { title: t('nav.users'), path: 'Utilisateurs', icon: Users, adminOnly: true },
     { title: t('nav.audit'), path: 'Audit', icon: Activity, adminOnly: true },
-    { title: t('nav.health'), path: 'Health', icon: Activity, adminOnly: true },
     { title: t('nav.security'), path: 'Securite', icon: Shield },
-    { title: t('nav.samMedications'), path: 'ReferentialImport', icon: Upload, adminOnly: true },
   ];
 
   const profileNavItem = { title: t('nav.profile'), path: 'ProfilMedecin', icon: UserIcon };

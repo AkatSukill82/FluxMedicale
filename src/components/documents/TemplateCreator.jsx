@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { 
+import { sanitizeRichText } from '@/lib/sanitizeHtml';
+import {
   Plus, 
   Trash2, 
   Save, 
@@ -414,7 +415,7 @@ export default function TemplateCreator({ onClose, onSaved, editTemplate = null 
                   <h3 className="text-lg font-semibold mb-4">Prévisualisation</h3>
                   <div 
                     className="bg-white border-2 border-slate-200 rounded-lg p-6 max-h-[500px] overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: getPreview() }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichText(getPreview()) }}
                   />
                 </div>
               )}

@@ -15,11 +15,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Patient } from '@/entities/Patient';
-import { AuditLog } from '@/entities/AuditLog';
 import { eidAgentService } from './eidAgentService';
 import { nissValidator } from './nissValidator';
+import { findPatientsByNiss } from '@/lib/patientLookup';
 import { createPageUrl } from '@/utils';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 const SSIN_SYSTEM = 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin';
 
@@ -122,7 +123,7 @@ export const useAutoOpenEID = () => {
 
       if (!validation.isValid) {
         toast.error(`NISS invalide : ${validation.error}`);
-        await AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'EID_AUTO_OPEN_ERROR',
           target_entity: 'Patient',
@@ -132,7 +133,7 @@ export const useAutoOpenEID = () => {
         return;
       }
 
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'EID_AUTO_READ',
         target_entity: 'Patient',
@@ -140,20 +141,32 @@ export const useAutoOpenEID = () => {
         timestamp: new Date().toISOString(),
       });
 
-      // Rechercher le patient par NISS
-      const allPatients = await Patient.list();
-      const matches = allPatients.filter((p) =>
-        p.identifier?.some(
-          (id) =>
-            id.system === SSIN_SYSTEM &&
-            nissValidator.normalize(id.value) === normalizedNiss
-        )
-      );
+      // Rechercher le patient par NISS, côté serveur : le filtrage client sur
+      // Patient.list() ne portait que sur la première page de résultats.
+      let matches;
+      let lookupTruncated;
+      try {
+        const lookup = await findPatientsByNiss(normalizedNiss);
+        matches = lookup.matches;
+        lookupTruncated = lookup.truncated;
+      } catch (lookupErr) {
+        toast.error(lookupErr.message);
+        return { status: 'ERROR', error: lookupErr.message };
+      }
+
+      // Balayage incomplet : ne pas conclure à l'absence du patient, sous peine
+      // de créer un doublon d'un dossier existant.
+      if (matches.length === 0 && lookupTruncated) {
+        const msg = 'Recherche incomplète : ouverture automatique annulée pour '
+          + 'éviter un doublon.';
+        toast.error(msg);
+        return { status: 'ERROR', error: msg };
+      }
 
       // Cas 1 : patient trouvé
       if (matches.length === 1) {
         const patient = matches[0];
-        await AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'EID_AUTO_PATIENT_OPENED',
           target_entity: 'Patient',
@@ -180,7 +193,7 @@ export const useAutoOpenEID = () => {
           gdpr_consent: { has_consented: false, consent_pending: true },
         });
 
-        await AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'EID_AUTO_PATIENT_CREATED',
           target_entity: 'Patient',
@@ -198,7 +211,7 @@ export const useAutoOpenEID = () => {
       toast.warning(`${matches.length} patients avec le même NISS — fusion requise.`, {
         duration: 8000,
       });
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'EID_AUTO_DUPLICATES',
         target_entity: 'Patient',

@@ -47,6 +47,9 @@ import SumehrEditor from '../components/sumehr/SumehrEditor';
 import EIDReaderButton from '../components/patients/EIDReaderButton';
 import MedicalDocumentGenerator from '../components/documents/MedicalDocumentGenerator';
 import NewPatientDialog from '../components/patients/NewPatientDialog';
+import LabResultsManager from '@/components/lab/LabResultsManager';
+import MedicamentsPanel from '@/components/medications/MedicamentsPanel';
+import FollowUpDashboard from '@/components/followup/FollowUpDashboard';
 
 export default function Patients() {
   const { t } = useI18n();
@@ -376,6 +379,21 @@ export default function Patients() {
                 <TabsTrigger value="hubs" className="gap-2">
                    <Globe className="w-4 h-4" /> {t('patient.hubs')}
                  </TabsTrigger>
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="labo" className="gap-2">
+                    🧪 Laboratoire
+                  </TabsTrigger>
+                )}
+                {permissions.hasPermission(PERMISSIONS.VIEW_PRESCRIPTIONS) && (
+                  <TabsTrigger value="medicaments" className="gap-2">
+                    💊 Médicaments
+                  </TabsTrigger>
+                )}
+                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                  <TabsTrigger value="suivi" className="gap-2">
+                    🔄 Suivi
+                  </TabsTrigger>
+                )}
                  <TabsTrigger value="admin" className="gap-2">
                    👤 {t('patient.admin')}
                  </TabsTrigger>
@@ -416,6 +434,21 @@ export default function Patients() {
               <TabsContent value="hubs" className="m-0">
                 <HubsTab patient={patient} onOpenSumehr={() => setShowSumehrEditor(true)} />
               </TabsContent>
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="labo" className="m-0">
+                  <LabResultsManager patientId={patient.id} />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_PRESCRIPTIONS) && (
+                <TabsContent value="medicaments" className="m-0">
+                  <MedicamentsPanel />
+                </TabsContent>
+              )}
+              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
+                <TabsContent value="suivi" className="m-0">
+                  <FollowUpDashboard patient={patient} />
+                </TabsContent>
+              )}
               <TabsContent value="admin" className="m-0">
                 <FicheAdministrativeTab patient={patient} />
               </TabsContent>

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { sanitizeMessage } from '@/lib/sanitizeHtml';
 
 export default function MessageViewer({ message, patients, onAssignToPatient }) {
   const [viewingAttachment, setViewingAttachment] = useState(null);
@@ -77,7 +78,9 @@ export default function MessageViewer({ message, patients, onAssignToPatient }) 
 
           {/* Contenu du message */}
           <div className="prose prose-sm max-w-none bg-slate-50 p-4 rounded-lg">
-            <div dangerouslySetInnerHTML={{ __html: message.content || 'Contenu du message...' }} />
+            {message.content
+              ? <div dangerouslySetInnerHTML={{ __html: sanitizeMessage(message.content) }} />
+              : <p className="text-slate-500 italic">Message sans contenu</p>}
           </div>
 
           {/* Pièces jointes */}

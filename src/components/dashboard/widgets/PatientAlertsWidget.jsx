@@ -210,11 +210,9 @@ export default function PatientAlertsWidget() {
                 <div
                   key={idx}
                   onClick={() => {
-                    if (alert.type === 'lab_critical' || alert.type === 'lab_abnormal') {
-                      navigate(createPageUrl('Laboratoire'));
-                    } else {
-                      navigate(createPageUrl(`Patients?patient=${alert.patient_id}`));
-                    }
+                    // Les resultats de laboratoire se consultent dans le
+                    // dossier du patient concerne.
+                    navigate(createPageUrl(`Patients?patient=${alert.patient_id}`));
                   }}
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${style.bg}`}
                 >

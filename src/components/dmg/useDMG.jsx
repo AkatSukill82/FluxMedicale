@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour simuler les interactions avec MyCareNet eDMG
 export const useDMG = (currentUser) => {
@@ -22,7 +22,7 @@ export const useDMG = (currentUser) => {
     
 
     // Log d'audit
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'DMG_CONSULTATION',
       target_entity: 'Patient',
@@ -110,7 +110,7 @@ export const useDMG = (currentUser) => {
     }
     
 
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'DMG_OUVERTURE',
       target_entity: 'Patient',
@@ -171,7 +171,7 @@ export const useDMG = (currentUser) => {
     }
     
 
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'DMG_RENOUVELLEMENT',
       target_entity: 'Patient',

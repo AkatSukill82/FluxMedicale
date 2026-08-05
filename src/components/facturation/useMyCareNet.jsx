@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour simuler les interactions avec MyCareNet
 export const useMyCareNet = (currentUser) => {
@@ -13,7 +13,7 @@ export const useMyCareNet = (currentUser) => {
     console.log(`[MyCareNet SIM] Vérification assurabilité pour patient NISS: ${patient.identifier?.find(id => id.system === 'nn')?.value || 'N/A'}`);
 
     // Log d'audit pour la consultation
-    await AuditLog.create({
+    await recordAudit({
         user_email: currentUser.email,
         action: 'MYCARENET_CHECK_ASSURABILITY',
         target_entity: 'Patient',
@@ -47,7 +47,7 @@ export const useMyCareNet = (currentUser) => {
     setError(null);
     console.log(`[MyCareNet SIM] Envoi transaction ${transactionData.type}:`, transactionData);
     
-    await AuditLog.create({
+    await recordAudit({
         user_email: currentUser.email,
         action: `MYCARENET_SEND_${transactionData.type}`,
         target_entity: 'MyCareNetTransaction',

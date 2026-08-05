@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour vérification IdSupport (carte d'identité)
 export const useIdSupport = () => {
@@ -26,7 +26,7 @@ export const useIdSupport = () => {
       setVerificationResult(response);
 
       // Audit log
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'IDSUPPORT_VERIFICATION',
         target_entity: 'Patient',

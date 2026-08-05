@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { EHealthBoxMessage } from '@/entities/EHealthBoxMessage';
-import { AuditLog } from '@/entities/AuditLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, Paperclip, Download, Eye, Link as LinkIcon, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 export default function EHealthBoxRail({ patient, currentUser }) {
   const [messages, setMessages] = useState([]);
@@ -42,7 +42,7 @@ export default function EHealthBoxRail({ patient, currentUser }) {
   const handleAttachToTimeline = async (message) => {
     try {
       // Créer un événement Timeline
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'ATTACH_EHEALTHBOX_MESSAGE',
         target_entity: 'EHealthBoxMessage',

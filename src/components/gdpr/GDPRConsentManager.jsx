@@ -32,6 +32,7 @@ import {
 import { format, addYears } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 const CONSENT_VERSION = '2.1';
 
@@ -112,7 +113,7 @@ export default function GDPRConsentManager({ patient, onUpdate }) {
       });
 
       // Log audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'UPDATE_GDPR_CONSENT',
         target_entity: 'Patient',
@@ -147,7 +148,7 @@ export default function GDPRConsentManager({ patient, onUpdate }) {
       });
 
       // Log audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'REVOKE_GDPR_CONSENT',
         target_entity: 'Patient',

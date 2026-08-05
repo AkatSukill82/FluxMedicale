@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { purgeLocalData } from '@/lib/sessionPurge';
 
 const AuthContext = createContext();
 
@@ -110,10 +111,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = (shouldRedirect = true) => {
+  const logout = async (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
-    
+
+    // Les données de santé mises en cache localement (brouillons de
+    // consultation, base hors-ligne, cohortes) sont effacées AVANT de rendre la
+    // main : sur un poste partagé, elles resteraient sinon lisibles par
+    // l'utilisateur suivant.
+    await purgeLocalData();
+
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
       base44.auth.logout(window.location.href);

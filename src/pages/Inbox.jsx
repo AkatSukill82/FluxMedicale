@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { EHealthBoxMessage } from '@/entities/EHealthBoxMessage';
 import { Patient } from '@/entities/Patient';
 import { User } from '@/entities/User';
-import { AuditLog } from '@/entities/AuditLog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,10 @@ import { fr } from 'date-fns/locale';
 
 import MessageViewer from '../components/inbox/MessageViewer';
 import PatientAssignment from '../components/inbox/PatientAssignment';
+import { recordAudit } from '@/lib/auditLog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ChatInternePanel from '@/components/chat/ChatInternePanel';
+import InternalMessaging from '@/components/messaging/InternalMessaging';
 
 export default function InboxPage() {
   const [messages, setMessages] = useState([]);
@@ -71,7 +74,7 @@ export default function InboxPage() {
       });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'OPEN_EHEALTH_MESSAGE',
         target_entity: 'EHealthBoxMessage',
@@ -94,7 +97,7 @@ export default function InboxPage() {
       });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'ASSIGN_MESSAGE_TO_PATIENT',
         target_entity: 'EHealthBoxMessage',
@@ -151,6 +154,15 @@ export default function InboxPage() {
 
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="main">
+        <TabsList>
+          <TabsTrigger value="main">📥 Boîte de réception</TabsTrigger>
+          <TabsTrigger value="chat">💬 Chat interne</TabsTrigger>
+          <TabsTrigger value="messages">✉️ Messages internes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="main" className="mt-4">
+          <div className="space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-start">
         <div>
@@ -319,6 +331,17 @@ export default function InboxPage() {
           onCancel={() => setShowAssignment(false)}
         />
       )}
-    </div>
+</div>
+        </TabsContent>
+
+        <TabsContent value="chat" className="mt-4">
+          <ChatInternePanel />
+        </TabsContent>
+
+        <TabsContent value="messages" className="mt-4">
+          <InternalMessaging />
+        </TabsContent>
+      </Tabs>
+        </div>
   );
 }

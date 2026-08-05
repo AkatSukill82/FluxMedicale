@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import { recordAudit } from '@/lib/auditLog';
 import { 
   Shield, 
   User, 
@@ -1024,7 +1025,7 @@ const tests = [
     run: async (context) => {
       const user = await base44.auth.me();
 
-      const auditEntry = await base44.entities.AuditLog.create({
+      const auditEntry = await recordAudit({
         user_email: user.email,
         action: 'TEST_ACTION',
         target_entity: 'Patient',

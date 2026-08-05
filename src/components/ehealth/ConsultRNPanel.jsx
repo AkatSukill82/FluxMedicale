@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { nissValidator } from '../eid/nissValidator';
+import { recordAudit } from '@/lib/auditLog';
 
 // Simulation de données du Registre National
 const simulateRNData = (niss) => {
@@ -117,7 +118,7 @@ export default function ConsultRNPanel({ patient, onUpdatePatient }) {
 
       // Log audit
       if (currentUser) {
-        await base44.entities.AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'CONSULT_RN',
           target_entity: 'Patient',

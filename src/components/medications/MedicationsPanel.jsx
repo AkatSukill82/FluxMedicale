@@ -4,50 +4,76 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Pill, 
-  Search, 
-  ExternalLink, 
+import {
+  Pill,
+  Search,
+  ExternalLink,
   AlertTriangle,
   Info,
-  Shield
+  ShieldAlert,
+  CheckCircle2
 } from 'lucide-react';
-import { useSAM } from './useSAM';
+import { useSAM, SAM_STATUS } from './useSAM';
 
-// Panneau Médicaments - Recherche SAM + Monographies CBIP/BCFI
-export default function MedicationsPanel({ patient, onSelectMedication, currentUser }) {
+const CBIP_INTERACTIONS_URL = 'https://www.cbip.be/fr/chapters/17?frag=8000';
+
+/**
+ * Panneau Médicaments — recherche SAM (AFMPS).
+ *
+ * `currentCnkCodes` : traitement en cours du patient, codé en CNK. Le champ
+ * Patient.medicaments_actuels est du texte libre et n'est donc pas exploitable
+ * pour une vérification d'interactions ; tant qu'aucune source codée n'est
+ * fournie, la vérification est déclarée non réalisée plutôt que négative.
+ */
+export default function MedicationsPanel({
+  patient,
+  onSelectMedication,
+  currentUser,
+  currentCnkCodes = [],
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMedication, setSelectedMedication] = useState(null);
-  const [interactions, setInteractions] = useState(null);
-  
+  const [interactionResult, setInteractionResult] = useState(null);
+  const [search, setSearch] = useState({ status: null, results: [], source: null });
+
   const { searchSAM, getMedicationDetails, checkInteractions, isLoading } = useSAM(currentUser);
-  const [samResults, setSamResults] = useState([]);
 
   const handleSearch = async () => {
     if (!searchTerm) return;
-    
-    const results = await searchSAM(searchTerm);
-    setSamResults(results);
+    setInteractionResult(null);
+    setSelectedMedication(null);
+    setSearch(await searchSAM(searchTerm));
   };
 
   const handleSelectMedication = async (medication) => {
     setSelectedMedication(medication);
-    
-    // Charger détails + monographie
-    const details = await getMedicationDetails(medication.sam_id);
-    setSelectedMedication({...medication, ...details});
-    
-    if (onSelectMedication) {
-      onSelectMedication({...medication, ...details});
-    }
+    setInteractionResult(null);
+
+    const details = await getMedicationDetails(medication.cnk);
+    // En cas d'échec on conserve le résultat de recherche tel quel : aucune
+    // donnée clinique n'est inventée pour compléter la fiche.
+    const enriched = details.status === SAM_STATUS.OK && details.medication
+      ? { ...medication, ...details.medication }
+      : medication;
+
+    setSelectedMedication(enriched);
+    if (onSelectMedication) onSelectMedication(enriched);
   };
 
   const handleCheckInteractions = async () => {
     if (!selectedMedication) return;
-    
-    const result = await checkInteractions(patient, selectedMedication);
-    setInteractions(result);
+
+    // La vérification porte sur le traitement en cours plus le médicament
+    // envisagé. Sans traitement codé en CNK, aucune conclusion n'est possible :
+    // le hook renvoie INSUFFICIENT_INPUT et l'écran le dit explicitement.
+    const result = await checkInteractions(
+      [...currentCnkCodes.filter(Boolean), selectedMedication.cnk],
+      patient?.id
+    );
+    setInteractionResult(result);
   };
+
+  const isFallbackData = search.source === 'fallback';
 
   return (
     <div className="space-y-4">
@@ -56,7 +82,7 @@ export default function MedicationsPanel({ patient, onSelectMedication, currentU
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Pill className="w-5 h-5 text-blue-600" />
-            Recherche Médicaments (SAM - FAMHP)
+            Recherche Médicaments (SAM - AFMPS)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -74,45 +100,79 @@ export default function MedicationsPanel({ patient, onSelectMedication, currentU
             </Button>
           </div>
 
-          {samResults.length > 0 && (
+          {search.status === SAM_STATUS.UNAVAILABLE && (
+            <Alert className="border-orange-300 bg-orange-50">
+              <AlertTriangle className="w-4 h-4 text-orange-600" />
+              <AlertDescription className="text-orange-900">
+                Référentiel SAM indisponible. Aucun résultat ne peut être affiché —
+                consultez directement le CBIP/BCFI.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isFallbackData && search.results.length > 0 && (
+            <Alert className="border-orange-300 bg-orange-50 mb-3">
+              <AlertTriangle className="w-4 h-4 text-orange-600" />
+              <AlertDescription className="text-orange-900">
+                <strong>Données de dépannage.</strong> Le référentiel SAM n'a pas répondu ;
+                ces résultats proviennent d'un jeu de données interne. Les codes CNK
+                ne sont pas opposables et ne doivent pas être reportés sur une
+                prescription ou une facture.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {search.status === SAM_STATUS.OK && search.results.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm text-slate-600 font-semibold">{samResults.length} résultat(s)</p>
-              {samResults.map((med) => (
+              <p className="text-sm text-slate-600 font-semibold">
+                {search.results.length} résultat(s)
+              </p>
+              {search.results.map((med) => (
                 <div
-                  key={med.sam_id}
+                  key={med.cnk || med.sam_id}
                   onClick={() => handleSelectMedication(med)}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedMedication?.sam_id === med.sam_id 
-                      ? 'border-blue-500 bg-blue-50' 
+                    selectedMedication?.cnk === med.cnk
+                      ? 'border-blue-500 bg-blue-50'
                       : 'border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h4 className="font-semibold text-slate-900">{med.name}</h4>
-                      <p className="text-sm text-slate-600">{med.dosage}</p>
+                      <h4 className="font-semibold text-slate-900">{med.product_name}</h4>
+                      <p className="text-sm text-slate-600">
+                        {[med.strength, med.unit].filter(Boolean).join(' ')} · {med.form}
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">CNK: {med.cnk}</Badge>
-                        <Badge variant="outline" className="text-xs">SAM: {med.sam_id}</Badge>
+                        {med.atc_code && (
+                          <Badge variant="outline" className="text-xs">ATC: {med.atc_code}</Badge>
+                        )}
                       </div>
                     </div>
-                    {med.remboursement && (
-                      <Badge className="bg-green-100 text-green-800">Remboursé</Badge>
+                    {med.reimbursement?.category && (
+                      <Badge className="bg-green-100 text-green-800">
+                        Remb. {med.reimbursement.category}
+                      </Badge>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           )}
+
+          {search.status === SAM_STATUS.OK && search.results.length === 0 && searchTerm && (
+            <p className="text-sm text-slate-500">Aucun résultat pour « {searchTerm} ».</p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Détails + Monographie CBIP */}
+      {/* Détails médicament */}
       {selectedMedication && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>{selectedMedication.name}</span>
+              <span>{selectedMedication.product_name}</span>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -126,7 +186,7 @@ export default function MedicationsPanel({ patient, onSelectMedication, currentU
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => window.open(selectedMedication.cbip_url, '_blank')}
+                  onClick={() => window.open(CBIP_INTERACTIONS_URL, '_blank', 'noopener')}
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   CBIP/BCFI
@@ -135,35 +195,34 @@ export default function MedicationsPanel({ patient, onSelectMedication, currentU
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Informations essentielles */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold text-slate-600">Substance active</label>
-                <p className="text-slate-900">{selectedMedication.active_substance}</p>
+                <p className="text-slate-900">{selectedMedication.substance_name || '—'}</p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-600">Classe thérapeutique</label>
-                <p className="text-slate-900">{selectedMedication.atc_class}</p>
+                <label className="text-sm font-semibold text-slate-600">Classe ATC</label>
+                <p className="text-slate-900">{selectedMedication.atc_code || '—'}</p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-slate-600">Laboratoire</label>
-                <p className="text-slate-900">{selectedMedication.laboratory}</p>
+                <label className="text-sm font-semibold text-slate-600">Titulaire</label>
+                <p className="text-slate-900">{selectedMedication.manufacturer || '—'}</p>
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-600">Forme pharmaceutique</label>
-                <p className="text-slate-900">{selectedMedication.form}</p>
+                <p className="text-slate-900">{selectedMedication.form || '—'}</p>
               </div>
             </div>
 
-            {/* Posologie */}
-            {selectedMedication.posology && (
+            {/* Ces blocs ne s'affichent que si le référentiel les a réellement
+                fournis. Aucune valeur par défaut n'est substituée. */}
+            {selectedMedication.standard_dosage && (
               <div>
-                <label className="text-sm font-semibold text-slate-600">Posologie usuelle</label>
-                <p className="text-slate-900">{selectedMedication.posology}</p>
+                <label className="text-sm font-semibold text-slate-600">Posologie (RCP)</label>
+                <p className="text-slate-900">{selectedMedication.standard_dosage}</p>
               </div>
             )}
 
-            {/* Contre-indications */}
             {selectedMedication.contraindications && (
               <Alert className="border-red-200 bg-red-50">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -173,43 +232,91 @@ export default function MedicationsPanel({ patient, onSelectMedication, currentU
               </Alert>
             )}
 
-            {/* Précautions */}
-            {selectedMedication.precautions && (
-              <Alert className="border-yellow-200 bg-yellow-50">
-                <Info className="w-4 h-4 text-yellow-600" />
-                <AlertDescription className="text-yellow-900">
-                  <strong>Précautions:</strong> {selectedMedication.precautions}
-                </AlertDescription>
-              </Alert>
+            {selectedMedication.documents?.spc_url && (
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 h-auto"
+                onClick={() => window.open(selectedMedication.documents.spc_url, '_blank', 'noopener')}
+              >
+                Résumé des caractéristiques du produit (RCP)
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </Button>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Résultat interactions */}
-      {interactions && (
-        <Card className={interactions.has_interactions ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
+      {/* Résultat de la vérification d'interactions.
+          Trois états distincts — « indisponible » n'est jamais présenté en vert. */}
+      {interactionResult && (
+        <Card
+          className={
+            interactionResult.status === SAM_STATUS.UNAVAILABLE
+              ? 'border-orange-300 bg-orange-50'
+              : interactionResult.interactions.length > 0
+                ? 'border-red-200 bg-red-50'
+                : 'border-green-200 bg-green-50'
+          }
+        >
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              {interactions.has_interactions ? (
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+              {interactionResult.status === SAM_STATUS.UNAVAILABLE ? (
+                <ShieldAlert className="w-5 h-5 text-orange-600 shrink-0" />
+              ) : interactionResult.interactions.length > 0 ? (
+                <AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
               ) : (
-                <Shield className="w-5 h-5 text-green-600" />
+                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
               )}
+
               <div>
-                <h4 className="font-semibold mb-2">
-                  {interactions.has_interactions ? 'Interactions détectées' : 'Aucune interaction majeure'}
-                </h4>
-                {interactions.interactions?.map((interaction, idx) => (
-                  <div key={idx} className="text-sm mb-2">
-                    <strong>{interaction.drug1} × {interaction.drug2}:</strong> {interaction.description}
-                    <Badge className="ml-2">{interaction.severity}</Badge>
-                  </div>
-                ))}
+                {interactionResult.status === SAM_STATUS.UNAVAILABLE ? (
+                  <>
+                    <h4 className="font-semibold mb-1 text-orange-900">
+                      Vérification non réalisée
+                    </h4>
+                    <p className="text-sm text-orange-900">
+                      {interactionResult.reason === 'INSUFFICIENT_INPUT'
+                        ? "Le traitement en cours du patient n'est pas codé en CNK : "
+                          + 'aucune vérification automatique n\'est possible.'
+                        : "Le service de vérification n'a pas répondu."}
+                      {' '}
+                      <strong>
+                        Ceci n&apos;est pas une absence d&apos;interaction — la vérification
+                        doit être faite manuellement.
+                      </strong>
+                    </p>
+                  </>
+                ) : interactionResult.interactions.length > 0 ? (
+                  <>
+                    <h4 className="font-semibold mb-2">Interactions détectées</h4>
+                    {interactionResult.interactions.map((interaction, idx) => (
+                      <div key={idx} className="text-sm mb-2">
+                        <strong>{interaction.drug_a} × {interaction.drug_b}:</strong>{' '}
+                        {interaction.description}
+                        {interaction.recommendation && (
+                          <span className="block text-slate-700 mt-0.5">
+                            {interaction.recommendation}
+                          </span>
+                        )}
+                        <Badge className="ml-2">{interaction.severity}</Badge>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <h4 className="font-semibold mb-1">Aucune interaction connue</h4>
+                    <p className="text-sm text-slate-700">
+                      Sur la base du référentiel SAM, pour les médicaments codés en CNK
+                      dans le dossier. Un traitement non codé n&apos;est pas couvert.
+                    </p>
+                  </>
+                )}
+
                 <Button
                   variant="link"
                   size="sm"
-                  onClick={() => window.open('https://www.cbip.be/fr/chapters/17?frag=8000', '_blank')}
+                  onClick={() => window.open(CBIP_INTERACTIONS_URL, '_blank', 'noopener')}
                   className="p-0 h-auto"
                 >
                   Consulter CBIP Interactions
@@ -221,13 +328,13 @@ export default function MedicationsPanel({ patient, onSelectMedication, currentU
         </Card>
       )}
 
-      {/* Info CBIP */}
       <Alert className="bg-blue-50 border-blue-200">
         <Info className="w-4 h-4 text-blue-600" />
         <AlertDescription className="text-blue-900">
-          <strong>Sources authentiques:</strong> SAM (FAMHP - Agence fédérale des médicaments), 
-          CBIP/BCFI (Centre Belge d'Information Pharmacothérapeutique). 
-          Données actualisées quotidiennement.
+          <strong>Source :</strong> SAM (AFMPS — Agence fédérale des médicaments et des
+          produits de santé), via la fonction <code>samV2Search</code>. La vérification
+          d&apos;interactions ne remplace pas la consultation du CBIP/BCFI ni le jugement
+          clinique.
         </AlertDescription>
       </Alert>
     </div>

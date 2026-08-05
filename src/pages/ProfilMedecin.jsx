@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@/entities/User';
-import { AuditLog } from '@/entities/AuditLog';
 import { base44 } from '@/api/base44Client';
 import { inamiValidator } from '@/lib/inamiValidator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,6 +40,7 @@ import AutoBackupService from '../components/backup/AutoBackupService';
 import CabinetManager from '../components/cabinet/CabinetManager';
 import LiaisonMedecinSecretaireTab from '../components/profile/LiaisonMedecinSecretaireTab';
 import AccessibilitySettings from '../components/settings/AccessibilitySettings';
+import { recordAudit } from '@/lib/auditLog';
 
 export default function ProfilMedecinPage() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -243,7 +243,7 @@ export default function ProfilMedecinPage() {
       await base44.auth.updateMe(dataToSave);
 
       // Audit log
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'PROFILE_UPDATE',
         target_entity: 'User',

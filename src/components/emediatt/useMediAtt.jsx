@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { jsPDF } from 'jspdf';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour génération et envoi d'attestations eMediAtt
 export const useMediAtt = () => {
@@ -45,7 +46,7 @@ export const useMediAtt = () => {
       });
 
       // Audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'EMEDIATT_GENERATED',
         target_entity: 'Document',
@@ -98,7 +99,7 @@ export const useMediAtt = () => {
       });
 
       // Audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'EMEDIATT_SENT',
         target_entity: 'Document',

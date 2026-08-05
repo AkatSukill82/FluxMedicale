@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Smartphone, CheckCircle, Loader2 } from 'lucide-react';
 import { User } from '@/entities/User';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Configuration itsme® OIDC
 const ITSME_CONFIG = {
@@ -81,7 +81,7 @@ export default function ItsmeProvider({ onSuccess, environment = 'ACPT' }) {
           horaires_consultation: '', // À compléter
         });
 
-        await AuditLog.create({
+        await recordAudit({
           user_email: mockClaims.email,
           action: 'ITSME_ACCOUNT_CREATED',
           target_entity: 'User',
@@ -92,7 +92,7 @@ export default function ItsmeProvider({ onSuccess, environment = 'ACPT' }) {
       } else {
         console.log('[itsme® OIDC] Utilisateur existant trouvé');
         
-        await AuditLog.create({
+        await recordAudit({
           user_email: user.email,
           action: 'ITSME_LOGIN_SUCCESS',
           target_entity: 'User',
@@ -110,7 +110,7 @@ export default function ItsmeProvider({ onSuccess, environment = 'ACPT' }) {
       console.error('[itsme® OIDC] Erreur:', err);
       setError('Erreur lors de la connexion avec itsme®. Veuillez réessayer.');
       
-      await AuditLog.create({
+      await recordAudit({
         user_email: 'anonymous',
         action: 'ITSME_LOGIN_FAILED',
         details: `Échec connexion itsme®: ${err.message}`,
@@ -194,5 +194,7 @@ export default function ItsmeProvider({ onSuccess, environment = 'ACPT' }) {
 
 // Fonction utilitaire pour générer un state CSRF
 function generateState() {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // Nonce anti-CSRF : doit être imprévisible. Math.random() ne l'est pas.
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }

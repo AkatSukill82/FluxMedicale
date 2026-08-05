@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook OpenTelemetry pour instrumentation des parcours critiques
 export const useOpenTelemetry = (currentUser) => {
@@ -83,7 +83,7 @@ export const useOpenTelemetry = (currentUser) => {
 
     // Audit log pour corréler
     if (currentUser) {
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'OTEL_SPAN',
         target_entity: 'Trace',

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour gérer le Schéma de Médication Partagé (SMP)
 export const useSMP = (currentUser) => {
@@ -22,7 +22,7 @@ export const useSMP = (currentUser) => {
 
     try {
       // Audit log
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'ACCESS_SMP',
         target_entity: 'Patient',
@@ -156,7 +156,7 @@ export const useSMP = (currentUser) => {
     link.click();
 
     // Audit
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'EXPORT_SMP_XML',
       target_entity: 'SMP',
@@ -170,7 +170,7 @@ export const useSMP = (currentUser) => {
     console.log('[SMP] Génération PDF');
     
     // Audit
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'PRINT_SMP_PDF',
       target_entity: 'Patient',

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour simuler les interactions avec VIDIS (Shared Medication Scheme)
 export const useVIDIS = (currentUser) => {
@@ -35,7 +35,7 @@ export const useVIDIS = (currentUser) => {
     console.log('[VIDIS SMP] Lecture schéma de médication pour NISS:', patientNiss);
 
     // Audit log
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'VIDIS_READ_SMP',
       target_entity: 'Patient',

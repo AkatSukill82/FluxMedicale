@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { sanitizeRichText } from '@/lib/sanitizeHtml';
 import {
   FileText,
   Eye,
@@ -408,7 +409,7 @@ export default function DocumentEditor({
               <div className="max-w-4xl mx-auto">
                 <div 
                   className="bg-white border-2 border-slate-200 rounded-lg p-8 shadow-sm"
-                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichText(previewHtml) }}
                 />
               </div>
             </TabsContent>

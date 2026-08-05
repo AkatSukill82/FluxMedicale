@@ -20,7 +20,7 @@ import {
 import { format, differenceInDays, addMonths, isPast, isWithinInterval, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
-import { handleError, handleSuccess } from '../utils/ErrorHandler';
+import { handleError, handleSuccess } from '@/components/utils/ErrorHandler';
 import DrugInteractionChecker from '../clinical/DrugInteractionChecker';
 
 export default function PrescriptionRenewalPanel({ patient }) {

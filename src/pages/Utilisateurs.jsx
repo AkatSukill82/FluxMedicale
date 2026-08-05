@@ -48,6 +48,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, ROLE_COLORS } from '../components/auth/RBACGuard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CabinetManager from '@/components/cabinet/CabinetManager';
+import ImportPanel from '@/components/import/ImportPanel';
+import LiaisonPanel from '@/components/liaison/LiaisonPanel';
+import ReferentialImportPanel from '@/components/referential/ReferentialImportPanel';
 
 export default function Utilisateurs() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -171,6 +176,17 @@ export default function Utilisateurs() {
 
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="main">
+        <TabsList>
+          <TabsTrigger value="main">👥 Utilisateurs</TabsTrigger>
+          <TabsTrigger value="cabinets">🏥 Cabinets</TabsTrigger>
+          <TabsTrigger value="import">📥 Import patients</TabsTrigger>
+          <TabsTrigger value="liaison">🔗 Liaison méd./secr.</TabsTrigger>
+          <TabsTrigger value="referentiel">📚 Référentiel SAM</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="main" className="mt-4">
+          <div className="space-y-6">
       {/* En-tête */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -515,6 +531,25 @@ export default function Utilisateurs() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+</div>
+        </TabsContent>
+
+        <TabsContent value="cabinets" className="mt-4">
+          <CabinetManager />
+        </TabsContent>
+
+        <TabsContent value="import" className="mt-4">
+          <ImportPanel />
+        </TabsContent>
+
+        <TabsContent value="liaison" className="mt-4">
+          <LiaisonPanel />
+        </TabsContent>
+
+        <TabsContent value="referentiel" className="mt-4">
+          <ReferentialImportPanel />
+        </TabsContent>
+      </Tabs>
+        </div>
   );
 }

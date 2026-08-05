@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour écriture VIDIS (Medication Scheme)
 export const useVIDISWrite = () => {
@@ -19,7 +19,7 @@ export const useVIDISWrite = () => {
       const result = await simulateVIDISWrite('CREATE', patientNiss, medicationData);
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'VIDIS_MEDICATION_CREATED',
         target_entity: 'VIDIS',
@@ -50,7 +50,7 @@ export const useVIDISWrite = () => {
       const result = await simulateVIDISWrite('SUSPEND', patientNiss, { elementId, ...suspensionData });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'VIDIS_TREATMENT_SUSPENDED',
         target_entity: 'VIDIS',
@@ -81,7 +81,7 @@ export const useVIDISWrite = () => {
       const result = await simulateVIDISWrite('RESUME', patientNiss, { elementId });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'VIDIS_TREATMENT_RESUMED',
         target_entity: 'VIDIS',

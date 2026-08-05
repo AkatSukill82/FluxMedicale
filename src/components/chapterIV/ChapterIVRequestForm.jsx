@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConditionsChecklist from './ConditionsChecklist';
+import IntegrationStatusBanner from '@/components/integrations/IntegrationStatusBanner';
 import { 
   PARAGRAPH_CONDITIONS, 
   MUTUAL_ORGANIZATIONS, 
@@ -195,6 +196,7 @@ export default function ChapterIVRequestForm({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto">
+        <IntegrationStatusBanner service="chapterIV" />
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-purple-600" />

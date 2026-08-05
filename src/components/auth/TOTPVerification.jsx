@@ -16,8 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, AlertTriangle, Loader2, Key } from 'lucide-react';
-import { AuditLog } from '@/entities/AuditLog';
 import { base44 } from '@/api/base44Client';
+import { recordAudit } from '@/lib/auditLog';
 
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
@@ -49,27 +49,33 @@ export default function TOTPVerification({ userEmail, onSuccess, onCancel }) {
     setError(null);
 
     try {
-      // Appel backend pour vérification TOTP sécurisée côté serveur
-      // Le backend vérifie avec clock-skew ±1 pas (30s) et invalide le code
-      // après usage pour éviter les replay attacks
+      // Le serveur fait autorité : tolérance d'horloge ±1 pas (30 s), blocage
+      // du rejeu d'un code déjà consommé, et verrouillage après échecs répétés.
+      // Le compteur local plus bas n'est qu'un confort d'affichage — il est
+      // remis à zéro par un rechargement de page, contrairement au verrou
+      // serveur.
       let isValid = false;
+      let serverError = null;
 
       try {
-        const result = await base44.functions.verifyTOTP({
-          user_email: userEmail,
-          totp_code: totpCode,
-        });
+        const res = await base44.functions.mfa({ action: 'verify', code: totpCode });
+        const result = res?.data ?? res;
         isValid = result?.valid === true;
+        serverError = result?.error || null;
       } catch (backendErr) {
-        // Si la fonction backend n'est pas encore déployée, bloquer plutôt
-        // qu'accepter — fail secure (principe de moindre privilège)
+        // Service indisponible : on refuse. Jamais d'acceptation par défaut.
         throw new Error(
-          'Service de vérification MFA indisponible. Contactez l\'administrateur.'
+          backendErr?.response?.data?.error
+          || 'Service de vérification MFA indisponible. Contactez l\'administrateur.'
         );
       }
 
+      if (!isValid && serverError) {
+        throw new Error(serverError);
+      }
+
       if (isValid) {
-        await AuditLog.create({
+        await recordAudit({
           user_email: userEmail,
           action: 'MFA_VERIFY_SUCCESS',
           target_entity: 'User',
@@ -80,7 +86,7 @@ export default function TOTPVerification({ userEmail, onSuccess, onCancel }) {
       } else {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
-        await AuditLog.create({
+        await recordAudit({
           user_email: userEmail,
           action: 'MFA_VERIFY_FAILED',
           target_entity: 'User',
@@ -107,13 +113,14 @@ export default function TOTPVerification({ userEmail, onSuccess, onCancel }) {
     setError(null);
 
     try {
-      const result = await base44.functions.verifyBackupCode({
-        user_email: userEmail,
-        backup_code: backupCode.trim().toUpperCase(),
+      const res = await base44.functions.mfa({
+        action: 'verify_backup_code',
+        code: backupCode.trim().toUpperCase(),
       });
+      const result = res?.data ?? res;
 
       if (result?.valid === true) {
-        await AuditLog.create({
+        await recordAudit({
           user_email: userEmail,
           action: 'MFA_BACKUP_CODE_USED',
           target_entity: 'User',

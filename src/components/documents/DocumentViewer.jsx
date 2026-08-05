@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { X, FileSignature, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { useDocumentService } from './useDocumentService';
+import { sanitizeRichText } from '@/lib/sanitizeHtml';
 
 export default function DocumentViewer({ document, patient, currentUser, onClose }) {
   const [showSignature, setShowSignature] = useState(false);
@@ -126,7 +127,7 @@ export default function DocumentViewer({ document, patient, currentUser, onClose
             <Label>Contenu</Label>
             <div 
               className="border rounded-lg p-6 bg-white min-h-[400px]"
-              dangerouslySetInnerHTML={{ __html: document.content_html }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(document.content_html) }}
             />
           </div>
 

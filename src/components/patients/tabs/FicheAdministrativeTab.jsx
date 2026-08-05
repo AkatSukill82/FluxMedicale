@@ -28,6 +28,7 @@ import PrescriptionReminders from '../../prescriptions/PrescriptionReminders';
 import PatientCommunicationPanel from '../../communication/PatientCommunicationPanel';
 import GDPRConsentManager from '../../gdpr/GDPRConsentManager';
 import MedicalHistoryPanel from '../MedicalHistoryPanel';
+import { recordAudit } from '@/lib/auditLog';
 
 export default function FicheAdministrativeTab({ patient }) {
   const { t } = useI18n();
@@ -186,7 +187,7 @@ export default function FicheAdministrativeTab({ patient }) {
 
       // Audit log
       if (currentUser) {
-        await base44.entities.AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'UPDATE_PATIENT_ADMIN',
           target_entity: 'Patient',

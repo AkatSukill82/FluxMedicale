@@ -196,14 +196,34 @@
   ],
   "rls": {
     "read": {
-      "user_condition": {
-        "role": "user"
-      }
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "write": {
-      "user_condition": {
-        "role": "user"
-      }
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "medecin_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

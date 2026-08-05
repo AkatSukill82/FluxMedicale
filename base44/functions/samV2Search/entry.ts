@@ -15,7 +15,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    const { action, query, cnk, lang = 'fr' } = await req.json();
+    // Le corps de la requête ne peut être lu qu'une seule fois : toutes les
+    // actions doivent lire leurs paramètres ici.
+    const body = await req.json();
+    const { action, query, cnk, cnk_list, lang = 'fr' } = body;
 
     switch (action) {
       case 'search': {
@@ -203,32 +206,56 @@ Deno.serve(async (req) => {
       }
 
       case 'interactions': {
-        // Vérification interactions entre plusieurs médicaments
-        const { cnk_list } = await req.json();
-        
+        // Vérification interactions entre plusieurs médicaments.
+        //
+        // SÉCURITÉ CLINIQUE : cette action ne doit JAMAIS renvoyer une liste
+        // vide lorsque la vérification n'a pas abouti. Une liste vide est
+        // interprétée par l'appelant comme « aucune interaction », donc comme
+        // un feu vert. Tout échec renvoie explicitement status: 'unavailable'.
         if (!cnk_list || cnk_list.length < 2) {
-          return Response.json({ interactions: [] });
+          return Response.json({
+            status: 'unavailable',
+            reason: 'INSUFFICIENT_INPUT',
+            interactions: []
+          });
         }
 
         const intUrl = `${SAM_API_BASE}/interactions/check`;
-        
-        const response = await fetch(intUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Accept-Language': lang
-          },
-          body: JSON.stringify({ cnkCodes: cnk_list })
-        });
+
+        let response;
+        try {
+          response = await fetch(intUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Accept-Language': lang
+            },
+            body: JSON.stringify({ cnkCodes: cnk_list }),
+            signal: AbortSignal.timeout(5000)
+          });
+        } catch (fetchErr) {
+          return Response.json({
+            status: 'unavailable',
+            reason: 'UPSTREAM_UNREACHABLE',
+            detail: fetchErr.message,
+            interactions: []
+          }, { status: 503 });
+        }
 
         if (!response.ok) {
-          return Response.json({ interactions: [] });
+          return Response.json({
+            status: 'unavailable',
+            reason: 'UPSTREAM_ERROR',
+            upstream_status: response.status,
+            interactions: []
+          }, { status: 503 });
         }
 
         const data = await response.json();
-        
+
         return Response.json({
+          status: 'ok',
           source: 'sam_v2',
           interactions: (data.interactions || []).map(int => ({
             drug_a: int.drugA,

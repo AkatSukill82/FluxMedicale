@@ -9,6 +9,10 @@ import { Download, Shield, Search, Filter, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import RBACGuard, { PERMISSIONS } from "../components/auth/RBACGuard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AuditSecurityPanel from '@/components/security/AuditSecurityPanel';
+import GDPRRegistryPanel from '@/components/gdpr/GDPRRegistryPanel';
+import HealthPanel from '@/components/health/HealthPanel';
 
 export default function AuditPage() {
   const [logs, setLogs] = useState([]);
@@ -92,6 +96,16 @@ export default function AuditPage() {
   return (
     <RBACGuard user={currentUser} permission={PERMISSIONS.VIEW_AUDIT}>
       <div className="space-y-6">
+      <Tabs defaultValue="main">
+        <TabsList>
+          <TabsTrigger value="main">📜 Journal d'audit</TabsTrigger>
+          <TabsTrigger value="securite">🛡️ Sécurité</TabsTrigger>
+          <TabsTrigger value="rgpd">📋 Registre RGPD</TabsTrigger>
+          <TabsTrigger value="sante">❤️ Santé système</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="main" className="mt-4">
+          <div className="space-y-6">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Journal d'Audit</h1>
@@ -300,7 +314,22 @@ export default function AuditPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+</div>
+        </TabsContent>
+
+        <TabsContent value="securite" className="mt-4">
+          <AuditSecurityPanel />
+        </TabsContent>
+
+        <TabsContent value="rgpd" className="mt-4">
+          <GDPRRegistryPanel />
+        </TabsContent>
+
+        <TabsContent value="sante" className="mt-4">
+          <HealthPanel />
+        </TabsContent>
+      </Tabs>
+          </div>
     </RBACGuard>
   );
 }

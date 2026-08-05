@@ -32,6 +32,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import IntegrationStatusBanner from '@/components/integrations/IntegrationStatusBanner';
 
 export default function SumehrEditor({ patient, onClose }) {
   const queryClient = useQueryClient();
@@ -222,6 +223,9 @@ export default function SumehrEditor({ patient, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-5xl max-h-[90vh] flex flex-col">
+        <div className="p-4 pb-0">
+          <IntegrationStatusBanner service="hub" />
+        </div>
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

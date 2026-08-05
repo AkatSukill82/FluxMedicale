@@ -107,6 +107,29 @@ async function getDB() {
   return db;
 }
 
+/**
+ * Supprime intégralement la base hors-ligne.
+ *
+ * Cette base contient des données de santé en clair (patients, consultations,
+ * prescriptions, antécédents, NISS). Elle doit être détruite à la déconnexion :
+ * sur un poste partagé de cabinet, `clearAllCache()` ne suffit pas puisqu'il
+ * laisse les magasins en place et n'efface pas toutes les tables.
+ */
+export async function destroyOfflineDB() {
+  if (db) {
+    db.close();
+    db = null;
+  }
+
+  return new Promise((resolve) => {
+    const request = indexedDB.deleteDatabase(DB_NAME);
+    request.onsuccess = () => resolve(true);
+    request.onerror = () => resolve(false);
+    // Un autre onglet garde la base ouverte : on n'attend pas indéfiniment.
+    request.onblocked = () => resolve(false);
+  });
+}
+
 // ========== PATIENTS ==========
 
 export async function cachePatients(patients) {

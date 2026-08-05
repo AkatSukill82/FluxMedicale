@@ -25,6 +25,7 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 const MAX_FILE_SIZE_MB = 20;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -205,7 +206,7 @@ export default function PatientExportModal({ patient, isOpen, onClose }) {
       }
 
       // Log d'audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: sendMode === 'download' ? 'PATIENT_EXPORT_DOWNLOAD' : 'PATIENT_EXPORT_EHEALTHBOX',
         target_entity: 'Patient',

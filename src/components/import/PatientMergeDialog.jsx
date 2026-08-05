@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { PatientMerge } from '@/entities/PatientMerge';
-import { AuditLog } from '@/entities/AuditLog';
 import { User } from '@/entities/User';
 import {
   Dialog,
@@ -11,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { recordAudit } from '@/lib/auditLog';
 import { 
   ArrowRight, 
   ArrowLeft, 
@@ -116,7 +116,7 @@ export default function PatientMergeDialog({
       });
 
       // Audit log
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'PATIENT_MERGE_DECISION',
         target_entity: 'PatientMerge',

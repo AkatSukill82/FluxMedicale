@@ -35,10 +35,14 @@
   ],
   "rls": {
     "read": {
-      "created_by": "{{user.email}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "write": {
-      "created_by": "{{user.email}}"
+      "user_condition": {
+        "role": "admin"
+      }
     }
   }
 }

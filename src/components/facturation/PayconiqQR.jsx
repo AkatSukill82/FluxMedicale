@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,17 +54,40 @@ function generateStructuredComm(invoiceRef) {
   return `+++${formatted}+++`;
 }
 
-// Simple QR code renderer using SVG (no external dependency)
+/**
+ * QR code de paiement, rendu localement.
+ *
+ * Le rendu passait auparavant par api.qrserver.com : le nom du patient, le
+ * montant, la référence de facture et l'IBAN du médecin étaient transmis dans
+ * l'URL à un service tiers, à chaque affichage d'une demande de paiement.
+ */
 function QRCodeSVG({ data, size = 200 }) {
-  // We'll use a canvas-based approach with the data encoded as a URL
-  // that banking apps can scan. For a real QR, we generate a Google Charts URL.
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}&margin=4`;
-  
+  const [dataUrl, setDataUrl] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(data, { width: size, margin: 2, errorCorrectionLevel: 'M' })
+      .then((url) => { if (!cancelled) setDataUrl(url); })
+      .catch(() => { if (!cancelled) setDataUrl(''); });
+    return () => { cancelled = true; };
+  }, [data, size]);
+
+  if (!dataUrl) {
+    return (
+      <div
+        className="rounded-lg bg-slate-100 flex items-center justify-center"
+        style={{ width: size, height: size }}
+      >
+        <QrCode className="w-10 h-10 text-slate-400" />
+      </div>
+    );
+  }
+
   return (
-    <img 
-      src={qrUrl} 
-      alt="QR Code de paiement" 
-      width={size} 
+    <img
+      src={dataUrl}
+      alt="QR Code de paiement"
+      width={size}
       height={size}
       className="rounded-lg"
     />

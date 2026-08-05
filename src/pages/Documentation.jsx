@@ -27,6 +27,10 @@ import {
   Download
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import TemplatesPanel from '@/components/documents/TemplatesPanel';
+import ModelesConsultationPanel from '@/components/automation/ModelesConsultationPanel';
+import RapportsMedicauxPanel from '@/components/reports/RapportsMedicauxPanel';
+import ParcoursPatientPanel from '@/components/pathway/ParcoursPatientPanel';
 
 export default function DocumentationPage() {
   const [generating, setGenerating] = useState(false);
@@ -396,6 +400,17 @@ export default function DocumentationPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
+      <Tabs defaultValue="main">
+        <TabsList>
+          <TabsTrigger value="main">📖 Documentation</TabsTrigger>
+          <TabsTrigger value="modeles-doc">📄 Modèles de documents</TabsTrigger>
+          <TabsTrigger value="modeles-consult">📝 Modèles de consultation</TabsTrigger>
+          <TabsTrigger value="rapports">📊 Rapports médicaux</TabsTrigger>
+          <TabsTrigger value="parcours">🗺️ Parcours de soins</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="main" className="mt-4">
+          <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -533,6 +548,25 @@ export default function DocumentationPage() {
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
-    </div>
+</div>
+        </TabsContent>
+
+        <TabsContent value="modeles-doc" className="mt-4">
+          <TemplatesPanel />
+        </TabsContent>
+
+        <TabsContent value="modeles-consult" className="mt-4">
+          <ModelesConsultationPanel />
+        </TabsContent>
+
+        <TabsContent value="rapports" className="mt-4">
+          <RapportsMedicauxPanel />
+        </TabsContent>
+
+        <TabsContent value="parcours" className="mt-4">
+          <ParcoursPatientPanel />
+        </TabsContent>
+      </Tabs>
+        </div>
   );
 }

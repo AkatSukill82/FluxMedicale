@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import { recordPatientAccess } from '@/lib/auditLog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -66,22 +67,18 @@ export default function SecurePatientAccess({
 
   const logAccess = async (justificationText = '') => {
     try {
-      const user = await base44.auth.me();
-      
-      await base44.entities.DataAccessLog.create({
-        user_email: user.email,
-        patient_id: patient.id,
-        action: action,
-        resource_type: resourceType || 'Patient',
-        resource_id: resourceId || patient.id,
-        timestamp: new Date().toISOString(),
+      // Le registre d'accès n'est plus inscriptible depuis le navigateur :
+      // l'écriture passe par la fonction serveur, qui établit elle-même
+      // l'identité, l'horodatage et l'adresse IP réelle.
+      await recordPatientAccess({
+        patientId: patient.id,
+        action,
+        resourceType: resourceType || 'Patient',
+        resourceId: resourceId || patient.id,
         justification: justificationText,
-        ip_address: 'N/A', // Sera rempli côté serveur idéalement
-        user_agent: navigator.userAgent,
-        session_id: `session-${Date.now()}`
       });
 
-      // Mettre à jour le dernier accès sur le patient
+      const user = await base44.auth.me();
       await base44.entities.Patient.update(patient.id, {
         last_accessed_at: new Date().toISOString(),
         last_accessed_by: user.email

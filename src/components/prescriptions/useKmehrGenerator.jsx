@@ -18,8 +18,8 @@
  * et appelle une fonction backend simulée. À remplacer par l'appel réel en production.
  */
 import { useState } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
 import { format } from 'date-fns';
+import { recordAudit } from '@/lib/auditLog';
 
 // Constantes Recip-e / eHealth
 const KMEHR_NS = 'http://www.ehealth.fgov.be/standards/kmehr/schema/v1';
@@ -180,7 +180,7 @@ export const useKmehrGenerator = () => {
       setGeneratedRid(rid);
       setStatus('acknowledged');
 
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'CREATION_PRESCRIPTION_RECIPE',
         target_entity: 'Patient',
@@ -197,7 +197,7 @@ export const useKmehrGenerator = () => {
       setStatus('error');
       setIsLoading(false);
 
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'ERREUR_PRESCRIPTION_RECIPE',
         target_entity: 'Patient',

@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { format, differenceInYears } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 // Validation du numéro NISS belge (numéro national)
 function validateNISS(niss) {
@@ -176,7 +177,7 @@ export default function ConsultRNService({ onPatientFound, initialNiss = '' }) {
       setResult(rnResult);
       
       // Audit de la consultation
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'CONSULT_RN',
         target_entity: 'Patient',

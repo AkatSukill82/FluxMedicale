@@ -179,7 +179,8 @@ export default function MedicationSearch({ onSelect, selectedMedications = [], s
               La base de données des médicaments est vide. Vous devez d'abord importer des médicaments de test ou le référentiel SAM/APB complet.
             </p>
             <Button
-              onClick={() => window.location.href = createPageUrl('ReferentialImport')}
+              disabled
+              title="L'import du referentiel est une operation d'administration"
               className="bg-orange-600 hover:bg-orange-700"
             >
               <ArrowRight className="w-4 h-4 mr-2" />

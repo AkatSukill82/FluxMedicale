@@ -25,6 +25,8 @@ import DoctorAvailabilityView from "../components/agenda/DoctorAvailabilityView"
 import AppointmentNotifications from "../components/agenda/AppointmentNotifications";
 import TeleconsultationScheduler from "../components/teleconsultation/TeleconsultationScheduler";
 import GoogleCalendarSync from "../components/agenda/GoogleCalendarSync";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PatientRemindersSystem from '@/components/reminders/PatientRemindersSystem';
 
 export default function Agenda() {
   const queryClient = useQueryClient();
@@ -354,15 +356,26 @@ export default function Agenda() {
               onClick={() => setShowReminders(false)}
             >
               <motion.div 
-                className="w-full max-w-2xl"
+                className="w-full max-w-4xl max-h-[85vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
                 initial={{ scale: 0.95 }}
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.95 }}
               >
-                <ReminderSettings 
-                  onSave={handleSaveReminderSettings}
-                />
+                <Tabs defaultValue="rappels">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="rappels">Rappels patients</TabsTrigger>
+                    <TabsTrigger value="reglages">Réglages</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="rappels">
+                    <PatientRemindersSystem />
+                  </TabsContent>
+                  <TabsContent value="reglages">
+                    <ReminderSettings
+                      onSave={handleSaveReminderSettings}
+                    />
+                  </TabsContent>
+                </Tabs>
                 <Button
                   variant="outline"
                   className="w-full mt-4"

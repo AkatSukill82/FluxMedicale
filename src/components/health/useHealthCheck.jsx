@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
 import { User } from '@/entities/User';
+import { recordAudit } from '@/lib/auditLog';
 
 export const useHealthCheck = () => {
   const [moduleStatuses, setModuleStatuses] = useState({
@@ -251,7 +251,7 @@ export const useHealthCheck = () => {
       setTestResults(resultsMap);
 
       // Audit log
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'HEALTH_CHECK_RUN',
         target_entity: 'System',
@@ -315,7 +315,7 @@ export const useHealthCheck = () => {
     link.click();
 
     // Audit
-    await AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'HEALTH_REPORT_EXPORT',
       target_entity: 'System',

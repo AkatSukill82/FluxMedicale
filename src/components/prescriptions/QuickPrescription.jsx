@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Pill, Thermometer, Droplets, Wind, Loader2, Plus, X, Search, FileText, Mail, Archive, Settings } from 'lucide-react';
-import { handleError, handleSuccess } from '../utils/ErrorHandler';
+import { handleError, handleSuccess } from '@/components/utils/ErrorHandler';
 import MedicationSearch from '../medications/MedicationSearch';
 import SAMv2Search from '../medications/SAMv2Search';
 import AdvancedMedicationSearch from '../medications/AdvancedMedicationSearch';

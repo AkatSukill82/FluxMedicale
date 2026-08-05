@@ -27,6 +27,7 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 // Simulation de la boîte eHealthBox
 async function simulateFetchMessages() {
@@ -124,7 +125,7 @@ export default function EHealthBoxService({ onMessageReceived, onMessageSelected
       }
       
       // Audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'EHEALTHBOX_FETCH',
         target_entity: 'EHealthBoxMessage',
@@ -169,7 +170,7 @@ export default function EHealthBoxService({ onMessageReceived, onMessageSelected
 
       if (result.success) {
         // Audit
-        await base44.entities.AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'EHEALTHBOX_SEND',
           target_entity: 'EHealthBoxMessage',

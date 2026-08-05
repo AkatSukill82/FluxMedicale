@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { format, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 // Simulation des données MyCareNet
 const simulateMyCareNetData = (patientNiss) => {
@@ -126,7 +127,7 @@ export default function MyCareNetDataPanel({ patient }) {
 
     // Log audit
     if (currentUser) {
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'MYCARENET_QUERY',
         target_entity: 'Patient',

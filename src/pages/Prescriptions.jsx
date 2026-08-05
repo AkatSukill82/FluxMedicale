@@ -34,6 +34,9 @@ import { fr } from 'date-fns/locale';
 import PrescriptionsList from '@/components/prescriptions/PrescriptionsList';
 import PrescriptionRemindersDashboard from '@/components/prescriptions/PrescriptionRemindersDashboard';
 import CreatePrescriptionModal from '@/components/prescriptions/CreatePrescriptionModal';
+import EPrescriptionsPanel from '@/components/eprescription/EPrescriptionsPanel';
+import PrescriptionRenewalsPanel from '@/components/prescriptions/PrescriptionRenewalsPanel';
+import ChapterIVPage from '@/components/chapterIV/ChapterIVPage';
 
 export default function PrescriptionsPage() {
   const [activeTab, setActiveTab] = useState('actives');
@@ -241,6 +244,15 @@ export default function PrescriptionsPage() {
               <Badge className="bg-orange-500">{stats.rappelsActifs}</Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger value="eprescriptions" className="gap-2">
+            📡 e-Prescriptions
+          </TabsTrigger>
+          <TabsTrigger value="renouvellements" className="gap-2">
+            🔁 Renouvellements
+          </TabsTrigger>
+          <TabsTrigger value="chapitre4" className="gap-2">
+            🛡️ Chapitre IV
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="actives" className="mt-6">
@@ -262,6 +274,18 @@ export default function PrescriptionsPage() {
 
         <TabsContent value="rappels" className="mt-6">
           <PrescriptionRemindersDashboard />
+        </TabsContent>
+
+        <TabsContent value="eprescriptions" className="mt-6">
+          <EPrescriptionsPanel />
+        </TabsContent>
+
+        <TabsContent value="renouvellements" className="mt-6">
+          <PrescriptionRenewalsPanel />
+        </TabsContent>
+
+        <TabsContent value="chapitre4" className="mt-6">
+          <ChapterIVPage />
         </TabsContent>
       </Tabs>
 

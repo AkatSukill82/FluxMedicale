@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Loader2, Search, UserPlus, ArrowRight } from 'lucide-react';
 import { nissValidator } from './nissValidator';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 const SSIN_SYSTEM = 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin';
 
@@ -105,7 +106,7 @@ export default function ManualNISSLookup({ isOpen, onClose, onPatientFound, onPa
     });
 
     const currentUser = await base44.auth.me();
-    await base44.entities.AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'MANUAL_PATIENT_CREATED',
       target_entity: 'Patient',

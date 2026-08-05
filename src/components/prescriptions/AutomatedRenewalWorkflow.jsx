@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 import { format, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 /**
  * Automated Prescription Renewal Workflow
@@ -132,7 +133,7 @@ L'équipe FluxMed`
 
       // In real implementation, this would integrate with Recip-e API
       // For now, create audit log
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: prescription.medecin_email,
         action: 'PRESCRIPTION_SENT_TO_PHARMACY',
         target_entity: 'Prescription',

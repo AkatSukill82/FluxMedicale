@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
+import { recordAudit } from '@/lib/auditLog';
 
 // Types d'examens pour Annexe 82
 export const EXAM_TYPES = [
@@ -299,7 +300,7 @@ export const useAnnexe82 = () => {
       });
 
       // Audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'CREATE_ANNEXE82',
         target_entity: 'Annexe82',
@@ -339,7 +340,7 @@ export const useAnnexe82 = () => {
       });
 
       // Audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'SEND_ANNEXE82_EHEALTHBOX',
         target_entity: 'Annexe82',

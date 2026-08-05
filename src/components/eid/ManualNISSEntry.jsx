@@ -7,7 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Search, UserPlus, CheckCircle, AlertTriangle } from 'lucide-react';
 import { nissValidator } from './nissValidator';
+import { findPatientsByNiss } from '@/lib/patientLookup';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 const SSIN_SYSTEM = 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin';
 
@@ -55,27 +57,30 @@ export default function ManualNISSEntry({ isOpen, onClose, onPatientFound, onPat
     setIsSearching(true);
     setSearchResult(null);
 
-    const allPatients = await base44.entities.Patient.list();
-    const matchingPatients = allPatients.filter(p =>
-      p.identifier?.some(id =>
-        id.system === SSIN_SYSTEM &&
-        nissValidator.normalize(id.value) === normalized
-      )
-    );
+    try {
+      // Recherche serveur : porte sur toute la patientèle, pas seulement sur
+      // la première page de résultats.
+      const { matches, truncated } = await findPatientsByNiss(normalized);
 
-    if (matchingPatients.length >= 1) {
-      setSearchResult('found');
-      setFoundPatient(matchingPatients[0]);
-    } else {
-      setSearchResult('not_found');
-      // Pre-fill from NISS
-      const parsed = parseNISS(normalized);
-      if (parsed.birthDate) {
-        // Keep empty for user to fill
+      if (matches.length >= 1) {
+        setSearchResult('found');
+        setFoundPatient(matches[0]);
+      } else if (truncated) {
+        // Balayage incomplet : conclure « inexistant » créerait un doublon.
+        setSearchResult(null);
+        setNissError(
+          'Recherche incomplète : impossible de confirmer que ce patient '
+          + "n'existe pas. Réessayez ou recherchez-le par son nom."
+        );
+      } else {
+        setSearchResult('not_found');
       }
+    } catch (err) {
+      setSearchResult(null);
+      setNissError(err.message);
+    } finally {
+      setIsSearching(false);
     }
-
-    setIsSearching(false);
   };
 
   const handleOpenPatient = () => {
@@ -107,7 +112,7 @@ export default function ManualNISSEntry({ isOpen, onClose, onPatientFound, onPat
     });
 
     const currentUser = await base44.auth.me();
-    await base44.entities.AuditLog.create({
+    await recordAudit({
       user_email: currentUser.email,
       action: 'MANUAL_PATIENT_CREATED',
       target_entity: 'Patient',

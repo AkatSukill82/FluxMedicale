@@ -22,6 +22,7 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 // Types de consentement eHealth
 const CONSENT_TYPES = [
@@ -123,7 +124,7 @@ export default function EHealthConsentService({ patient, onConsentUpdated }) {
         setConsentData(result);
         
         // Audit de la vérification
-        await base44.entities.AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'CHECK_EHEALTH_CONSENT',
           target_entity: 'Patient',
@@ -175,7 +176,7 @@ export default function EHealthConsentService({ patient, onConsentUpdated }) {
         }, ...prev].slice(0, 10));
         
         // Audit
-        await base44.entities.AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: granted ? 'GRANT_CONSENT' : 'REVOKE_CONSENT',
           target_entity: 'Patient',

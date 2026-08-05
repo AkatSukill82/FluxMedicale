@@ -55,6 +55,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { recordAudit } from '@/lib/auditLog';
 
 const DOCUMENT_TYPES = [
   { value: 'rapport', label: 'Rapport médical', category: 'clinical' },
@@ -161,7 +162,7 @@ export default function EHealthDocumentSender({ patient }) {
       });
 
       // Log audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser?.email,
         action: 'EHEALTHBOX_SEND',
         target_entity: 'EHealthBoxMessage',

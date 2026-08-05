@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { MFADevice } from '@/entities/MFADevice';
-import { AuditLog } from '@/entities/AuditLog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +23,8 @@ import {
 import TOTPEnrollment from '../components/auth/TOTPEnrollment';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
+import EHealthCertificateManager from '@/components/ehealth/EHealthCertificateManager';
 import { useAutoOpenEID } from '../components/eid/useAutoOpenEID'; // New import
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // New import
 
@@ -68,7 +69,7 @@ export default function SecuritePage() {
     try {
       await MFADevice.update(device.id, { is_active: false });
 
-      await AuditLog.create({
+      await recordAudit({
         user_email: user.email,
         action: 'MFA_REVOKE',
         target_entity: 'MFADevice',
@@ -112,11 +113,12 @@ export default function SecuritePage() {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="general">Général</TabsTrigger>
           <TabsTrigger value="mfa">MFA</TabsTrigger>
           <TabsTrigger value="sessions">Sessions</TabsTrigger>
           <TabsTrigger value="eid">eID & Appareil</TabsTrigger>
+          <TabsTrigger value="certificats">Certificats eHealth</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -437,6 +439,11 @@ export default function SecuritePage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        {/* Certificats eHealth du praticien : identifiants de
+            connexion aux services, pas des documents patient. */}
+        <TabsContent value="certificats" className="mt-4">
+          <EHealthCertificateManager />
         </TabsContent>
       </Tabs>
     </div>

@@ -19,6 +19,9 @@ import PaymentRecorder from '../components/facturation/PaymentRecorder';
 import AccountingExport from '../components/facturation/AccountingExport';
 import ErrorInvoicesPanel from '../components/facturation/ErrorInvoicesPanel';
 import { useI18n } from '../components/i18n/i18nContext';
+import TiersPayantDashboard from '@/components/tierspayant/TiersPayantDashboard';
+import MyCareNetManager from '@/components/mycarenet/MyCareNetManager';
+import ExportComptablePanel from '@/components/accounting/ExportComptablePanel';
 
 export default function FacturationPage() {
   const { t } = useI18n();
@@ -80,7 +83,7 @@ export default function FacturationPage() {
 
       {/* Main tabs */}
       <Tabs defaultValue="pending">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="pending" className="relative">
             ⏳ {t('billing.pendingTab')}
             {pendingCount > 0 && (
@@ -97,6 +100,9 @@ export default function FacturationPage() {
           <TabsTrigger value="search">🔍 {t('billing.searchTab')}</TabsTrigger>
           <TabsTrigger value="dashboard">📊 {t('billing.revenue')}</TabsTrigger>
           <TabsTrigger value="payments">💳 {t('billing.paymentsTab')}</TabsTrigger>
+          <TabsTrigger value="tierspayant">🤝 Tiers payant</TabsTrigger>
+          <TabsTrigger value="mycarenet">🔗 MyCareNet</TabsTrigger>
+          <TabsTrigger value="comptable">📗 Export comptable</TabsTrigger>
           <TabsTrigger value="settings">⚙️ {t('billing.config')}</TabsTrigger>
         </TabsList>
 
@@ -122,6 +128,18 @@ export default function FacturationPage() {
 
         <TabsContent value="payments" className="mt-4">
           <PaymentTracker />
+        </TabsContent>
+
+        <TabsContent value="tierspayant" className="mt-4">
+          <TiersPayantDashboard />
+        </TabsContent>
+
+        <TabsContent value="mycarenet" className="mt-4">
+          <MyCareNetManager />
+        </TabsContent>
+
+        <TabsContent value="comptable" className="mt-4">
+          <ExportComptablePanel />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-4">

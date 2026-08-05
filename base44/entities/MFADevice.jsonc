@@ -91,10 +91,67 @@
           "type": "string"
         }
       }
+    },
+    "totp_secret_iv": {
+      "type": "string",
+      "description": "Vecteur d'initialisation AES-GCM du secret TOTP (hex)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "ACTIVE",
+        "REVOKED"
+      ],
+      "default": "PENDING",
+      "description": "Etat de l'enrolement : PENDING tant que le premier code n'a pas ete verifie"
+    },
+    "last_used_counter": {
+      "type": "number",
+      "description": "Dernier pas de temps TOTP consomme. Empeche le rejeu du meme code."
+    },
+    "backup_code_hashes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hash": {
+            "type": "string",
+            "description": "SHA-256 du code de secours"
+          },
+          "used": {
+            "type": "boolean",
+            "default": false
+          },
+          "used_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Codes de secours stockes sous forme de hachage uniquement"
+    },
+    "failed_attempts": {
+      "type": "number",
+      "default": 0,
+      "description": "Tentatives de verification echouees consecutives"
+    },
+    "locked_until": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Verrouillage anti-force-brute applique cote serveur"
     }
   },
   "required": [
     "user_email",
     "device_type"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "user_email": "{{user.email}}"
+    },
+    "write": {
+      "user_email": "{{user.email}}"
+    }
+  }
 }

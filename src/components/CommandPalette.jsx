@@ -89,12 +89,6 @@ export default function CommandPalette() {
       keywords: ['nouveau', 'rdv', 'rendez-vous']
     },
     { 
-      icon: FileText, 
-      label: 'Nouveau document', 
-      action: () => navigate(createPageUrl('Templates')),
-      keywords: ['document', 'certificat', 'attestation']
-    },
-    { 
       icon: Zap, 
       label: 'Lire carte eID', 
       action: () => {

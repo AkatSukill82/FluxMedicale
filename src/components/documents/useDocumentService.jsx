@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Document } from '@/entities/Document';
 import { TimelineEvent } from '@/entities/TimelineEvent';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 export const useDocumentService = (currentUser, patient) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +70,7 @@ export const useDocumentService = (currentUser, patient) => {
       });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'CREATE_DOCUMENT',
         target_entity: 'Document',
@@ -113,7 +113,7 @@ export const useDocumentService = (currentUser, patient) => {
       });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'SIGN_DOCUMENT',
         target_entity: 'Document',
@@ -154,7 +154,7 @@ export const useDocumentService = (currentUser, patient) => {
       });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'SEND_EHEALTHBOX',
         target_entity: 'Document',
@@ -188,7 +188,7 @@ export const useDocumentService = (currentUser, patient) => {
       });
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'SEND_MULTEMEDIATT',
         target_entity: 'Document',

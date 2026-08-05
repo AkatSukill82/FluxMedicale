@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 // Configuration des Hubs régionaux belges
 const REGIONAL_HUBS = {
@@ -231,7 +232,7 @@ export function useHubAccess() {
       }
 
       // Audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'HUB_ACCESS_REQUEST',
         target_entity: 'Patient',

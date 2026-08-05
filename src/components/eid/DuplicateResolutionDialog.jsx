@@ -13,6 +13,7 @@ import {
   Merge
 } from 'lucide-react';
 import { format, differenceInYears } from 'date-fns';
+import { sanitizeInline } from '@/lib/sanitizeHtml';
 import { fr, nl, enUS } from 'date-fns/locale';
 import { nissValidator } from './nissValidator';
 import { useI18n } from '../i18n/i18nContext';
@@ -58,7 +59,7 @@ export default function DuplicateResolutionDialog({
           <AlertDescription 
             className="text-orange-900 dark:text-orange-200"
             dangerouslySetInnerHTML={{
-              __html: t('eid.duplicates.alert', { count: patients.length, niss: nissValidator.format(niss) })
+              __html: sanitizeInline(t('eid.duplicates.alert', { count: patients.length, niss: nissValidator.format(niss) }))
             }}
           />
         </Alert>

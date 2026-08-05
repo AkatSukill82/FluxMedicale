@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus, Loader2 } from 'lucide-react';
-import { handleError, handleSuccess } from '../utils/ErrorHandler';
+import { handleError, handleSuccess } from '@/components/utils/ErrorHandler';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useI18n } from '../i18n/i18nContext';

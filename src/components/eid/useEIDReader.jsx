@@ -4,8 +4,10 @@ import { eidDetectionService } from './eidDetectionService';
 import { eidAgentService } from './eidAgentService';
 import { webEidService } from './webEidService';
 import { nissValidator } from './nissValidator';
+import { findPatientsByNiss } from '@/lib/patientLookup';
 import { useI18n } from '../i18n/i18nContext';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 export const useEIDReader = () => {
   const { t } = useI18n();
@@ -156,7 +158,7 @@ export const useEIDReader = () => {
         const errorMsg = t('errors.eidRead') + `: ${validation.error}`;
         setError(errorMsg);
         toast.error(errorMsg);
-        await base44.entities.AuditLog.create({
+        await recordAudit({
             user_email: currentUser.email,
             action: 'EID_READ_ERROR',
             details: `Invalid NISS: ${validation.error}`,
@@ -165,7 +167,7 @@ export const useEIDReader = () => {
         return { status: 'ERROR', error: errorMsg };
       }
 
-      await base44.entities.AuditLog.create({
+      await recordAudit({
           user_email: currentUser.email,
           action: 'EID_READ_SUCCESS',
           details: `eID read: NISS ${nissValidator.format(normalizedNiss, true)}`,
@@ -175,17 +177,33 @@ export const useEIDReader = () => {
       toast.info(t('status.opening'));
       
       const SSIN_SYSTEM = 'https://www.ehealth.fgov.be/standards/fhir/core/NamingSystem/ssin';
-      const allPatients = await base44.entities.Patient.list();
-      const matchingPatients = allPatients.filter(p => 
-        p.identifier?.some(id => 
-          id.system === SSIN_SYSTEM && 
-          nissValidator.normalize(id.value) === normalizedNiss
-        )
-      );
+
+      // Recherche serveur sur toute la patientèle. Le filtrage client sur
+      // Patient.list() ne voyait que la première page et créait un doublon dès
+      // que le cabinet dépassait cette taille.
+      let matchingPatients;
+      let lookupTruncated;
+      try {
+        const lookup = await findPatientsByNiss(normalizedNiss);
+        matchingPatients = lookup.matches;
+        lookupTruncated = lookup.truncated;
+      } catch (lookupErr) {
+        toast.error(lookupErr.message);
+        return { status: 'ERROR', error: lookupErr.message };
+      }
+
+      // Recherche non exhaustive : on ne crée surtout pas de nouveau dossier,
+      // ce serait un doublon d'un patient existant mais non balayé.
+      if (matchingPatients.length === 0 && lookupTruncated) {
+        const msg = 'Recherche incomplète : création de dossier bloquée pour '
+          + 'éviter un doublon. Recherchez le patient par son nom.';
+        toast.error(msg);
+        return { status: 'ERROR', error: msg };
+      }
 
       if (matchingPatients.length === 1) {
         const patient = matchingPatients[0];
-        await base44.entities.AuditLog.create({
+        await recordAudit({
             user_email: currentUser.email,
             action: 'EID_PATIENT_OPENED',
             target_entity: 'Patient',
@@ -208,7 +226,7 @@ export const useEIDReader = () => {
           statut: 'Actif'
         });
 
-        await base44.entities.AuditLog.create({
+        await recordAudit({
             user_email: currentUser.email,
             action: 'EID_PATIENT_CREATED',
             target_entity: 'Patient',
@@ -221,7 +239,7 @@ export const useEIDReader = () => {
       }
 
       if (matchingPatients.length > 1) {
-        await base44.entities.AuditLog.create({
+        await recordAudit({
             user_email: currentUser.email,
             action: 'EID_DUPLICATES_DETECTED',
             details: `Duplicates found: ${matchingPatients.length} patients with NISS ${nissValidator.format(normalizedNiss, true)}`,
@@ -242,7 +260,7 @@ export const useEIDReader = () => {
       toast.error(errorMsg);
       try {
         const currentUser = await base44.auth.me();
-        await base44.entities.AuditLog.create({
+        await recordAudit({
           user_email: currentUser.email,
           action: 'EID_READ_ERROR',
           details: `eID read error: ${err.message}`,

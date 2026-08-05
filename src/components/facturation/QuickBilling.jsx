@@ -7,7 +7,8 @@ import { Euro, Clock, CreditCard, Loader2, AlertTriangle, QrCode } from 'lucide-
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { handleError, handleSuccess } from '../utils/ErrorHandler';
+import { handleError, handleSuccess } from '@/components/utils/ErrorHandler';
+import { sanitizeInline } from '@/lib/sanitizeHtml';
 import NomenclatureSelector from './NomenclatureSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InsuranceVerification from './InsuranceVerification';
@@ -255,7 +256,7 @@ const QUICK_BILLING_TEMPLATES = [
           <Alert className="mb-4 bg-red-50 border-red-300">
             <AlertTriangle className="w-4 h-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              <span dangerouslySetInnerHTML={{ __html: t('billing.insuranceWarning') }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeInline(t('billing.insuranceWarning')) }} />
             </AlertDescription>
           </Alert>
         )}

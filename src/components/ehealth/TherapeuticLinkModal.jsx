@@ -26,6 +26,7 @@ import {
 import { toast } from 'sonner';
 import { addYears, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { recordAudit } from '@/lib/auditLog';
 
 export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSuccess }) {
   const queryClient = useQueryClient();
@@ -71,7 +72,7 @@ export default function TherapeuticLinkModal({ patient, isOpen, onClose, onSucce
       });
 
       // Log audit
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: currentUser?.email,
         action: 'CREATE_THERAPEUTIC_LINK',
         target_entity: 'Patient',

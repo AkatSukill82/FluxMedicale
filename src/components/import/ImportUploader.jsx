@@ -14,6 +14,7 @@ import {
   Database
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { recordAudit } from '@/lib/auditLog';
 
 const CHUNK_SIZE = 1024 * 1024; // 1MB chunks pour gros fichiers
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB max
@@ -123,7 +124,7 @@ export default function ImportUploader({ onImportComplete }) {
       setStatus('complete');
       
       // Logger l'import
-      await base44.entities.AuditLog.create({
+      await recordAudit({
         user_email: user.email,
         action: 'PATIENT_DATA_IMPORT',
         target_entity: 'ImportSession',

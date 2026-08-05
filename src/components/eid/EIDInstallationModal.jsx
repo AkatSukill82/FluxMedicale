@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { sanitizeInline } from '@/lib/sanitizeHtml';
 import { 
   Download, 
   ExternalLink, 
@@ -156,9 +157,9 @@ export default function EIDInstallationModal({ isOpen, onClose, onRetest, platfo
             <div className="space-y-2 text-sm">
                 <Alert className="bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
                     <AlertDescription className="text-amber-900 dark:text-amber-200" dangerouslySetInnerHTML={{ 
-                        __html: platform === 'windows' ? t('eid.modal.troubleWin') 
+                        __html: sanitizeInline(platform === 'windows' ? t('eid.modal.troubleWin')
                               : platform === 'macos' ? t('eid.modal.troubleMac')
-                              : t('eid.modal.troubleLinux')
+                              : t('eid.modal.troubleLinux'))
                     }} />
                 </Alert>
               <div className="flex gap-2 mt-3">
@@ -177,7 +178,7 @@ export default function EIDInstallationModal({ isOpen, onClose, onRetest, platfo
 
           <Alert className="bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800">
             <AlertDescription className="text-purple-900 dark:text-purple-200">
-              <strong>{t('eid.modal.alternative')}:</strong> <span dangerouslySetInnerHTML={{ __html: t('eid.modal.itsme') }} />
+              <strong>{t('eid.modal.alternative')}:</strong> <span dangerouslySetInnerHTML={{ __html: sanitizeInline(t('eid.modal.itsme')) }} />
             </AlertDescription>
           </Alert>
         </div>

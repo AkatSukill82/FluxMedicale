@@ -296,17 +296,7 @@ export default function NotificationBell() {
         </Tabs>
 
         <div className="p-2 border-t bg-slate-50">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="w-full text-xs"
-            onClick={() => {
-              navigate(createPageUrl('Notifications'));
-              setIsOpen(false);
-            }}
-          >
-            Voir toutes les notifications
-          </Button>
+          
         </div>
       </PopoverContent>
     </Popover>

@@ -98,6 +98,10 @@
     "patient_email": {
       "type": "string",
       "description": "Email du patient (pour RDV en ligne)"
+    },
+    "booking_ip_hash": {
+      "type": "string",
+      "description": "Empreinte SHA-256 sal\u00e9e de l'IP de r\u00e9servation en ligne. Sert uniquement \u00e0 la limitation de debit anti-abus sur l'endpoint public."
     }
   },
   "required": [

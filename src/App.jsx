@@ -9,24 +9,31 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import ParcoursPatient from '@/pages/ParcoursPatient';
-import PortailPatient from '@/pages/PortailPatient';
-import SignatureElectronique from '@/pages/SignatureElectronique';
-import ExportComptable from '@/pages/ExportComptable';
-import Epidemiologie from '@/pages/Epidemiologie';
-import FormationContinue from '@/pages/FormationContinue';
-import IntegrationDoctolib from '@/pages/IntegrationDoctolib';
-import ChatInterne from '@/pages/ChatInterne';
-import ModelesConsultation from '@/pages/ModelesConsultation';
+import RouteGuard from '@/components/auth/RouteGuard';
+import IdleTimeout from '@/components/auth/IdleTimeout';
+import MFAGate from '@/components/auth/MFAGate';
 
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+/**
+ * Chaque route passe par RouteGuard. Le garde est placé à l'intérieur du Layout
+ * pour qu'un utilisateur sans droits voie la navigation et puisse repartir,
+ * plutôt qu'un écran vide.
+ *
+ * Les permissions sont déclarées dans src/lib/routePermissions.js, et une page
+ * non déclarée est refusée par défaut.
+ */
+const LayoutWrapper = ({ children, currentPageName }) => {
+  const guarded = (
+    <RouteGuard pageName={currentPageName}>{children}</RouteGuard>
+  );
+  return Layout
+    ? <Layout currentPageName={currentPageName}>{guarded}</Layout>
+    : guarded;
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
@@ -70,51 +77,6 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
-      <Route path="/ParcoursPatient" element={
-        <LayoutWrapper currentPageName="ParcoursPatient">
-          <ParcoursPatient />
-        </LayoutWrapper>
-      } />
-      <Route path="/PortailPatient" element={
-        <LayoutWrapper currentPageName="PortailPatient">
-          <PortailPatient />
-        </LayoutWrapper>
-      } />
-      <Route path="/SignatureElectronique" element={
-        <LayoutWrapper currentPageName="SignatureElectronique">
-          <SignatureElectronique />
-        </LayoutWrapper>
-      } />
-      <Route path="/ExportComptable" element={
-        <LayoutWrapper currentPageName="ExportComptable">
-          <ExportComptable />
-        </LayoutWrapper>
-      } />
-      <Route path="/Epidemiologie" element={
-        <LayoutWrapper currentPageName="Epidemiologie">
-          <Epidemiologie />
-        </LayoutWrapper>
-      } />
-      <Route path="/FormationContinue" element={
-        <LayoutWrapper currentPageName="FormationContinue">
-          <FormationContinue />
-        </LayoutWrapper>
-      } />
-      <Route path="/IntegrationDoctolib" element={
-        <LayoutWrapper currentPageName="IntegrationDoctolib">
-          <IntegrationDoctolib />
-        </LayoutWrapper>
-      } />
-      <Route path="/ChatInterne" element={
-        <LayoutWrapper currentPageName="ChatInterne">
-          <ChatInterne />
-        </LayoutWrapper>
-      } />
-      <Route path="/ModelesConsultation" element={
-        <LayoutWrapper currentPageName="ModelesConsultation">
-          <ModelesConsultation />
-        </LayoutWrapper>
-      } />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -128,10 +90,18 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AuthenticatedApp />
+          <IdleTimeout />
+          <MFAGate>
+            <AuthenticatedApp />
+          </MFAGate>
         </Router>
         <Toaster />
-        <VisualEditAgent />
+        {/* Outil d'édition visuelle de l'éditeur Base44 : réservé au
+            développement. Il écoute window.message sans contrôle d'origine et
+            renvoie le contenu du DOM au parent via postMessage(…, '*'), ce qui
+            exposerait des données patient si l'application était affichée dans
+            une iframe tierce. */}
+        {import.meta.env.DEV && <VisualEditAgent />}
       </QueryClientProvider>
     </AuthProvider>
   )

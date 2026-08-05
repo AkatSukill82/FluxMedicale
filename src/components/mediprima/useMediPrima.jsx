@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour gérer MediPrima (CPAS)
 export const useMediPrima = (currentUser) => {
@@ -22,7 +22,7 @@ export const useMediPrima = (currentUser) => {
 
     try {
       // Audit log
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'CHECK_MEDIPRIMA',
         target_entity: 'Patient',

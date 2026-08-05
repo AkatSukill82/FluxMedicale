@@ -1,4 +1,4 @@
-import { base44 } from '@/api/base44Client';
+import { recordAudit } from '@/lib/auditLog';
 
 // Service centralisé pour l'audit trail RGPD
 export const AuditActions = {
@@ -25,7 +25,14 @@ export const ResourceTypes = {
   VACCINATION: 'Vaccination'
 };
 
-// Logger un accès aux données
+/**
+ * Journalise un accès aux données patient.
+ *
+ * Une seule écriture serveur alimente désormais le journal d'audit et le
+ * registre RGPD des accès. L'identité, l'horodatage et l'adresse IP sont
+ * établis par le backend : le client ne peut plus les fournir, et l'ancien
+ * `ip_address: 'client-side'` disparaît au profit de l'IP réelle.
+ */
 export async function logDataAccess({
   patientId,
   action,
@@ -35,43 +42,25 @@ export async function logDataAccess({
   dataFieldsAccessed = [],
   metadata = {}
 }) {
-  try {
-    const user = await base44.auth.me();
-    
-    await base44.entities.DataAccessLog.create({
-      user_email: user.email,
+  return recordAudit({
+    action: `${action}_${resourceType}`.toUpperCase(),
+    target_entity: resourceType,
+    target_id: resourceId || patientId,
+    details: JSON.stringify({
       patient_id: patientId,
-      action: action,
-      resource_type: resourceType,
-      resource_id: resourceId || patientId,
-      timestamp: new Date().toISOString(),
-      justification: justification,
-      data_fields_accessed: dataFieldsAccessed,
-      ip_address: 'client-side',
-      user_agent: navigator.userAgent,
-      session_id: sessionStorage.getItem('session_id') || generateSessionId()
-    });
-
-    // Également logger dans AuditLog pour la traçabilité générale
-    await base44.entities.AuditLog.create({
-      user_email: user.email,
-      action: `${action}_${resourceType}`.toUpperCase(),
-      target_entity: resourceType,
-      target_id: resourceId || patientId,
-      details: JSON.stringify({
-        patient_id: patientId,
-        justification,
-        fields: dataFieldsAccessed,
-        ...metadata
-      }),
-      timestamp: new Date().toISOString()
-    });
-
-    return true;
-  } catch (error) {
-    console.error('Audit log error:', error);
-    return false;
-  }
+      justification,
+      fields: dataFieldsAccessed,
+      ...metadata
+    }),
+    // Déclenche l'écriture dans DataAccessLog côté serveur.
+    patient_id: patientId,
+    access_action: action,
+    resource_type: resourceType,
+    resource_id: resourceId || patientId,
+    justification,
+    data_fields_accessed: dataFieldsAccessed,
+    session_id: sessionStorage.getItem('session_id') || generateSessionId()
+  });
 }
 
 // Générer un ID de session unique

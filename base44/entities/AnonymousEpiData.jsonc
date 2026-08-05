@@ -2,9 +2,18 @@
   "name": "AnonymousEpiData",
   "type": "object",
   "properties": {
-    "age": {
-      "type": "number",
-      "description": "\u00c2ge du patient (anonyme)"
+    "age_bracket": {
+      "type": "string",
+      "enum": [
+        "0-4",
+        "5-14",
+        "15-24",
+        "25-44",
+        "45-64",
+        "65-74",
+        "75+"
+      ],
+      "description": "Tranche d'age. L'age exact n'est pas conserve : combine au sexe, a la region et a une date precise, il est re-identifiant."
     },
     "sex": {
       "type": "string",
@@ -20,20 +29,15 @@
       "items": {
         "type": "string"
       },
-      "description": "Liste des sympt\u00f4mes observ\u00e9s"
+      "description": "Symptomes issus d'un vocabulaire controle ferme. Aucun texte libre."
     },
-    "diagnosis": {
+    "consultation_week": {
       "type": "string",
-      "description": "Diagnostic pos\u00e9 (anonyme)"
-    },
-    "consultation_date": {
-      "type": "string",
-      "format": "date",
-      "description": "Date de la consultation"
+      "description": "Semaine ISO de la consultation (ex: 2026-W32). La date exacte n'est pas conservee."
     },
     "region_code": {
       "type": "string",
-      "description": "Code r\u00e9gion (optionnel, pour stats g\u00e9ographiques)"
+      "description": "Code region (provincial). Optionnel."
     }
   },
   "required": [
@@ -41,5 +45,31 @@
     "sex",
     "symptoms",
     "consultation_date"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "editor"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

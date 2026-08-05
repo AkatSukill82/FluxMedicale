@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AuditLog } from '@/entities/AuditLog';
+import { recordAudit } from '@/lib/auditLog';
 
 // Hook pour lecture vaccinations (Vaccinnet+ / e-vax)
 export const useVaccinations = () => {
@@ -22,7 +22,7 @@ export const useVaccinations = () => {
       setVaccinations(vaccins);
 
       // Audit
-      await AuditLog.create({
+      await recordAudit({
         user_email: currentUser.email,
         action: 'VACCINATIONS_CONSULTED',
         target_entity: 'Vaccinations',

@@ -25,6 +25,7 @@ import {
 import { format, addDays, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import IntegrationStatusBanner from '@/components/integrations/IntegrationStatusBanner';
 
 const CERTIFICATE_TYPES = {
   incapacite_travail: { label: "Incapacité de travail", icon: "🏥" },
@@ -94,6 +95,9 @@ export default function MedexCertificateForm({ patient, onClose, existingCertifi
 
   return (
     <Card className="max-w-2xl mx-auto">
+      <div className="p-4 pb-0">
+        <IntegrationStatusBanner service="medex" />
+      </div>
       <CardHeader className="border-b">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
