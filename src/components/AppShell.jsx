@@ -192,14 +192,14 @@ export default function AppShell({ children, currentPageName }) {
       <div className="h-screen w-full bg-background flex">
         <Sidebar
         className={cn(
-          "border-r no-print transition-all duration-300 ease-in-out bg-white text-slate-900",
+          "border-r no-print transition-all duration-300 ease-in-out bg-sidebar text-sidebar-foreground",
           isCollapsed ? "w-20" : "w-64"
         )}
         >
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className={cn("text-lg font-bold text-slate-900 flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
-                <Stethoscope className="w-7 h-7 flex-shrink-0 text-slate-900" />
+              <SidebarGroupLabel className={cn("text-lg font-bold text-foreground flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
+                <Stethoscope className="w-7 h-7 flex-shrink-0 text-primary" />
                 <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden">FluxMed</motion.span>
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -216,8 +216,8 @@ export default function AppShell({ children, currentPageName }) {
                         <Link 
                           to={createPageUrl(item.path)} 
                           className={cn(
-                            "flex items-center gap-3 justify-start text-slate-700 hover:text-slate-900 hover:bg-slate-100",
-                            location.pathname.includes(createPageUrl(item.path)) && "bg-slate-100 text-slate-900"
+                            "flex items-center gap-3 justify-start text-muted-foreground hover:text-foreground hover:bg-secondary",
+                            location.pathname.includes(createPageUrl(item.path)) && "bg-secondary text-foreground"
                           )} 
                           title={item.title}
                         >
@@ -230,7 +230,7 @@ export default function AppShell({ children, currentPageName }) {
                 </SidebarMenu>
                  {canAccessAdmin && (
                   <>
-                    <p className={cn("text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : t('nav.administration')}</p>
+                    <p className={cn("text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 mt-6 mb-2", isCollapsed && "text-center")}>{isCollapsed ? "ADM" : t('nav.administration')}</p>
                     <SidebarMenu>
                       {adminNavItems.map((item) => (
                          <SidebarMenuItem key={item.path} className="relative">
@@ -244,8 +244,8 @@ export default function AppShell({ children, currentPageName }) {
                             <Link 
                               to={createPageUrl(item.path)} 
                               className={cn(
-                                "flex items-center gap-3 justify-start text-slate-700 hover:text-slate-900 hover:bg-slate-100",
-                                location.pathname.includes(createPageUrl(item.path)) && "bg-slate-100 text-slate-900"
+                                "flex items-center gap-3 justify-start text-muted-foreground hover:text-foreground hover:bg-secondary",
+                                location.pathname.includes(createPageUrl(item.path)) && "bg-secondary text-foreground"
                               )} 
                               title={item.title}
                             >
@@ -261,7 +261,7 @@ export default function AppShell({ children, currentPageName }) {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t border-slate-200 p-4 flex flex-col items-center">
+          <SidebarFooter className="border-t border-border p-4 flex flex-col items-center">
              <SidebarMenu>
                 <SidebarMenuItem className="w-full relative">
                   {location.pathname.includes(createPageUrl(profileNavItem.path)) && (
@@ -274,8 +274,8 @@ export default function AppShell({ children, currentPageName }) {
                     <Link 
                       to={createPageUrl(profileNavItem.path)} 
                       className={cn(
-                        "flex items-center gap-3 justify-start w-full text-slate-700 hover:text-slate-900 hover:bg-slate-100",
-                        location.pathname.includes(createPageUrl(profileNavItem.path)) && "bg-slate-100 text-slate-900"
+                        "flex items-center gap-3 justify-start w-full text-muted-foreground hover:text-foreground hover:bg-secondary",
+                        location.pathname.includes(createPageUrl(profileNavItem.path)) && "bg-secondary text-foreground"
                       )} 
                       title={profileNavItem.title}
                     >
@@ -285,14 +285,14 @@ export default function AppShell({ children, currentPageName }) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
              </SidebarMenu>
-             <Button variant="ghost" size="icon" className="mt-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100" onClick={() => setIsCollapsed(!isCollapsed)}>
+             <Button variant="ghost" size="icon" className="mt-4 text-muted-foreground hover:text-foreground hover:bg-secondary" onClick={() => setIsCollapsed(!isCollapsed)}>
                 {isCollapsed ? <ChevronsRight /> : <ChevronsLeft />}
              </Button>
           </SidebarFooter>
         </Sidebar>
 
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="flex-shrink-0 bg-white border-b z-10 no-print">
+          <header className="flex-shrink-0 bg-background border-b border-border/50 z-10 no-print">
             <div className="flex items-center justify-between px-6 h-20">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="lg:hidden" />
@@ -339,7 +339,7 @@ export default function AppShell({ children, currentPageName }) {
 
                 <Link 
                   to={createPageUrl('ProfilMedecin')}
-                  className="text-right hidden md:block hover:bg-slate-100 rounded-lg px-3 py-2 transition-colors cursor-pointer"
+                  className="text-right hidden md:block hover:bg-secondary rounded-lg px-3 py-2 transition-colors cursor-pointer"
                 >
                   <p className="text-sm font-medium text-foreground">
                     {(user.role === 'admin' || user.role === 'editor') ? 'Dr.' : ''} {user.full_name}
@@ -369,7 +369,7 @@ export default function AppShell({ children, currentPageName }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="flex-1 overflow-y-auto p-6 bg-slate-50"
+              className="flex-1 overflow-y-auto p-6 bg-background"
             >
               {children}
             </motion.main>

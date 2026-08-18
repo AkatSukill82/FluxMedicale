@@ -78,38 +78,38 @@ button:focus-visible {
 
 @layer base {
   :root {
-    --background: 30 14% 91%;
+    --background: 28 16% 90%;
     --foreground: 0 0% 23%;
-    --card: 30 20% 96%;
+    --card: 30 25% 97%;
     --card-foreground: 0 0% 23%;
-    --popover: 30 20% 96%;
+    --popover: 30 25% 97%;
     --popover-foreground: 0 0% 23%;
     --primary: 268 70% 66%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 12% 87%;
+    --secondary: 28 14% 86%;
     --secondary-foreground: 0 0% 23%;
-    --muted: 30 10% 89%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 28 12% 88%;
+    --muted-foreground: 0 0% 42%;
     --accent: 268 70% 66%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 10% 83%;
-    --input: 30 12% 85%;
+    --border: 28 12% 82%;
+    --input: 28 14% 84%;
     --ring: 268 70% 66%;
     --chart-1: 268 70% 66%;
     --chart-2: 173 58% 39%;
-    --chart-3: 30 40% 50%;
+    --chart-3: 28 40% 50%;
     --chart-4: 43 74% 66%;
     --chart-5: 350 60% 60%;
-    --radius: 0.75rem;
-    --sidebar-background: 30 16% 93%;
+    --radius: 0.875rem;
+    --sidebar-background: 28 16% 92%;
     --sidebar-foreground: 0 0% 23%;
     --sidebar-primary: 268 70% 66%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 30 14% 89%;
+    --sidebar-accent: 28 14% 87%;
     --sidebar-accent-foreground: 0 0% 23%;
-    --sidebar-border: 30 10% 85%;
+    --sidebar-border: 28 12% 84%;
     --sidebar-ring: 268 70% 66%;
 
     --font-body: 'Inter', system-ui, sans-serif;
