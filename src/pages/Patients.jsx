@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// Tabs no longer used in patient record view
 import { 
   ArrowLeft, 
   X, 
@@ -12,9 +12,19 @@ import {
   Pill,
   FileText,
   Globe,
-  CreditCard as EIDIcon,
   Shield,
-  UserPlus
+  UserPlus,
+  Stethoscope,
+  History,
+  FolderOpen,
+  Lock,
+  Receipt,
+  ClipboardList,
+  FlaskConical,
+  Tablets,
+  RefreshCw,
+  User,
+  Network
 } from 'lucide-react';
 import { differenceInYears } from 'date-fns';
 import { useI18n } from '../components/i18n/i18nContext';
@@ -241,19 +251,52 @@ export default function Patients() {
   const niss = patient.identifier?.find(id => id.system.includes('ssin'))?.value || '';
   const maskedNISS = niss ? `***-**-***-${niss.slice(-2)}` : '';
 
+  const navItems = [
+    permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && { key: 'consultation', label: t('patient.consultation'), icon: Stethoscope },
+    { key: 'history', label: t('patient.history'), icon: History },
+    { key: 'documents', label: t('patient.documents'), icon: FolderOpen },
+    permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && { key: 'secure-files', label: t('patient.secureFiles'), icon: Lock },
+    { key: 'billing', label: t('patient.billing'), icon: Receipt },
+    { key: 'protocoles', label: t('patient.protocols'), icon: ClipboardList },
+    { key: 'chapter4', label: t('patient.chapter4'), icon: Shield },
+    { key: 'hubs', label: t('patient.hubs'), icon: Network },
+    permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && { key: 'labo', label: 'Laboratoire', icon: FlaskConical },
+    permissions.hasPermission(PERMISSIONS.VIEW_PRESCRIPTIONS) && { key: 'medicaments', label: 'Médicaments', icon: Tablets },
+    permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && { key: 'suivi', label: 'Suivi', icon: RefreshCw },
+    { key: 'admin', label: t('patient.admin'), icon: User },
+  ].filter(Boolean);
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'consultation': return <ConsultationTab patient={patient} />;
+      case 'history': return <MedicalHistory patient={patient} />;
+      case 'documents': return <DocumentsTab patient={patient} />;
+      case 'secure-files': return <SecureDocuments patient={patient} />;
+      case 'billing': return <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />;
+      case 'protocoles': return <ProtocolesTab patient={patient} />;
+      case 'chapter4': return <ChapitreIVTab patient={patient} />;
+      case 'hubs': return <HubsTab patient={patient} onOpenSumehr={() => setShowSumehrEditor(true)} />;
+      case 'labo': return <LabResultsManager patientId={patient.id} />;
+      case 'medicaments': return <MedicamentsPanel />;
+      case 'suivi': return <FollowUpDashboard patient={patient} />;
+      case 'admin': return <FicheAdministrativeTab patient={patient} />;
+      default: return null;
+    }
+  };
+
   return (
-    <div className="flex h-full bg-slate-50">
-      {/* Sidebar gauche - Infos patient */}
-      <aside className="w-80 bg-white border-r flex flex-col overflow-hidden">
+    <div className="flex h-full">
+      {/* Sidebar gauche - Patient info + navigation */}
+      <aside className="w-72 bg-card border-r flex flex-col overflow-hidden flex-shrink-0">
         {/* Header patient */}
         <div className="p-4 border-b">
-          <Button variant="ghost" onClick={handleClose} className="gap-2 mb-3 -ml-2">
+          <Button variant="ghost" size="sm" onClick={handleClose} className="gap-2 mb-3 -ml-2">
             <ArrowLeft className="w-4 h-4" />
             {t('patient.back')}
           </Button>
           
           <div className="space-y-2">
-            <h2 className="text-xl font-bold">{fullName}</h2>
+            <h2 className="text-lg font-semibold leading-tight">{fullName}</h2>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {age && <span>{age} {t('patient.years')}</span>}
               <span>•</span>
@@ -261,200 +304,69 @@ export default function Patients() {
             </div>
             <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
           </div>
+
+          {patient.allergies && (
+            <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-xs font-semibold text-destructive">⚠️ {t('patient.allergies')}</p>
+              <p className="text-xs text-destructive/80 mt-0.5">{patient.allergies}</p>
+            </div>
+          )}
         </div>
 
         {/* Actions rapides */}
-        <div className="p-4 border-b space-y-2">
+        <div className="p-3 border-b space-y-1.5">
           {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
-            <Button
-              onClick={() => setShowQuickBilling(true)}
-              className="w-full justify-start gap-2"
-              size="sm"
-            >
+            <Button onClick={() => setShowQuickBilling(true)} className="w-full justify-start gap-2" size="sm">
               <CreditCard className="w-4 h-4" />
-              {t('actions.bill')} (Alt+F)
+              {t('actions.bill')}
             </Button>
           )}
           {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-            <>
-              <Button
-                onClick={() => setShowQuickPrescription(true)}
-                className="w-full justify-start gap-2"
-                size="sm"
-                variant="outline"
-              >
-                <Pill className="w-4 h-4" />
-                {t('actions.prescribe')} (Alt+P)
-              </Button>
-              <Button
-                onClick={() => setShowQuickVaccination(true)}
-                className="w-full justify-start gap-2"
-                size="sm"
-                variant="outline"
-              >
-                💉 {t('actions.vaccinate')} (Alt+V)
-              </Button>
-            </>
+            <Button onClick={() => setShowQuickPrescription(true)} className="w-full justify-start gap-2" size="sm" variant="outline">
+              <Pill className="w-4 h-4" />
+              {t('actions.prescribe')}
+            </Button>
           )}
-          <Button
-            onClick={() => setShowDocumentGenerator(true)}
-            className="w-full justify-start gap-2"
-            size="sm"
-            variant="outline"
-          >
+          <Button onClick={() => setShowDocumentGenerator(true)} className="w-full justify-start gap-2" size="sm" variant="outline">
             <FileText className="w-4 h-4" />
             {t('actions.generateDocument')}
           </Button>
         </div>
 
-        {/* Infos clés */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">{t('patient.contact')}</h3>
-            <div className="space-y-1 text-sm">
-              {patient.telecom?.find(t => t.system === 'phone')?.value && (
-                <p>📞 {patient.telecom.find(t => t.system === 'phone').value}</p>
-              )}
-              {patient.telecom?.find(t => t.system === 'email')?.value && (
-                <p>✉️ {patient.telecom.find(t => t.system === 'email').value}</p>
-              )}
-            </div>
-          </div>
+        {/* Navigation verticale des sections */}
+        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                onClick={() => setActiveTab(item.key)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
+                  isActive 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                }`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-          {patient.mutuelle && (
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">{t('patient.insurance')}</h3>
-              <p className="text-sm">{patient.mutuelle}</p>
-            </div>
+        {/* Infos contact en bas */}
+        <div className="p-3 border-t text-xs text-muted-foreground space-y-1">
+          {patient.telecom?.find(tc => tc.system === 'phone')?.value && (
+            <p>📞 {patient.telecom.find(tc => tc.system === 'phone').value}</p>
           )}
-
-          {patient.allergies && (
-            <div>
-              <h3 className="text-xs font-semibold text-red-600 uppercase mb-2">⚠️ {t('patient.allergies')}</h3>
-              <p className="text-sm">{patient.allergies}</p>
-            </div>
-          )}
-
-          {patient.antecedents_medicaux && (
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-2">{t('patient.medicalHistory')}</h3>
-              <p className="text-sm text-muted-foreground">{patient.antecedents_medicaux}</p>
-            </div>
-          )}
+          {patient.mutuelle && <p>🏥 {patient.mutuelle}</p>}
         </div>
       </aside>
 
-      {/* Zone principale */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Barre de navigation tabs */}
-        <div className="bg-white border-b">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="px-6">
-              <TabsList className="h-12 bg-transparent">
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="consultation" className="gap-2">
-                    📝 {t('patient.consultation')}
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="history" className="gap-2">
-                  📋 {t('patient.history')}
-                </TabsTrigger>
-                <TabsTrigger value="documents" className="gap-2">
-                  📁 {t('patient.documents')}
-                </TabsTrigger>
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="secure-files" className="gap-2">
-                    🔒 {t('patient.secureFiles')}
-                  </TabsTrigger>
-                )}
-                <TabsTrigger value="billing" className="gap-2">
-                  💰 {t('patient.billing')}
-                </TabsTrigger>
-                <TabsTrigger value="protocoles" className="gap-2">
-                  📋 {t('patient.protocols')}
-                </TabsTrigger>
-                <TabsTrigger value="chapter4" className="gap-2">
-                  <Shield className="w-4 h-4" /> {t('patient.chapter4')}
-                </TabsTrigger>
-                <TabsTrigger value="hubs" className="gap-2">
-                   <Globe className="w-4 h-4" /> {t('patient.hubs')}
-                 </TabsTrigger>
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="labo" className="gap-2">
-                    🧪 Laboratoire
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_PRESCRIPTIONS) && (
-                  <TabsTrigger value="medicaments" className="gap-2">
-                    💊 Médicaments
-                  </TabsTrigger>
-                )}
-                {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                  <TabsTrigger value="suivi" className="gap-2">
-                    🔄 Suivi
-                  </TabsTrigger>
-                )}
-                 <TabsTrigger value="admin" className="gap-2">
-                   👤 {t('patient.admin')}
-                 </TabsTrigger>
-              </TabsList>
-            </div>
-          </Tabs>
-        </div>
-
-        {/* Contenu scrollable */}
-        <div className="flex-1 overflow-y-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="p-6">
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="consultation" className="m-0">
-                  <ConsultationTab patient={patient} />
-                </TabsContent>
-              )}
-              <TabsContent value="history" className="m-0">
-                <MedicalHistory patient={patient} />
-              </TabsContent>
-              <TabsContent value="documents" className="m-0">
-                <DocumentsTab patient={patient} />
-              </TabsContent>
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="secure-files" className="m-0">
-                  <SecureDocuments patient={patient} />
-                </TabsContent>
-              )}
-              <TabsContent value="billing" className="m-0">
-                <FacturationTab patient={patient} onNewBilling={() => setShowBillingModal(true)} />
-              </TabsContent>
-              <TabsContent value="protocoles" className="m-0">
-                <ProtocolesTab patient={patient} />
-              </TabsContent>
-              <TabsContent value="chapter4" className="m-0">
-                <ChapitreIVTab patient={patient} />
-              </TabsContent>
-              <TabsContent value="hubs" className="m-0">
-                <HubsTab patient={patient} onOpenSumehr={() => setShowSumehrEditor(true)} />
-              </TabsContent>
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="labo" className="m-0">
-                  <LabResultsManager patientId={patient.id} />
-                </TabsContent>
-              )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_PRESCRIPTIONS) && (
-                <TabsContent value="medicaments" className="m-0">
-                  <MedicamentsPanel />
-                </TabsContent>
-              )}
-              {permissions.hasPermission(PERMISSIONS.VIEW_MEDICAL_DATA) && (
-                <TabsContent value="suivi" className="m-0">
-                  <FollowUpDashboard patient={patient} />
-                </TabsContent>
-              )}
-              <TabsContent value="admin" className="m-0">
-                <FicheAdministrativeTab patient={patient} />
-              </TabsContent>
-            </div>
-          </Tabs>
-        </div>
+      {/* Zone principale - contenu */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {renderContent()}
       </div>
 
       {/* Modals */}
