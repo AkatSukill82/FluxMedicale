@@ -50,7 +50,7 @@ import {
   Microscope,
   ClipboardList,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 import LanguageSelector from './i18n/LanguageSelector';
@@ -192,15 +192,15 @@ export default function AppShell({ children, currentPageName }) {
       <div className="h-screen w-full bg-background flex">
         <Sidebar
         className={cn(
-          "border-r no-print transition-all duration-300 ease-in-out bg-sidebar text-sidebar-foreground",
-          isCollapsed ? "w-20" : "w-64"
+          "border-r no-print transition-all duration-200 bg-card text-foreground",
+          isCollapsed ? "w-16" : "w-60"
         )}
         >
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel className={cn("text-lg font-bold text-foreground flex items-center gap-2 px-4 py-6", isCollapsed && "justify-center")}>
-                <Stethoscope className="w-7 h-7 flex-shrink-0 text-primary" />
-                <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden">FluxMed</motion.span>
+              <SidebarGroupLabel className={cn("text-base font-semibold text-foreground flex items-center gap-2.5 px-4 py-5", isCollapsed && "justify-center")}>
+                <Stethoscope className="w-6 h-6 flex-shrink-0 text-foreground" />
+                <motion.span animate={{ opacity: isCollapsed ? 0 : 1, width: isCollapsed ? 0 : 'auto' }} className="overflow-hidden tracking-tight">FluxMed</motion.span>
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -292,11 +292,11 @@ export default function AppShell({ children, currentPageName }) {
         </Sidebar>
 
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
-          <header className="flex-shrink-0 bg-background border-b border-border/50 z-10 no-print">
-            <div className="flex items-center justify-between px-6 h-20">
+          <header className="flex-shrink-0 bg-card border-b z-10 no-print">
+            <div className="flex items-center justify-between px-6 h-14">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="lg:hidden" />
-                <h1 className="text-xl font-bold text-foreground">
+                <h1 className="text-sm font-medium text-foreground">
                   {t(currentPageName.toLowerCase()) || currentPageName}
                 </h1>
               </div>
@@ -362,18 +362,9 @@ export default function AppShell({ children, currentPageName }) {
             </div>
           </header>
 
-          <AnimatePresence mode="wait">
-            <motion.main
-              key={currentPageName}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="flex-1 overflow-y-auto p-6 bg-background"
-            >
-              {children}
-            </motion.main>
-          </AnimatePresence>
+          <main className="flex-1 overflow-y-auto bg-background">
+            {children}
+          </main>
         </div>
       </div>
 

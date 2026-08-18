@@ -104,129 +104,120 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
       <OfflineBanner />
-      {/* Greeting - Simple & Calm */}
-      <div className="text-center py-6">
-        <div className="inline-flex items-center gap-2 text-slate-400 mb-2">
-          <GreetingIcon className="w-5 h-5" />
-          <span className="text-sm">{format(new Date(), "EEEE d MMMM", { locale: dateLocale })}</span>
-        </div>
-        <h1 className="text-3xl font-light text-slate-800">
-          {greeting}, <span className="font-medium">{user?.full_name?.split(' ')[0] || 'Dr.'}</span>
+      
+      {/* Greeting */}
+      <div className="py-4">
+        <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5">
+          <GreetingIcon className="w-3.5 h-3.5" />
+          {format(new Date(), "EEEE d MMMM", { locale: dateLocale })}
+        </p>
+        <h1 className="text-2xl font-medium">
+          {greeting}, <span>{user?.full_name?.split(' ')[0] || 'Dr.'}</span>
         </h1>
       </div>
 
-      {/* Search - Central & Prominent */}
-      <Card className="shadow-sm">
-        <CardContent className="p-3">
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <Input
-              placeholder={t('dashboard.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 h-14 text-lg border-0 shadow-none focus-visible:ring-0 bg-slate-50 rounded-xl"
-            />
-            {filteredPatients.length > 0 && searchQuery.length >= 2 && (
-              <Card className="absolute z-10 w-full mt-2 shadow-xl border-0">
-                <CardContent className="p-2 max-h-72 overflow-y-auto">
-                  {filteredPatients.slice(0, 6).map(p => {
-                    const name = p.name?.find(n => n.use === 'official');
-                    const fullName = `${(name?.given || []).join(' ')} ${name?.family || ''}`.trim();
-                    return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        onClick={() => navigate(createPageUrl(`Patients?patient=${p.id}`))}
-                        className="w-full p-4 text-left hover:bg-blue-50 rounded-xl flex items-center justify-between transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="font-semibold text-blue-600 text-sm">
-                              {name?.given?.[0]?.[0]}{name?.family?.[0]}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium">{fullName}</p>
-                            <p className="text-sm text-slate-500">{p.birthDate}</p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-slate-300" />
-                      </button>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions - Clean Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Button
-          variant="outline"
-          onClick={handleReadEID}
-          disabled={isReading}
-          className="h-auto py-4 flex flex-col gap-2 hover:bg-blue-50 hover:border-blue-200"
-        >
-          {isReading ? (
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-          ) : (
-            <CreditCard className="w-6 h-6 text-blue-600" />
-          )}
-          <span className="text-xs font-medium">{t('dashboard.readEid')}</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={() => navigate(createPageUrl('Patients'))}
-          className="h-auto py-4 flex flex-col gap-2 hover:bg-green-50 hover:border-green-200"
-        >
-          <Plus className="w-6 h-6 text-green-600" />
-          <span className="text-xs font-medium">{t('dashboard.newPatient')}</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={() => navigate(createPageUrl('Agenda'))}
-          className="h-auto py-4 flex flex-col gap-2 hover:bg-purple-50 hover:border-purple-200"
-        >
-          <Calendar className="w-6 h-6 text-purple-600" />
-          <span className="text-xs font-medium">{t('dashboard.agenda')}</span>
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={() => navigate(createPageUrl('Prescriptions'))}
-          className="h-auto py-4 flex flex-col gap-2 hover:bg-orange-50 hover:border-orange-200"
-        >
-          <Clock className="w-6 h-6 text-orange-600" />
-          <span className="text-xs font-medium">{t('dashboard.prescriptions')}</span>
-        </Button>
+      {/* Search */}
+      <div className="relative">
+        <form onSubmit={handleSearch}>
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder={t('dashboard.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-11 bg-card border"
+          />
+        </form>
+        {filteredPatients.length > 0 && searchQuery.length >= 2 && (
+          <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg overflow-hidden">
+            <div className="max-h-72 overflow-y-auto divide-y">
+              {filteredPatients.slice(0, 6).map(p => {
+                const name = p.name?.find(n => n.use === 'official');
+                const fullName = `${(name?.given || []).join(' ')} ${name?.family || ''}`.trim();
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => navigate(createPageUrl(`Patients?patient=${p.id}`))}
+                    className="w-full px-4 py-3 text-left hover:bg-muted/50 flex items-center justify-between transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {name?.given?.[0]?.[0]}{name?.family?.[0]}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{fullName}</p>
+                        <p className="text-xs text-muted-foreground">{p.birthDate}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Accès rapide Messagerie */}
-      <Card 
-        className="shadow-sm cursor-pointer hover:shadow-md transition-shadow border-blue-100 bg-blue-50/30"
+      {/* Quick Actions */}
+      <div className="grid grid-cols-4 gap-2">
+        <button
+          onClick={handleReadEID}
+          disabled={isReading}
+          className="flex flex-col items-center gap-1.5 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+        >
+          {isReading ? (
+            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          ) : (
+            <CreditCard className="w-5 h-5 text-muted-foreground" />
+          )}
+          <span className="text-[11px] font-medium text-center">{t('dashboard.readEid')}</span>
+        </button>
+
+        <button
+          onClick={() => navigate(createPageUrl('Patients'))}
+          className="flex flex-col items-center gap-1.5 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+        >
+          <Plus className="w-5 h-5 text-muted-foreground" />
+          <span className="text-[11px] font-medium text-center">{t('dashboard.newPatient')}</span>
+        </button>
+
+        <button
+          onClick={() => navigate(createPageUrl('Agenda'))}
+          className="flex flex-col items-center gap-1.5 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+        >
+          <Calendar className="w-5 h-5 text-muted-foreground" />
+          <span className="text-[11px] font-medium text-center">{t('dashboard.agenda')}</span>
+        </button>
+
+        <button
+          onClick={() => navigate(createPageUrl('Prescriptions'))}
+          className="flex flex-col items-center gap-1.5 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+        >
+          <Clock className="w-5 h-5 text-muted-foreground" />
+          <span className="text-[11px] font-medium text-center">{t('dashboard.prescriptions')}</span>
+        </button>
+      </div>
+
+      {/* Messagerie */}
+      <button 
+        className="w-full flex items-center gap-3 p-3.5 rounded-lg border bg-card hover:bg-muted/50 transition-colors text-left"
         onClick={() => navigate(createPageUrl('Inbox'))}
       >
-        <CardContent className="p-4 flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <MessageSquare className="w-5 h-5 text-blue-600" />
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-slate-800">{t('dashboard.secureMessaging')}</p>
-            <p className="text-sm text-slate-500">{t('dashboard.exchangeColleagues')}</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-slate-400" />
-        </CardContent>
-      </Card>
+        <MessageSquare className="w-4 h-4 text-muted-foreground" />
+        <div className="flex-1">
+          <p className="text-sm font-medium">{t('dashboard.secureMessaging')}</p>
+          <p className="text-xs text-muted-foreground">{t('dashboard.exchangeColleagues')}</p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+      </button>
 
-      {/* Configurable Widgets Section */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-700">{t('dashboard.myWidgets')}</h2>
+      {/* Widgets */}
+      <div className="flex items-center justify-between pt-2">
+        <h2 className="text-sm font-medium">{t('dashboard.myWidgets')}</h2>
         <DashboardWidgetManager 
           config={config}
           toggleWidget={toggleWidget}
@@ -235,8 +226,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Dynamic Widgets Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {visibleWidgets.map(widget => (
           <div key={widget.id}>
             {widget.component}
@@ -245,19 +235,17 @@ export default function Dashboard() {
       </div>
 
       {visibleWidgets.length === 0 && (
-        <Card className="shadow-sm">
-          <CardContent className="p-8 text-center">
-            <Settings2 className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-            <p className="text-slate-500 font-medium">{t('dashboard.noActiveWidget')}</p>
-            <p className="text-sm text-slate-400 mb-4">{t('dashboard.customizeDashboard')}</p>
-            <DashboardWidgetManager 
-              config={config}
-              toggleWidget={toggleWidget}
-              reorderWidgets={reorderWidgets}
-              resetToDefault={resetToDefault}
-            />
-          </CardContent>
-        </Card>
+        <div className="border rounded-lg bg-card p-8 text-center">
+          <Settings2 className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
+          <p className="text-sm text-muted-foreground">{t('dashboard.noActiveWidget')}</p>
+          <p className="text-xs text-muted-foreground mt-1 mb-3">{t('dashboard.customizeDashboard')}</p>
+          <DashboardWidgetManager 
+            config={config}
+            toggleWidget={toggleWidget}
+            reorderWidgets={reorderWidgets}
+            resetToDefault={resetToDefault}
+          />
+        </div>
       )}
     </div>
   );

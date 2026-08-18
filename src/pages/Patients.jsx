@@ -156,18 +156,14 @@ export default function Patients() {
 
   if (!patientId) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-5">
         <OfflineBanner />
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold">{t('patient.allPatients')}</h2>
-            <Badge variant="outline">{allPatients.length} {t('nav.patients').toLowerCase()}</Badge>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-medium">{t('patient.allPatients')}</h2>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{allPatients.length}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setShowNewPatientDialog(true)} className="gap-2">
-              <UserPlus className="w-4 h-4" />
-              {t('patient.newPatient')}
-            </Button>
             <EIDReaderButton
               onPatientFound={(p) => navigate(createPageUrl(`Patients?patient=${p.id}`))}
               onPatientCreated={(p) => {
@@ -175,15 +171,19 @@ export default function Patients() {
               }}
               variant="outline"
             />
+            <Button onClick={() => setShowNewPatientDialog(true)} size="sm" className="gap-2">
+              <UserPlus className="w-3.5 h-3.5" />
+              {t('patient.newPatient')}
+            </Button>
           </div>
         </div>
         
         {isLoadingList ? (
           <div className="flex items-center justify-center h-64">
-            <p className="text-muted-foreground">{t('patient.loading')}</p>
+            <div className="w-5 h-5 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-card rounded-lg border divide-y">
             {allPatients.map(p => {
               const officialName = p.name?.find(n => n.use === 'official') || {};
               const fullName = `${(officialName.given || []).join(' ')} ${officialName.family || ''}`.trim();
@@ -195,26 +195,24 @@ export default function Patients() {
                 <button
                   key={p.id}
                   onClick={() => navigate(createPageUrl(`Patients?patient=${p.id}`))}
-                  className="p-4 border rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
+                  className="w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left flex items-center gap-3"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                      <span className="text-slate-700 font-semibold">
-                        {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-slate-900 truncate">{fullName}</h3>
-                      <div className="text-sm text-slate-600 mt-1">
-                        {age && <span>{age} {t('patient.years')}</span>}
-                        {age && niss && <span> • </span>}
-                        {niss && <span className="font-mono text-xs">***-{niss.slice(-4)}</span>}
-                      </div>
-                      {p.allergies && (
-                        <Badge variant="destructive" className="mt-2 text-xs">⚠️ {t('patient.allergies')}</Badge>
-                      )}
-                    </div>
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
+                    </span>
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{fullName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {age && <span>{age} ans</span>}
+                      {age && niss && <span> · </span>}
+                      {niss && <span className="font-mono">***{niss.slice(-4)}</span>}
+                    </p>
+                  </div>
+                  {p.allergies && (
+                    <span className="text-xs text-destructive font-medium">⚠️</span>
+                  )}
                 </button>
               );
             })}
@@ -286,55 +284,40 @@ export default function Patients() {
 
   return (
     <div className="flex h-full">
-      {/* Sidebar gauche - Patient info + navigation */}
-      <aside className="w-72 bg-card border-r flex flex-col overflow-hidden flex-shrink-0">
-        {/* Header patient */}
+      {/* Sidebar gauche - Navigation dossier */}
+      <aside className="w-56 bg-card border-r flex flex-col overflow-hidden flex-shrink-0">
+        {/* Patient header */}
         <div className="p-4 border-b">
-          <Button variant="ghost" size="sm" onClick={handleClose} className="gap-2 mb-3 -ml-2">
-            <ArrowLeft className="w-4 h-4" />
-            {t('patient.back')}
-          </Button>
+          <button onClick={handleClose} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-3 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Retour
+          </button>
           
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold leading-tight">{fullName}</h2>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {age && <span>{age} {t('patient.years')}</span>}
-              <span>•</span>
-              <span>{patient.gender === 'male' ? 'M' : 'F'}</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-medium text-muted-foreground">
+                {officialName.given?.[0]?.[0]}{officialName.family?.[0]}
+              </span>
             </div>
-            <Badge variant="outline" className="font-mono text-xs">{maskedNISS}</Badge>
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate leading-tight">{fullName}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {age && <span>{age} ans</span>}
+                {age && <span> · </span>}
+                {patient.gender === 'male' ? 'M' : 'F'}
+              </p>
+            </div>
           </div>
 
           {patient.allergies && (
-            <div className="mt-3 p-2 bg-destructive/10 border border-destructive/20 rounded-md">
-              <p className="text-xs font-semibold text-destructive">⚠️ {t('patient.allergies')}</p>
-              <p className="text-xs text-destructive/80 mt-0.5">{patient.allergies}</p>
+            <div className="mt-3 px-2.5 py-1.5 bg-destructive/8 border border-destructive/15 rounded text-xs text-destructive">
+              ⚠️ {patient.allergies}
             </div>
           )}
         </div>
 
-        {/* Actions rapides */}
-        <div className="p-3 border-b space-y-1.5">
-          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
-            <Button onClick={() => setShowQuickBilling(true)} className="w-full justify-start gap-2" size="sm">
-              <CreditCard className="w-4 h-4" />
-              {t('actions.bill')}
-            </Button>
-          )}
-          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
-            <Button onClick={() => setShowQuickPrescription(true)} className="w-full justify-start gap-2" size="sm" variant="outline">
-              <Pill className="w-4 h-4" />
-              {t('actions.prescribe')}
-            </Button>
-          )}
-          <Button onClick={() => setShowDocumentGenerator(true)} className="w-full justify-start gap-2" size="sm" variant="outline">
-            <FileText className="w-4 h-4" />
-            {t('actions.generateDocument')}
-          </Button>
-        </div>
-
-        {/* Navigation verticale des sections */}
-        <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
+        {/* Navigation sections */}
+        <nav className="flex-1 overflow-y-auto py-2 px-2">
           {navItems.map(item => {
             const Icon = item.icon;
             const isActive = activeTab === item.key;
@@ -342,29 +325,41 @@ export default function Patients() {
               <button
                 key={item.key}
                 onClick={() => setActiveTab(item.key)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-left ${
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors text-left mb-0.5 ${
                   isActive 
-                    ? 'bg-primary/10 text-primary font-medium' 
-                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    ? 'bg-foreground text-background font-medium' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
-                <Icon className="w-4 h-4 flex-shrink-0" />
+                <Icon className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        {/* Infos contact en bas */}
-        <div className="p-3 border-t text-xs text-muted-foreground space-y-1">
-          {patient.telecom?.find(tc => tc.system === 'phone')?.value && (
-            <p>📞 {patient.telecom.find(tc => tc.system === 'phone').value}</p>
+        {/* Quick actions */}
+        <div className="p-2 border-t space-y-1">
+          {permissions.hasPermission(PERMISSIONS.CREATE_INVOICES) && (
+            <Button onClick={() => setShowQuickBilling(true)} variant="ghost" className="w-full justify-start gap-2 h-8 text-xs" size="sm">
+              <CreditCard className="w-3.5 h-3.5" />
+              {t('actions.bill')}
+            </Button>
           )}
-          {patient.mutuelle && <p>🏥 {patient.mutuelle}</p>}
+          {permissions.hasPermission(PERMISSIONS.CREATE_PRESCRIPTIONS) && (
+            <Button onClick={() => setShowQuickPrescription(true)} variant="ghost" className="w-full justify-start gap-2 h-8 text-xs" size="sm">
+              <Pill className="w-3.5 h-3.5" />
+              {t('actions.prescribe')}
+            </Button>
+          )}
+          <Button onClick={() => setShowDocumentGenerator(true)} variant="ghost" className="w-full justify-start gap-2 h-8 text-xs" size="sm">
+            <FileText className="w-3.5 h-3.5" />
+            Document
+          </Button>
         </div>
       </aside>
 
-      {/* Zone principale - contenu */}
+      {/* Main content */}
       <div className="flex-1 overflow-y-auto p-6">
         {renderContent()}
       </div>
