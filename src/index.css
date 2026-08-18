@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -76,73 +78,76 @@ button:focus-visible {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
+    --background: 30 14% 91%;
+    --foreground: 0 0% 23%;
+    --card: 30 20% 96%;
+    --card-foreground: 0 0% 23%;
+    --popover: 30 20% 96%;
+    --popover-foreground: 0 0% 23%;
+    --primary: 268 70% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 12% 87%;
+    --secondary-foreground: 0 0% 23%;
+    --muted: 30 10% 89%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 268 70% 66%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 10% 83%;
+    --input: 30 12% 85%;
+    --ring: 268 70% 66%;
+    --chart-1: 268 70% 66%;
     --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
+    --chart-3: 30 40% 50%;
     --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --chart-5: 350 60% 60%;
+    --radius: 0.75rem;
+    --sidebar-background: 30 16% 93%;
+    --sidebar-foreground: 0 0% 23%;
+    --sidebar-primary: 268 70% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 14% 89%;
+    --sidebar-accent-foreground: 0 0% 23%;
+    --sidebar-border: 30 10% 85%;
+    --sidebar-ring: 268 70% 66%;
+
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-heading: 'Inter', system-ui, sans-serif;
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --background: 30 5% 12%;
+    --foreground: 30 10% 90%;
+    --card: 30 5% 15%;
+    --card-foreground: 30 10% 90%;
+    --popover: 30 5% 15%;
+    --popover-foreground: 30 10% 90%;
+    --primary: 268 70% 66%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 5% 20%;
+    --secondary-foreground: 30 10% 90%;
+    --muted: 30 5% 18%;
+    --muted-foreground: 30 8% 55%;
+    --accent: 268 70% 66%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
+    --border: 30 5% 22%;
+    --input: 30 5% 22%;
+    --ring: 268 70% 66%;
+    --chart-1: 268 70% 66%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 30 5% 10%;
+    --sidebar-foreground: 30 10% 90%;
+    --sidebar-primary: 268 70% 66%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 30 5% 15%;
+    --sidebar-accent-foreground: 30 10% 90%;
+    --sidebar-border: 30 5% 18%;
+    --sidebar-ring: 268 70% 66%;
   }
 }
 
@@ -154,5 +159,13 @@ button:focus-visible {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    letter-spacing: -0.01em;
   }
 }
